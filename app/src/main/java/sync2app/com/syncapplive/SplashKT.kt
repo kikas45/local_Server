@@ -193,8 +193,7 @@ class SplashKT : AppCompatActivity() {
         handler = Handler(Looper.getMainLooper())
         imageHelper?.setOnClickListener(View.OnClickListener {
             showToolHelpPiopUp()
-
-            //   Toast.makeText(Splash.this, "Please wait", Toast.LENGTH_SHORT).show();
+        //   Toast.makeText(Splash.this, "Please wait", Toast.LENGTH_SHORT).show();
         })
 
 
@@ -241,23 +240,30 @@ class SplashKT : AppCompatActivity() {
         })
 
 
-    }
 
-    private fun setTextColor(textView: TextView, colorId: Int) {
-        textView.setTextColor(ContextCompat.getColor(applicationContext, colorId))
-    }
+        var isRetryBTN = false
+        binding.retryntn.setOnClickListener {
+            if (Utility.isNetworkAvailable(applicationContext)) {
+                isRetryBTN = true
+                btnFunRetryAPiCall()
+                if (!isTvModeSettingsReady) {
+                    fetchApiSettings()
+                }
+            }else{
+
+                val handler2000 = Handler(Looper.getMainLooper())
+                handler2000.postDelayed(Runnable {
+                    manageUIStateOnNetworkIssuesForRetry()
+                    isRetryBTN = false
+                }, Constants.timeForConnection)
 
 
-    private fun setDrawableColor(imageView: ImageView, drawableId: Int, colorId: Int) {
-        val drawable = ContextCompat.getDrawable(applicationContext, drawableId)
-        if (drawable != null) {
-            drawable.setColorFilter(
-                ContextCompat.getColor(applicationContext, colorId),
-                PorterDuff.Mode.SRC_IN
-            )
-            imageView.setImageDrawable(drawable)
+            }
         }
+
     }
+
+
 
     private fun setUpInternetAmination() {
 
@@ -772,40 +778,14 @@ class SplashKT : AppCompatActivity() {
                     } catch (e: JSONException) {
                         e.printStackTrace()
                         infotext!!.text = e.message
+                        manageUIStateOnNetworkIssuesForRetry()
                     }
                 }) { error ->
                 infotext!!.text = "Error occurred! =$error"
-
+                manageUIStateOnNetworkIssuesForRetry()
                 isJsonAPICallReady = false
-
                 progressBar!!.visibility = View.GONE
-                if (retryBtn!!.visibility == View.GONE) {
-                    retryBtn!!.visibility = View.VISIBLE
-                }
-                if (go_settings_Btn!!.visibility == View.GONE) {
-                    go_settings_Btn!!.visibility = View.VISIBLE
-                }
-                if (goConnection!!.visibility == View.GONE) {
-                    goConnection!!.visibility = View.VISIBLE
-                }
-                if (gotWifisettings!!.visibility == View.GONE) {
-                    gotWifisettings!!.visibility = View.VISIBLE
-                }
-                if (img_swipe_reload!!.visibility == View.GONE) {
-                    img_swipe_reload!!.visibility = View.VISIBLE
-                }
-                if (imagwifi!!.visibility == View.GONE) {
-                    imagwifi!!.visibility = View.VISIBLE
-                }
-                if (img_settings!!.visibility == View.GONE) {
-                    img_settings!!.visibility = View.VISIBLE
-                }
-                if (imagwifi2!!.visibility == View.GONE) {
-                    imagwifi2!!.visibility = View.VISIBLE
-                }
-                if (imageHelper!!.visibility == View.GONE) {
-                    imageHelper!!.visibility = View.VISIBLE
-                }
+
             }
 
 
@@ -818,12 +798,6 @@ class SplashKT : AppCompatActivity() {
     }
 
 
-    fun retryCall(view: View?) {
-        btnFunRetryAPiCall()
-        if (!isTvModeSettingsReady) {
-            fetchApiSettings()
-        }
-    }
 
     private fun btnFunRetryAPiCall() {
         clickcount++
@@ -839,36 +813,75 @@ class SplashKT : AppCompatActivity() {
             if (!isJsonAPICallReady) {
                 ApiCall(applicationContext, ServerUrl)
             }
-
-            if (retryBtn!!.visibility == View.VISIBLE) {
-                retryBtn!!.visibility = View.GONE
-            }
-            if (go_settings_Btn!!.visibility == View.VISIBLE) {
-                go_settings_Btn!!.visibility = View.GONE
-            }
-            if (gotWifisettings!!.visibility == View.VISIBLE) {
-                gotWifisettings!!.visibility = View.GONE
-            }
-            if (goConnection!!.visibility == View.VISIBLE) {
-                goConnection!!.visibility = View.GONE
-            }
-            if (img_swipe_reload!!.visibility == View.VISIBLE) {
-                img_swipe_reload!!.visibility = View.GONE
-            }
-            if (imagwifi!!.visibility == View.VISIBLE) {
-                imagwifi!!.visibility = View.GONE
-            }
-            if (img_settings!!.visibility == View.VISIBLE) {
-                img_settings!!.visibility = View.GONE
-            }
-            if (imagwifi2!!.visibility == View.VISIBLE) {
-                imagwifi2!!.visibility = View.GONE
-            }
-            if (imageHelper!!.visibility == View.VISIBLE) {
-                imageHelper!!.visibility = View.GONE
-            }
+            manageUIStateOnNetworkIssues()
         }
     }
+
+
+    private fun manageUIStateOnNetworkIssues(){
+        if (retryBtn!!.visibility == View.VISIBLE) {
+            retryBtn!!.visibility = View.GONE
+        }
+        if (go_settings_Btn!!.visibility == View.VISIBLE) {
+            go_settings_Btn!!.visibility = View.GONE
+        }
+        if (gotWifisettings!!.visibility == View.VISIBLE) {
+            gotWifisettings!!.visibility = View.GONE
+        }
+        if (goConnection!!.visibility == View.VISIBLE) {
+            goConnection!!.visibility = View.GONE
+        }
+        if (img_swipe_reload!!.visibility == View.VISIBLE) {
+            img_swipe_reload!!.visibility = View.GONE
+        }
+        if (imagwifi!!.visibility == View.VISIBLE) {
+            imagwifi!!.visibility = View.GONE
+        }
+        if (img_settings!!.visibility == View.VISIBLE) {
+            img_settings!!.visibility = View.GONE
+        }
+        if (imagwifi2!!.visibility == View.VISIBLE) {
+            imagwifi2!!.visibility = View.GONE
+        }
+        if (imageHelper!!.visibility == View.VISIBLE) {
+            imageHelper!!.visibility = View.GONE
+        }
+        
+    }
+
+    private fun manageUIStateOnNetworkIssuesForRetry(){
+        if (retryBtn!!.visibility == View.GONE) {
+            retryBtn!!.visibility = View.VISIBLE
+        }
+        if (go_settings_Btn!!.visibility == View.GONE) {
+            go_settings_Btn!!.visibility = View.VISIBLE
+        }
+        if (gotWifisettings!!.visibility == View.GONE) {
+            gotWifisettings!!.visibility = View.VISIBLE
+        }
+        if (goConnection!!.visibility == View.GONE) {
+            goConnection!!.visibility = View.VISIBLE
+        }
+        if (img_swipe_reload!!.visibility == View.GONE) {
+            img_swipe_reload!!.visibility = View.VISIBLE
+        }
+        if (imagwifi!!.visibility == View.GONE) {
+            imagwifi!!.visibility = View.VISIBLE
+        }
+        if (img_settings!!.visibility == View.GONE) {
+            img_settings!!.visibility = View.VISIBLE
+        }
+        if (imagwifi2!!.visibility == View.GONE) {
+            imagwifi2!!.visibility = View.VISIBLE
+        }
+        if (imageHelper!!.visibility == View.GONE) {
+            imageHelper!!.visibility = View.VISIBLE
+        }
+
+    }
+
+
+
 
     @SuppressLint("MissingInflatedId", "UseCompatLoadingForDrawables")
     private fun showToolHelpPiopUp() {
@@ -1114,14 +1127,15 @@ class SplashKT : AppCompatActivity() {
                                 "Error: Unable to fetch TV or App Mode Settings",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            manageUIStateOnNetworkIssuesForRetry()
                         }
                     }
                 } catch (e: HttpException) {
                     withContext(Dispatchers.Main) {
                         // Handle HTTP exception (e.g., show a toast)
                         Log.e("ApiResponse", "HTTP Exception: ${e.message}")
-
                         isTvModeSettingsReady = false
+                        manageUIStateOnNetworkIssuesForRetry()
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
@@ -1129,6 +1143,8 @@ class SplashKT : AppCompatActivity() {
                         Log.e("ApiResponse", "Error: ${e.message}")
                         isTvModeSettingsReady = false
                         infotext?.text = "Error: ${e.message}"
+                        manageUIStateOnNetworkIssuesForRetry()
+
                     }
                 }
             }
@@ -1210,11 +1226,7 @@ class SplashKT : AppCompatActivity() {
 
                         Log.d("MAMMA", "My activoitu is runing")
 
-                        val sharedBiometric: SharedPreferences =
-                            applicationContext.getSharedPreferences(
-                                Constants.SHARED_BIOMETRIC,
-                                MODE_PRIVATE
-                            )
+                        val sharedBiometric: SharedPreferences = applicationContext.getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
                         val get_TV_or_App_Mode = sharedBiometric.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
                         val JSON_MAIN_URL = sharedBiometric.getString(Constants.JSON_MAIN_URL, "").toString()
 
@@ -1222,17 +1234,11 @@ class SplashKT : AppCompatActivity() {
 
                         if (get_TV_or_App_Mode == Constants.TV_Mode) {
                             val editText88 = sharedBiometric.edit()
-                            editText88.putString(
-                                Constants.get_Launching_State_Of_WebView,
-                                Constants.launch_WebView_Offline
-                            )
+                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
                             editText88.apply()
 
                             val myActivity = Intent(applicationContext, WebViewPage::class.java)
-                            myActivity.putExtra(
-                                Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE,
-                                Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE
-                            )
+                            myActivity.putExtra(Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE, Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE)
                             startActivity(myActivity)
                             finish()
                             Log.d("MAMMA", "TV: Splash Screen")
@@ -1242,17 +1248,11 @@ class SplashKT : AppCompatActivity() {
                             Log.d("MAMMA", "Appp: TV_MODE_")
 
                             val editText88 = sharedBiometric.edit()
-                            editText88.putString(
-                                Constants.get_Launching_State_Of_WebView,
-                                Constants.launch_Default_WebView_url
-                            )
+                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
                             editText88.apply()
 
                             val myActivity = Intent(applicationContext, WebViewPage::class.java)
-                            myActivity.putExtra(
-                                Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE,
-                                Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE
-                            )
+                            myActivity.putExtra(Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE, Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE)
 
                             val urlPath = "${Constants.CUSTOM_CP_SERVER_DOMAIN}/$CLO/$DEMO/App/$fileName"
 
@@ -1264,7 +1264,7 @@ class SplashKT : AppCompatActivity() {
                                 Log.d("MAMMA", "Appp: $urlPath")
                             }
 
-                            startActivity(myActivity)
+                             startActivity(myActivity)
                             finish()
 
 

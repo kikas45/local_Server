@@ -201,6 +201,10 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
         registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
 
+        handler.postDelayed(kotlinx.coroutines.Runnable {
+            autoSetPrefilledPaths()
+        },1500)
+
 
 
         setUpInternetAmination()
@@ -489,6 +493,34 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
 
     }
+
+    private fun autoSetPrefilledPaths() {
+        // set path
+        binding.editTextUserID.setText("CLO")
+        binding.editTextLicenseKey.setText("DE_MO_2021000")
+
+        binding.texturlsSavedDownload.text = CP_server
+        getUrlBasedOnSpinnerText = CP_server
+
+        binding.texturlsSavedDownload.setTextColor(
+            ContextCompat.getColor(
+                applicationContext,
+                R.color.deep_blue
+            )
+        )
+
+
+        val editor = myDownloadClass.edit()
+        editor.putString(Constants.Saved_Parthner_Name, CP_server)
+        editor.putString(
+            Constants.CP_OR_AP_MASTER_DOMAIN,
+            Constants.CUSTOM_CP_SERVER_DOMAIN
+        )
+        editor.apply()
+
+    }
+
+
 
     private fun setUpInternetAmination() {
 

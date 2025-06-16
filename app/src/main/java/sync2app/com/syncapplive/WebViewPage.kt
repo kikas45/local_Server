@@ -3747,7 +3747,7 @@ class WebViewPage : AppCompatActivity() {
                             try {
                                 if (isSystemRunning) {
                                     myDownloadStatus()
-                                    onAppRedirectToJsonPage()
+                                   // onAppRedirectToJsonPage()
                                 }
                                 Log.d("HFHGHHH", "onAppRedirectToJsonPage: internet Connection")
 
