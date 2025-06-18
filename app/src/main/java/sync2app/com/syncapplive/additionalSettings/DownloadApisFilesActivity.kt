@@ -1022,6 +1022,10 @@ class DownloadApisFilesActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                 }
 
+                val editor = sharedBiometric.edit()
+                editor.remove(Constants.CALL_RE_SYNC_MANGER)
+                editor.apply()
+
                 val getFolderClo = sharedP.getString("getFolderClo", "")
                 val getFolderSubpath = sharedP.getString("getFolderSubpath", "")
                 val Extracted = sharedP.getString("Extracted", "")

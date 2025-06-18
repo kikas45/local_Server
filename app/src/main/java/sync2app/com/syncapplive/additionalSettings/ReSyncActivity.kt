@@ -263,9 +263,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
             val getSaveSubFolderInPutFiled = myDownloadClass.getString(Constants.getSaveSubFolderInPutFiled, "").toString()
             val getSavedEditTextInputSynUrlZip = myDownloadClass.getString(Constants.getSavedEditTextInputSynUrlZip, "").toString()
 
-            val getSaved_manaul_index_edit_url_Input =
-                myDownloadClass.getString(Constants.getSaved_manaul_index_edit_url_Input, "")
-                    .toString()
+            val getSaved_manaul_index_edit_url_Input = myDownloadClass.getString(Constants.getSaved_manaul_index_edit_url_Input, "").toString()
 
             if (!getSavedCLOImPutFiled.isNullOrEmpty()) {
                 editTextCLOpath.setText(getSavedCLOImPutFiled)
@@ -382,9 +380,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
 
                 try {
                     val editorTVMODE = sharedTVAPPModePreferences.edit()
-                    editorTVMODE.putString(
-                        Constants.installTVModeForFirstTime, Constants.installTVModeForFirstTime
-                    )
+                    editorTVMODE.putString(Constants.installTVModeForFirstTime, Constants.installTVModeForFirstTime)
                     editorTVMODE.apply()
 
 

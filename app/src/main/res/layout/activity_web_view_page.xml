@@ -371,7 +371,7 @@
 
 
                     <ImageView
-                        android:id="@+id/imageWiFiOFF"
+                        android:id="@+id/imageWiFiOn"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:layout_marginTop="4dp"
@@ -381,7 +381,7 @@
                         app:tint="@android:color/holo_green_light" />
 
                     <ImageView
-                        android:id="@+id/imageWiFiOn"
+                        android:id="@+id/imageWiFiOFF"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:layout_marginTop="4dp"

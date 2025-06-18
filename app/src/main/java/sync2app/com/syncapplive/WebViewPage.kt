@@ -3763,8 +3763,8 @@ class WebViewPage : AppCompatActivity() {
                     try {
                         runOnUiThread {
                             if (isSystemRunning) {
-                                imageWiFiOn!!.visibility = View.VISIBLE
-                                imageWiFiOFF!!.visibility = View.GONE
+                                imageWiFiOn!!.visibility = View.GONE
+                                imageWiFiOFF!!.visibility = View.VISIBLE
                                 textStatusProcess!!.text = "No Internet"
                             }
                         }
@@ -3806,14 +3806,14 @@ class WebViewPage : AppCompatActivity() {
         try {
             runOnUiThread {
                 if (isSystemRunning) {
-                    imageWiFiOn?.visibility = View.GONE
-                    imageWiFiOFF?.visibility = View.VISIBLE
 
-                    val get_Api_state =
-                        sharedBiometric.getString(Constants.imagSwtichEnableSyncFromAPI, "")
-                            .toString()
+
+                    val get_Api_state = sharedBiometric.getString(Constants.imagSwtichEnableSyncFromAPI, "").toString()
                     if (Utility.isNetworkAvailable(applicationContext)) {
-                        // if Zip is enabled
+
+                        imageWiFiOn?.visibility = View.VISIBLE
+                        imageWiFiOFF?.visibility = View.GONE
+
                         if (get_Api_state == Constants.imagSwtichEnableSyncFromAPI) {
                             val get_progress =
                                 myDownloadClass.getString(Constants.SynC_Status, "").toString()
@@ -3827,6 +3827,10 @@ class WebViewPage : AppCompatActivity() {
                         }
                     } else {
                         textStatusProcess?.text = "No Internet"
+
+                        imageWiFiOn?.visibility = View.GONE
+                        imageWiFiOFF?.visibility = View.VISIBLE
+
                     }
                 }
             }

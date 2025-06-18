@@ -1068,6 +1068,10 @@ class RetryApiDownloadActivityParsing : AppCompatActivity() {
                                     } catch (e: Exception) {
                                     }
 
+                                    val editor = sharedBiometric.edit()
+                                    editor.remove(Constants.CALL_RE_SYNC_MANGER)
+                                    editor.apply()
+
                                     showToastMessage("Source folder does not exist.")
                                     val intent = Intent(applicationContext, WebViewPage::class.java)
                                     startActivity(intent)
@@ -1115,7 +1119,9 @@ class RetryApiDownloadActivityParsing : AppCompatActivity() {
                                     }
                                 } catch (e: Exception) {
                                 }
-
+                                val editor = sharedBiometric.edit()
+                                editor.remove(Constants.CALL_RE_SYNC_MANGER)
+                                editor.apply()
                                 showToastMessage("Source folder does not exist.")
                                 val intent = Intent(applicationContext, WebViewPage::class.java)
                                 startActivity(intent)
@@ -1160,6 +1166,10 @@ class RetryApiDownloadActivityParsing : AppCompatActivity() {
                                     }
                                 } catch (e: Exception) {
                                 }
+
+                                val editor = sharedBiometric.edit()
+                                editor.remove(Constants.CALL_RE_SYNC_MANGER)
+                                editor.apply()
 
                                 showToastMessage("Error: ${e.message}")
                                 val intent = Intent(applicationContext, WebViewPage::class.java)

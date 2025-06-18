@@ -638,6 +638,11 @@ class DownlodZipActivity : AppCompatActivity() {
                 if (customProgressDialog !=null){
                     customProgressDialog!!.dismiss()
                 }
+
+                val editor = sharedBiometric.edit()
+                editor.remove(Constants.CALL_RE_SYNC_MANGER)
+                editor.apply()
+
                 val intent = Intent(applicationContext, WebViewPage::class.java)
                 startActivity(intent)
                 finish()
@@ -688,6 +693,11 @@ class DownlodZipActivity : AppCompatActivity() {
                 delete(myFile)
 
                 withContext(Dispatchers.Main){
+
+                    val editor = sharedBiometric.edit()
+                    editor.remove(Constants.CALL_RE_SYNC_MANGER)
+                    editor.apply()
+
                     val intent = Intent(applicationContext, WebViewPage::class.java)
                     startActivity(intent)
                     finish()
