@@ -8,7 +8,6 @@ class Constants {
         const val CP_OR_AP_MASTER_DOMAIN = "CP_AP_MASTER_DOMAIN"
         const val CUSTOM_CP_SERVER_DOMAIN = "https://cp.cloudappserver.co.uk/app_base/public/"
         const val CUSTOM_API_SERVER_DOMAIN = "https://cloudapp.web-adm.in/public/"
-      //  const val CUSTOM_API_SERVER_DOMAIN = "https://cp.cloudappserver.co.uk/app_base/public/"
 
 
         // This is important for master domain urls from the Json
