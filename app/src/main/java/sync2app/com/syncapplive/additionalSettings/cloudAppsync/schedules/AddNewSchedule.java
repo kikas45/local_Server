@@ -524,7 +524,7 @@ public class AddNewSchedule extends AppCompatActivity {
             ///   Toast.makeText(getApplicationContext(), "Server time", Toast.LENGTH_SHORT).show();
 
             RetrofitClientJava
-                    .getInstance()
+                    .getInstance(this)
                     .getApi()
                     .getServerTime(getCompany_id)
                     .enqueue(new Callback<ServerTimeResponse>() {
@@ -556,6 +556,9 @@ public class AddNewSchedule extends AppCompatActivity {
 
                         }
                     });
+
+
+
 
         } else {
 

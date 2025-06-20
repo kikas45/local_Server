@@ -98,6 +98,7 @@ class SplashKT : AppCompatActivity() {
     private var isCallingStart = true
     private var isMyActivityRunning = false
 
+    private  var isRetryBTN = false
 
     private val sharedTVAPPModePreferences: SharedPreferences by lazy {
         applicationContext.getSharedPreferences(
@@ -241,7 +242,7 @@ class SplashKT : AppCompatActivity() {
 
 
 
-        var isRetryBTN = false
+
         binding.retryntn.setOnClickListener {
             if (Utility.isNetworkAvailable(applicationContext)) {
                 isRetryBTN = true
@@ -501,18 +502,10 @@ class SplashKT : AppCompatActivity() {
 
                         isJsonAPICallReady = true
 
-                        val sharedBiometric =
-                            getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-                        val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(
-                            Constants.INSTALL_TV_JSON_USER_CLICKED,
-                            ""
-                        ).toString()
-                        val getFirstMode = sharedTVAPPModePreferences.getString(
-                            Constants.installTVModeForFirstTime,
-                            ""
-                        ).toString()
-                        val getTvMode =
-                            sharedBiometric.getString(Constants.CALL_RE_SYNC_MANGER, "").toString()
+                        val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+                        val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+                        val getFirstMode = sharedTVAPPModePreferences.getString(Constants.installTVModeForFirstTime, "").toString()
+                        val getTvMode = sharedBiometric.getString(Constants.CALL_RE_SYNC_MANGER, "").toString()
 
 
                         if (URLUtil.isValidUrl(homeurl)) {
@@ -537,10 +530,7 @@ class SplashKT : AppCompatActivity() {
                                         if (should_My_App_Use_TV_Mode) {
                                             // saving launch state
                                             val editText88 = sharedBiometric.edit()
-                                            editText88.putString(
-                                                Constants.get_Launching_State_Of_WebView,
-                                                Constants.launch_WebView_Offline
-                                            )
+                                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
                                             editText88.apply()
 
                                             val editor = preferences.edit()
@@ -550,10 +540,7 @@ class SplashKT : AppCompatActivity() {
                                         } else {
                                             // saving launch state
                                             val editText88 = sharedBiometric.edit()
-                                            editText88.putString(
-                                                Constants.get_Launching_State_Of_WebView,
-                                                Constants.launch_Default_WebView_url
-                                            )
+                                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
                                             editText88.apply()
 
                                             val editor = preferences.edit()
@@ -568,8 +555,7 @@ class SplashKT : AppCompatActivity() {
                                         ""
                                     ).toString()
                                     if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
-                                        val myactivity =
-                                            Intent(applicationContext, WelcomeSliderKT::class.java)
+                                        val myactivity = Intent(applicationContext, WelcomeSliderKT::class.java)
                                         startActivity(myactivity)
                                         finish()
 
@@ -595,14 +581,8 @@ class SplashKT : AppCompatActivity() {
                                         if (should_My_App_Use_TV_Mode) {
                                             // saving launch state
                                             val editText88 = sharedBiometric.edit()
-                                            editText88.putString(
-                                                Constants.get_Launching_State_Of_WebView,
-                                                Constants.launch_WebView_Offline
-                                            )
-                                            editText88.putString(
-                                                Constants.PROTECT_PASSWORD,
-                                                Constants.PROTECT_PASSWORD
-                                            )
+                                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
+                                            editText88.putString(Constants.PROTECT_PASSWORD, Constants.PROTECT_PASSWORD)
                                             editText88.apply()
 
                                             Log.d(
@@ -610,17 +590,11 @@ class SplashKT : AppCompatActivity() {
                                                 "SplashScreen: launch_WebView_Offline"
                                             )
 
-                                            val getInfoPageState = sharedBiometric.getString(
-                                                Constants.FIRST_INFORMATION_PAGE_COMPLETED,
-                                                ""
-                                            ).toString()
+                                            val getInfoPageState = sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
                                             if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
 
                                                 if (!getFirstMode.equals(Constants.installTVModeForFirstTime)) {
-                                                    val myactivity = Intent(
-                                                        applicationContext,
-                                                        ReSyncActivity::class.java
-                                                    )
+                                                    val myactivity = Intent(applicationContext, ReSyncActivity::class.java)
                                                     myactivity.putExtra("url", constants.jsonUrl)
                                                     startActivity(myactivity)
                                                     finish()
@@ -1040,56 +1014,26 @@ class SplashKT : AppCompatActivity() {
                                 editor.putBoolean(Constants.installTVMode, installTVMode)
                                 editor.putBoolean(Constants.hide_TV_Mode_Label, hideTvModeLabel)
                                 editor.putBoolean(Constants.fullScreen_APP, fullScreen)
-                                editor.putBoolean(
-                                    Constants.hide_Full_ScreenLabel,
-                                    hideFullScreenLabel
-                                )
+                                editor.putBoolean(Constants.hide_Full_ScreenLabel, hideFullScreenLabel)
                                 editor.putBoolean(Constants.immersive_Mode_APP, immersiveMode)
-                                editor.putBoolean(
-                                    Constants.hide_Immersive_ModeLabel,
-                                    hideImmersiveModeLabel
-                                )
+                                editor.putBoolean(Constants.hide_Immersive_ModeLabel, hideImmersiveModeLabel)
                                 editor.putBoolean(Constants.hide_BottomBar_APP, hideBottomBar)
-                                editor.putBoolean(
-                                    Constants.hide_Bottom_Bar_Label_APP,
-                                    hideBottomBarLabel
-                                )
-                                editor.putBoolean(
-                                    Constants.hideBottom_MenuIcon_APP,
-                                    hideBottomMenuIcon
-                                )
-                                editor.putBoolean(
-                                    Constants.hide_Bottom_MenuIconLabel_APP,
-                                    hideBottomMenuIconLabel
-                                )
-                                editor.putBoolean(
-                                    Constants.hide_Floating_Button_APP,
-                                    hideFloatingButton
-                                )
-                                editor.putBoolean(
-                                    Constants.hide_Floating_ButtonLabel_APP,
-                                    hideFloatingButtonLabel
-                                )
+                                editor.putBoolean(Constants.hide_Bottom_Bar_Label_APP, hideBottomBarLabel)
+                                editor.putBoolean(Constants.hideBottom_MenuIcon_APP, hideBottomMenuIcon)
+                                editor.putBoolean(Constants.hide_Bottom_MenuIconLabel_APP, hideBottomMenuIconLabel)
+                                editor.putBoolean(Constants.hide_Floating_Button_APP, hideFloatingButton)
+                                editor.putBoolean(Constants.hide_Floating_ButtonLabel_APP, hideFloatingButtonLabel)
 
                                 // newly added
-                                editor.putBoolean(
-                                    Constants.use_local_schedule_APP,
-                                    use_local_schedule
-                                )
-                                editor.putBoolean(
-                                    Constants.show_local_schedule_label,
-                                    show_local_schedule_label
-                                )
+                                editor.putBoolean(Constants.use_local_schedule_APP, use_local_schedule)
+                                editor.putBoolean(Constants.show_local_schedule_label, show_local_schedule_label)
                                 editor.apply()
 
 
                                 if (installTVMode) {
                                     should_My_App_Use_TV_Mode = true
                                     val editorrr = sharedBiometric.edit()
-                                    editorrr.putString(
-                                        Constants.MY_TV_OR_APP_MODE,
-                                        Constants.TV_Mode
-                                    )
+                                    editorrr.putString(Constants.MY_TV_OR_APP_MODE, Constants.TV_Mode)
                                     editorrr.apply()
                                 } else {
                                     val editorrr = sharedBiometric.edit()

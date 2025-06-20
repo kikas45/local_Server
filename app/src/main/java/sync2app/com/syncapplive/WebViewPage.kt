@@ -1703,6 +1703,7 @@ class WebViewPage : AppCompatActivity() {
                         checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                         webView!!.settings.setGeolocationEnabled(true)
                         displayLocationSettingsRequest(applicationContext)
+                        showToastMessage("System working on Geo Location")
                     }
                 } else {
                     showToastMessage("Location requested, You can enable location in settings")
@@ -2224,15 +2225,10 @@ class WebViewPage : AppCompatActivity() {
 
         try {
 
-            val get_INSTALL_TV_JSON_USER_CLICKED =
-                sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
-                    .toString()
-            val show_BottomBar_APP =
-                sharedTVAPPModePreferences.getBoolean(Constants.hide_BottomBar_APP, false)
-            val fullScreen_APP =
-                sharedTVAPPModePreferences.getBoolean(Constants.hide_BottomBar_APP, false)
-            val immersive_Mode_APP =
-                sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
+            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+            val show_BottomBar_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_BottomBar_APP, false)
+            val fullScreen_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_BottomBar_APP, false)
+            val immersive_Mode_APP = sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
 
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
 
@@ -8298,8 +8294,7 @@ class WebViewPage : AppCompatActivity() {
             registerReceiver(connectivityReceiver, intentFilter)
 
 
-            val getSynModeType =
-                sharedBiometric.getString(Constants.IMG_SELECTED_SYNC_METHOD, "").toString()
+            val getSynModeType = sharedBiometric.getString(Constants.IMG_SELECTED_SYNC_METHOD, "").toString()
             if (getSynModeType == Constants.USE_ZIP_SYNC) {
                 updateSyncViewZip()
             } else {
@@ -8333,6 +8328,7 @@ class WebViewPage : AppCompatActivity() {
     }
 
 
+    @SuppressLint("ImplicitSamInstance")
     override fun onDestroy() {
         super.onDestroy()
         try {
@@ -8506,12 +8502,7 @@ class WebViewPage : AppCompatActivity() {
 
 
             if (Utility.foregroundRetryParsingServiceClass(applicationContext)) {
-                applicationContext.stopService(
-                    Intent(
-                        applicationContext,
-                        RetryParsingSyncService::class.java
-                    )
-                )
+                applicationContext.stopService(Intent(applicationContext, RetryParsingSyncService::class.java))
             }
 
 

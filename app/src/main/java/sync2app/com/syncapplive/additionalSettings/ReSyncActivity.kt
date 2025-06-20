@@ -306,9 +306,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
             textTestConnectionAPPer.setOnClickListener {
 
                 val editorTVMODE = sharedTVAPPModePreferences.edit()
-                editorTVMODE.putString(
-                    Constants.installTVModeForFirstTime, Constants.installTVModeForFirstTime
-                )
+                editorTVMODE.putString(Constants.installTVModeForFirstTime, Constants.installTVModeForFirstTime)
                 editorTVMODE.apply()
 
                 if (handlerMoveToWebviewPage != null) {
@@ -362,9 +360,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
 
             textLauncheSaveDownload.setOnClickListener {
                 val editorTVMODE = sharedTVAPPModePreferences.edit()
-                editorTVMODE.putString(
-                    Constants.installTVModeForFirstTime, Constants.installTVModeForFirstTime
-                )
+                editorTVMODE.putString(Constants.installTVModeForFirstTime, Constants.installTVModeForFirstTime)
                 editorTVMODE.apply()
 
                 if (handlerMoveToWebviewPage != null) {
@@ -1433,10 +1429,17 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
 
                 if (imagSwtichPartnerUrl.isChecked) {
                     serVerOptionDialog()
-
                 } else {
 
-                    show_API_Urls()
+                    val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+                    val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
+                    val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
+                    if (getFolderClo.isNotEmpty() && getFolderSubpath.isNotEmpty()){
+                        show_API_Urls()
+                    }else{
+                        showInfoAlertDialog()
+                    }
+
                 }
 
             }
@@ -1850,6 +1853,18 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
 
 
     }
+
+
+    private fun showInfoAlertDialog(){
+        AlertDialog.Builder(this)
+            .setTitle("Location Error")
+            .setMessage("Op's!.. System needs to get absolute Location, try toggling to Partner URL.")
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
 
     private fun initToggleUseZipSyncOrApI() {
         binding.apply {
@@ -4718,11 +4733,8 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
 
                     if (fil_baseUrl.isNotEmpty() && fil_appIndex.isNotEmpty()) {
 
-                        val myDownloadClass =
-                            getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-                        val CP_AP_MASTER_DOMAIN =
-                            myDownloadClass.getString(Constants.CP_OR_AP_MASTER_DOMAIN, "")
-                                .toString()
+                        val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+                        val CP_AP_MASTER_DOMAIN = myDownloadClass.getString(Constants.CP_OR_AP_MASTER_DOMAIN, "").toString()
 
                         // this url does not affect the Outcome of Master Domain
                         val url = "${CP_AP_MASTER_DOMAIN}/$fil_CLO/$fil_DEMO/App/index.html"
@@ -4956,7 +4968,14 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
             bindingCm.textTryAgin.visibility = View.GONE
             bindingCm.textErrorText.visibility = View.GONE
 
-            mApiViewModel.fetchApiUrls(Constants.BASE_URL_OF_MASTER_DOMAIN)
+
+            val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+            val CP_AP_MASTER_DOMAIN = myDownloadClass.getString(Constants.CP_OR_AP_MASTER_DOMAIN, "").toString()
+            val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
+            val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
+            val customJsonUrl = "$CP_AP_MASTER_DOMAIN/$getFolderClo/$getFolderSubpath/DOM/Custom.Json/"
+
+            mApiViewModel.fetchApiUrls(customJsonUrl)
 
         } else {
             bindingCm.apply {
@@ -5008,7 +5027,13 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                     bindingCm.textTryAgin.visibility = View.GONE
                     bindingCm.textErrorText.visibility = View.GONE
 
-                    mApiViewModel.fetchApiUrls(Constants.BASE_URL_OF_MASTER_DOMAIN)
+                    val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+                    val CP_AP_MASTER_DOMAIN = myDownloadClass.getString(Constants.CP_OR_AP_MASTER_DOMAIN, "").toString()
+                    val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
+                    val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
+                    val customJsonUrl = "$CP_AP_MASTER_DOMAIN/$getFolderClo/$getFolderSubpath/DOM/Custom.Json/"
+
+                    mApiViewModel.fetchApiUrls(customJsonUrl)
 
                 } else {
                     bindingCm.apply {

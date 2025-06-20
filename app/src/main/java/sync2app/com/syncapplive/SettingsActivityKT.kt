@@ -728,17 +728,28 @@ class SettingsActivityKT : AppCompatActivity() {
 
             val immersive_Mode_APP = sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
-
                 imgImmesriveModeToggle.isChecked = immersive_Mode_APP == true
-            }else{
-                val img_imgImmesriveModeToggle = preferences.getBoolean(Constants.immersive_mode, false)
-                imgImmesriveModeToggle.isChecked = img_imgImmesriveModeToggle == true
             }
 
 
 
+            //  if it is not clicked
+            val sharedBiometricPref = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+            val get_AppMode = sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
 
+            if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED){
+                if (get_AppMode != Constants.TV_Mode) {
+                    val img_imgImmesriveModeToggle = preferences.getBoolean(Constants.immersive_mode, false)
+                    imgImmesriveModeToggle.isChecked = img_imgImmesriveModeToggle == true
+
+                }else{
+                    val img_imgImmesriveModeToggle = preferences.getBoolean(Constants.immersive_mode, false)
+                    imgImmesriveModeToggle.isChecked = img_imgImmesriveModeToggle == false
+                }
+            }
         }
+
+
 
 
         // img_geolocation Mode
@@ -1011,7 +1022,8 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
 
-                } else {
+                }
+                else {
                     textShwoFloatingButton.text = "Show Floating Button"
                     editor.putBoolean(Constants.shwoFloatingButton, false)
                     editor.apply()

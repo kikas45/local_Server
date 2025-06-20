@@ -305,11 +305,18 @@ class AdditionalSettingsActivity : AppCompatActivity() {
 
 
             textAppSettings.setOnClickListener {
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                val uri = Uri.fromParts("package", packageName, null)
-                intent.data = uri
+               // val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+              //  val uri = Uri.fromParts("package", packageName, null)
+                // intent.data = uri
+               // startActivity(intent)
+
+                val intent = Intent(applicationContext, SettingsActivityKT::class.java)
                 startActivity(intent)
+                finish()
+
             }
+
+
 
             textWifiSettings.setOnClickListener {
                 val intent = Intent(Settings.ACTION_WIFI_SETTINGS)

@@ -198,8 +198,10 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
         setContentView(binding.root)
 
         // Register the broadcast receiver dynamically
-        registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+       // registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
+        val filter = IntentFilter().apply { addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE) }
+        registerReceiver(downloadReceiver, filter)
 
         handler.postDelayed(kotlinx.coroutines.Runnable {
             autoSetPrefilledPaths()
@@ -347,7 +349,24 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
             if (binding.imgUserMasterDomainORCustom.isChecked) {
                 serVerOptionDialog()
             } else {
-                show_API_Urls()
+
+                val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+                var getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
+                var getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
+
+                val clo = binding.editTextUserID.text.toString().trim()
+                val subPath = binding.editTextLicenseKey.text.toString().trim()
+
+                val isGroupOneValid = getFolderClo.isNotEmpty() && getFolderSubpath.isNotEmpty()
+                val isGroupTwoValid = clo.isNotEmpty() && subPath.isNotEmpty()
+
+                if (isGroupOneValid || isGroupTwoValid) {
+                    show_API_Urls()
+                } else {
+                    showInfoAlertDialog()
+                }
+
+
             }
         }
 
@@ -365,16 +384,12 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
                 // Save Launch State
                 val editText88 = sharedBiometric.edit()
-                editText88.putString(
-                    Constants.get_Launching_State_Of_WebView,
-                    Constants.launch_Default_WebView_url
-                )
-                editText88.putString(
-                    Constants.imgStartAppRestartOnTvMode,
-                    Constants.imgStartAppRestartOnTvMode
-                )
+                editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
+                editText88.putString(Constants.imgStartAppRestartOnTvMode, Constants.imgStartAppRestartOnTvMode)
+                editText88.putString(Constants.MY_TV_OR_APP_MODE, Constants.App_Mode)
                 editText88.remove(Constants.imgEnableAutoBoot)
                 editText88.apply()
+
 
 
                 navigateAppMolde = true
@@ -406,8 +421,6 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
 
 
-
-
             textTvMode.setOnClickListener {
                 btnisClicked = true
 
@@ -417,15 +430,10 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
                 // Save Launch State
                 val editText88 = sharedBiometric.edit()
-                editText88.putString(
-                    Constants.get_Launching_State_Of_WebView,
-                    Constants.launch_WebView_Offline
-                )
+                editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
                 editText88.putString(Constants.imgEnableAutoBoot, Constants.imgEnableAutoBoot)
-                editText88.putString(
-                    Constants.imgStartAppRestartOnTvMode,
-                    Constants.imgStartAppRestartOnTvMode
-                )
+                editText88.putString(Constants.imgStartAppRestartOnTvMode, Constants.imgStartAppRestartOnTvMode)
+                editText88.putString(Constants.MY_TV_OR_APP_MODE, Constants.TV_Mode)
                 editText88.putString(Constants.PROTECT_PASSWORD, Constants.PROTECT_PASSWORD)
                 editText88.apply()
 
@@ -457,6 +465,9 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
             }
 
 
+
+
+
             textDefaultMode.setOnClickListener {
                 btnisClicked = true
 
@@ -468,10 +479,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
                 // remove Json Data for Tv Setting
                 val editorTV = sharedTVAPPModePreferences.edit()
-                editorTV.putString(
-                    Constants.INSTALL_TV_JSON_USER_CLICKED,
-                    Constants.INSTALL_TV_JSON_USER_CLICKED
-                )
+                editorTV.putString(Constants.INSTALL_TV_JSON_USER_CLICKED, Constants.INSTALL_TV_JSON_USER_CLICKED)
                 editorTV.remove(Constants.installTVModeForFirstTime)
                 editorTV.apply()
 
@@ -494,6 +502,17 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
     }
 
+
+    private fun showInfoAlertDialog(){
+        AlertDialog.Builder(this)
+            .setTitle("Location Error")
+            .setMessage("Op's!.. System needs to get absolute Location, try toggling to Partner URL.")
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
     private fun autoSetPrefilledPaths() {
         // set path
         binding.editTextUserID.setText("CLO")
@@ -512,10 +531,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
         val editor = myDownloadClass.edit()
         editor.putString(Constants.Saved_Parthner_Name, CP_server)
-        editor.putString(
-            Constants.CP_OR_AP_MASTER_DOMAIN,
-            Constants.CUSTOM_CP_SERVER_DOMAIN
-        )
+        editor.putString(Constants.CP_OR_AP_MASTER_DOMAIN, Constants.CUSTOM_CP_SERVER_DOMAIN)
         editor.apply()
 
     }
@@ -735,7 +751,32 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
             bindingCm.textTryAgin.visibility = View.GONE
             bindingCm.textErrorText.visibility = View.GONE
 
-            mApiViewModel.fetchApiUrls(Constants.BASE_URL_OF_MASTER_DOMAIN)
+            val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+            val CP_AP_MASTER_DOMAIN = myDownloadClass.getString(Constants.CP_OR_AP_MASTER_DOMAIN, "").toString()
+            val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
+            val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
+
+            val clo = binding.editTextUserID.text.toString().trim()
+            val subPath = binding.editTextLicenseKey.text.toString().trim()
+
+            val isGroupOneValid = getFolderClo.isNotEmpty() && getFolderSubpath.isNotEmpty()
+            val isGroupTwoValid = clo.isNotEmpty() && subPath.isNotEmpty()
+
+
+            if (isGroupOneValid) {
+                val customJsonUrl = "$CP_AP_MASTER_DOMAIN/$getFolderClo/$getFolderSubpath/DOM/Custom.Json/"
+                mApiViewModel.fetchApiUrls(customJsonUrl)
+            }
+
+            if (isGroupTwoValid){
+                val customJsonUrl = "$CP_AP_MASTER_DOMAIN/$clo/$subPath/DOM/Custom.Json/"
+                mApiViewModel.fetchApiUrls(customJsonUrl)
+            }
+
+
+
+
+
 
         } else {
             bindingCm.apply {
@@ -787,7 +828,26 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
                     bindingCm.textTryAgin.visibility = View.GONE
                     bindingCm.textErrorText.visibility = View.GONE
 
-                    mApiViewModel.fetchApiUrls(Constants.BASE_URL_OF_MASTER_DOMAIN)
+                    val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+                    val CP_AP_MASTER_DOMAIN = myDownloadClass.getString(Constants.CP_OR_AP_MASTER_DOMAIN, "").toString()
+                    var getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
+                    var getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
+
+                    val clo = binding.editTextUserID.text.toString().trim()
+                    val subPath = binding.editTextLicenseKey.text.toString().trim()
+
+                    if (getFolderClo.isEmpty() && clo.isNotEmpty()){
+                        getFolderClo = clo
+                    }
+
+                    if (getFolderSubpath.isEmpty() && subPath.isNotEmpty()){
+                        getFolderSubpath = subPath
+                    }
+
+                    val customJsonUrl = "$CP_AP_MASTER_DOMAIN/$getFolderClo/$getFolderSubpath/DOM/Custom.Json/"
+
+                    mApiViewModel.fetchApiUrls(customJsonUrl)
+
 
                 } else {
                     bindingCm.apply {
@@ -820,7 +880,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
             binding.texturlsSavedDownload.setTextColor(
                 ContextCompat.getColor(
                     applicationContext,
-                    R.color.white
+                    R.color.deep_blue_light
                 )
             )
 

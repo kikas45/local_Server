@@ -1,5 +1,8 @@
 package sync2app.com.syncapplive.additionalSettings.cloudAppsync.api;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -17,24 +20,32 @@ public class RetrofitClientJava {
             .connectTimeout(30, TimeUnit.SECONDS)
             .build();
 
-    private RetrofitClientJava() {
+
+
+    private RetrofitClientJava(Context context) {
+
+        SharedPreferences myDownloadClass = context.getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, Context.MODE_PRIVATE);
+        String CP_AP_MASTER_DOMAIN = myDownloadClass.getString(Constants.CP_OR_AP_MASTER_DOMAIN, "");
+
         retrofit = new Retrofit.Builder()
-                .baseUrl(Constants.CLOUD_APP_SYNC_SERVER_TIME_BASE_URL)
+                .baseUrl(CP_AP_MASTER_DOMAIN)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build();
     }
 
-    public static synchronized RetrofitClientJava getInstance(){
 
-        if (mInstance == null){
 
-            mInstance = new RetrofitClientJava();
-
+    public static synchronized RetrofitClientJava getInstance(Context context) {
+        if (mInstance == null) {
+            mInstance = new RetrofitClientJava(context.getApplicationContext());
         }
         return mInstance;
-
     }
+
+
+
+
 
     public ApiJava getApi(){
 

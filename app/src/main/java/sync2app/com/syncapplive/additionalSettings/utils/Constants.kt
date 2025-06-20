@@ -4,15 +4,26 @@ package sync2app.com.syncapplive.additionalSettings.utils
 class Constants {
     companion object {
 
+        // This is important for master domain urls from the Json
+        /// NOTE: The url must end with " / "  else the app will crash, ensure to always add the " / " at the end of the url
+
+
+        /// ----  const val BASE_URL_OF_MASTER_DOMAIN = "https://cp.cloudappserver.co.uk/app_base/public/CLO/DE_MO_2021001/DOM/Custom.Json/"
+
+
+        // for Cloud App sync Server Time used in Schedule media, a full path include Company and location + an end with " Servertime"
+        // e.g   "https://cloudappserver.co.uk/cp/app_base/public/CLO/DE_MO_2021001/Servertime
+        /// ---  const val CLOUD_APP_SYNC_SERVER_TIME_BASE_URL = "https://cloudappserver.co.uk/cp/app_base/public" + "/"
+
+
+
+
+
         //Custom Server Domain
         const val CP_OR_AP_MASTER_DOMAIN = "CP_AP_MASTER_DOMAIN"
         const val CUSTOM_CP_SERVER_DOMAIN = "https://cp.cloudappserver.co.uk/app_base/public/"
         const val CUSTOM_API_SERVER_DOMAIN = "https://cloudapp.web-adm.in/public/"
 
-
-        // This is important for master domain urls from the Json
-        /// NOTE: The url must end with " / "  else the app will crash, ensure to always add the " / " at the end of the url
-        const val BASE_URL_OF_MASTER_DOMAIN = "https://cp.cloudappserver.co.uk/app_base/public/CLO/DE_MO_2021001/DOM/Custom.Json/"
 
 
 
@@ -20,13 +31,6 @@ class Constants {
         const val END_PATH_OF_TV_MODE_URL = "/AppConfig/InstallAppSettings.json"
 
 
-
-        // for Cloud App sync Server Time used in Schedule media, a full path include Company and location + an end with " Servertime"
-       // e.g   "https://cloudappserver.co.uk/cp/app_base/public/CLO/DE_MO_2021001/Servertime
-        const val CLOUD_APP_SYNC_SERVER_TIME_BASE_URL = "https://cloudappserver.co.uk/cp/app_base/public" + "/"
-
-        // fro google drive domain
-        const val GOOGLE_DRIVE_DOMAIN = "https://drive.google.com/uc?export=download&id="
 
 
         // To access Storage
