@@ -8516,10 +8516,17 @@ class WebViewPage : AppCompatActivity() {
 
 
     private fun restartApp() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            FileUtils.deleteQuietly(cacheDir)
+            FileUtils.deleteQuietly(externalCacheDir)
+        }
 
-        finishAffinity()
-        val intent = Intent(applicationContext, SplashVideoActivity::class.java)
-        startActivity(intent)
+        val handlerRestart = Handler(Looper.getMainLooper())
+        handlerRestart.postDelayed(Runnable {
+           finishAffinity()
+           val intent = Intent(applicationContext, SplashVideoActivity::class.java)
+           startActivity(intent)
+       }, 3000)
 
     }
 
