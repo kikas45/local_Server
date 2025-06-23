@@ -197,11 +197,23 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
         binding = ActivityTvOrAppModePageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // only works on 13
         // Register the broadcast receiver dynamically
        // registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
-        val filter = IntentFilter().apply { addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE) }
-        registerReceiver(downloadReceiver, filter)
+        val filter = IntentFilter().apply {
+            addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // Android 14 and above requires specifying a flag
+            registerReceiver(downloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(downloadReceiver, filter)
+        }
+
+
+
 
         handler.postDelayed(kotlinx.coroutines.Runnable {
             autoSetPrefilledPaths()
@@ -560,9 +572,22 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
 
 
+        // worlks only for 13
+       // connectivityReceiver = ConnectivityReceiver()
+       // val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        //registerReceiver(connectivityReceiver, intentFilter)
+
         connectivityReceiver = ConnectivityReceiver()
         val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-        registerReceiver(connectivityReceiver, intentFilter)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            registerReceiver(connectivityReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(connectivityReceiver, intentFilter)
+        }
+
+
+
 
 
         val deepBlue = resources.getColor(R.color.white)

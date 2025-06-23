@@ -13,6 +13,7 @@ import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
@@ -879,10 +880,23 @@ class SplashKT : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+      //  connectivityReceiver = ConnectivityReceiver()
+      //  val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+      //  registerReceiver(connectivityReceiver, intentFilter)
+
         connectivityReceiver = ConnectivityReceiver()
         val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-        registerReceiver(connectivityReceiver, intentFilter)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            registerReceiver(connectivityReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(connectivityReceiver, intentFilter)
+        }
+
+
         isMyActivityRunning = true
+
+
     }
 
     override fun onStop() {

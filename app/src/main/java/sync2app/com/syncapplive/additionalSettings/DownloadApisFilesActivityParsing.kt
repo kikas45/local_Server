@@ -152,7 +152,14 @@ class DownloadApisFilesActivityParsing : AppCompatActivity() {
 
 
         val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        registerReceiver(downloadCompleteReceiver, filter)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // Android 14+ requires specifying the receiver export flag
+            registerReceiver(downloadCompleteReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(downloadCompleteReceiver, filter)
+        }
+
 
         countdownTimer?.cancel()
 

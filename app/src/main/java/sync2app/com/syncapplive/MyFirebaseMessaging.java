@@ -213,7 +213,8 @@ public class MyFirebaseMessaging extends FirebaseMessagingService {
                 = new NotificationCompat
                 .Builder(getApplicationContext(),
                 channel_id)
-                .setSmallIcon(com.onesignal.R.drawable.ic_os_notification_fallback_white_24dp)
+               // .setSmallIcon(com.onesignal.R.drawable.ic_os_notification_fallback_white_24dp)
+                .setSmallIcon(R.drawable.ic_notification_icon)
                 .setAutoCancel(true)
                 .setVibrate(new long[]{1000, 1000, 1000,
                         1000, 1000})
@@ -233,7 +234,8 @@ public class MyFirebaseMessaging extends FirebaseMessagingService {
         else {
             builder = builder.setContentTitle(title)
                     .setContentText(message)
-                    .setSmallIcon(com.onesignal.R.drawable.ic_os_notification_fallback_white_24dp);
+                    //.setSmallIcon(com.onesignal.R.drawable.ic_os_notification_fallback_white_24dp);
+                    .setSmallIcon(R.drawable.ic_notification_icon);
         }
         // Create an object of NotificationManager class to
         // notify the

@@ -84,6 +84,7 @@ class RetryParsingSyncService : Service() {
     private var isDnFailed = true
 
 
+    @SuppressLint("ForegroundServiceType")
     override fun onCreate() {
         super.onCreate()
 

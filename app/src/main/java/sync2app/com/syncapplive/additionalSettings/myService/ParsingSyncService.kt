@@ -86,6 +86,7 @@ class ParsingSyncService : Service() {
     }
 
 
+    @SuppressLint("ForegroundServiceType")
     override fun onCreate() {
         super.onCreate()
 
@@ -179,6 +180,7 @@ class ParsingSyncService : Service() {
     }
 
 
+    @SuppressLint("ForegroundServiceType")
     private fun startMyOwnForeground() {
         val newsTitle = "Parsing Sync"
 

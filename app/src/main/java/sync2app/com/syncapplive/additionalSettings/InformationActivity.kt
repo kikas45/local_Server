@@ -92,8 +92,7 @@ class InformationActivity : AppCompatActivity() {
     private var getCountryCode = "+234 "
     private var getCountryName = "Nigeria"
 
-    var codePicker: CountryCodePicker? = null
-    var show_code: Button? = null
+
 
     private val preferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(applicationContext)

@@ -790,27 +790,58 @@ class WebViewPage : AppCompatActivity() {
         textNoCameraAvaliable = findViewById(R.id.textNoCameraAvaliable)
 
 
+      //  CameraReceiver = CameraDisconnectedReceiver()
+       // val filter33 = IntentFilter(Constants.SYNC_CAMERA_DISCONNECTED)
+      //  registerReceiver(CameraReceiver, filter33)
+
         CameraReceiver = CameraDisconnectedReceiver()
         val filter33 = IntentFilter(Constants.SYNC_CAMERA_DISCONNECTED)
-        registerReceiver(CameraReceiver, filter33)
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            registerReceiver(CameraReceiver, filter33, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(CameraReceiver, filter33)
+        }
+
+
+
+       // usbBroadcastReceiver = UsbBroadcastReceiver()
+       // val filter444 = getIntentFilter()
+       // registerReceiver(usbBroadcastReceiver, filter444)
 
         usbBroadcastReceiver = UsbBroadcastReceiver()
         val filter444 = getIntentFilter()
-        registerReceiver(usbBroadcastReceiver, filter444)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            registerReceiver(usbBroadcastReceiver, filter444, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(usbBroadcastReceiver, filter444)
+        }
+
+
 
 
         ///end of init  camera
-
 
         // for parsing
 
 
         val filter = IntentFilter().apply { addAction(Constants.RECIVER_PROGRESS) }
-        registerReceiver(progressReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            registerReceiver(progressReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(progressReceiver, filter)
+        }
+
+
+
 
         val filterPr = IntentFilter().apply { addAction(Constants.RECIVER_DOWNLOAD_BYTES_PROGRESS) }
-        registerReceiver(progressDownloadBytesReceiver, filterPr)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            registerReceiver(progressDownloadBytesReceiver, filterPr, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(progressDownloadBytesReceiver, filterPr)
+        }
 
 
         val scroolToEnd = findViewById<ImageView>(R.id.scroolToEnd)
@@ -1103,17 +1134,23 @@ class WebViewPage : AppCompatActivity() {
     }
 
 
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
-    private fun registerNotificationBroadCast() {
 
+
+    private lateinit var receiverNotify: BroadcastReceiver
+    private lateinit var filterNotify: IntentFilter
+
+    private fun registerNotificationBroadCast() {
         if (constants.Notifx_service) {
             isAppOpen = true
 
+            // Start your service
             startService(Intent(this, RemotexNotifierKT::class.java))
 
-            filter = IntentFilter("notifx_ready")
+            // Prepare filter for the custom broadcast
+            filterNotify = IntentFilter("notifx_ready")
 
-            receiver = object : BroadcastReceiver() {
+            // Create the receiver
+            receiverNotify = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
                     try {
                         if (!constants.Notif_Shown) {
@@ -1124,11 +1161,47 @@ class WebViewPage : AppCompatActivity() {
                     }
                 }
             }
-            applicationContext.registerReceiver(receiver, filter)
+
+            // Register receiver in a version-safe way
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                applicationContext.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                applicationContext.registerReceiver(receiver, filter)
+            }
+
         } else {
             stopService(Intent(this, RemotexNotifierKT::class.java))
         }
     }
+
+
+
+//    @SuppressLint("UnspecifiedRegisterReceiverFlag")
+//    private fun registerNotificationBroadCast() {
+//
+//        if (constants.Notifx_service) {
+//            isAppOpen = true
+//
+//            startService(Intent(this, RemotexNotifierKT::class.java))
+//
+//            filter = IntentFilter("notifx_ready")
+//
+//            receiver = object : BroadcastReceiver() {
+//                override fun onReceive(context: Context, intent: Intent) {
+//                    try {
+//                        if (!constants.Notif_Shown) {
+//                            showNotifxDialog(this@WebViewPage)
+//                        }
+//                    } catch (e: Exception) {
+//                        e.printStackTrace()
+//                    }
+//                }
+//            }
+//            applicationContext.registerReceiver(receiver, filter)
+//        } else {
+//            stopService(Intent(this, RemotexNotifierKT::class.java))
+//        }
+//    }
 
     private fun InitWebvIewloadStates() {
         val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
@@ -8289,9 +8362,18 @@ class WebViewPage : AppCompatActivity() {
 
 
             // initialize connection broadCast listener
+           // connectivityReceiver = ConnectivityReceiver()
+           // val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+           // registerReceiver(connectivityReceiver, intentFilter)
             connectivityReceiver = ConnectivityReceiver()
             val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-            registerReceiver(connectivityReceiver, intentFilter)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                registerReceiver(connectivityReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(connectivityReceiver, intentFilter)
+            }
+
 
 
             val getSynModeType = sharedBiometric.getString(Constants.IMG_SELECTED_SYNC_METHOD, "").toString()
@@ -8506,9 +8588,15 @@ class WebViewPage : AppCompatActivity() {
             }
 
 
+            if (receiverNotify != null){
+                applicationContext.unregisterReceiver(receiverNotify)
+            }
+
+
         } catch (e: java.lang.Exception) {
             Log.d(TAG, "onDestroy: " + e.message.toString())
         }
+
 
     }
 

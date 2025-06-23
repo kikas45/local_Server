@@ -152,7 +152,13 @@ class RetryApiDownloadActivityParsing : AppCompatActivity() {
 
 
         val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        registerReceiver(downloadCompleteReceiver, filter)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            registerReceiver(downloadCompleteReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(downloadCompleteReceiver, filter)
+        }
+
 
         countdownTimer?.cancel()
 
@@ -929,6 +935,7 @@ class RetryApiDownloadActivityParsing : AppCompatActivity() {
     }
 
 
+    @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
         closeDownloadpage()
 
