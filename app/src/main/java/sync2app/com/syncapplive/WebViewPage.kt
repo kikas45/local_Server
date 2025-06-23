@@ -3877,6 +3877,7 @@ class WebViewPage : AppCompatActivity() {
                 if (isSystemRunning) {
 
 
+                    ///
                     val get_Api_state = sharedBiometric.getString(Constants.imagSwtichEnableSyncFromAPI, "").toString()
                     if (Utility.isNetworkAvailable(applicationContext)) {
 
