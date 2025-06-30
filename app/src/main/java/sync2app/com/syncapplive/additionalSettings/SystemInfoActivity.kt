@@ -159,86 +159,6 @@ class SystemInfoActivity : AppCompatActivity() {
 
     }
 
-    private fun setUpBackground() {
-        binding.apply {
-            if (preferences!!.getBoolean("darktheme", false)) {
-
-                // set windows
-                // Set status bar color
-                window?.statusBarColor = Color.parseColor("#171616")
-                // Set navigation bar color
-                window?.navigationBarColor = Color.parseColor("#171616")
-
-                // Ensure the text and icons are white
-                WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
-                WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightNavigationBars = false
-
-
-                content.setBackgroundColor(resources.getColor(R.color.dark_layout_for_ui))
-
-                // set text view
-
-                textView42.setTextColor(resources.getColor(R.color.white))
-
-
-                textModel.setTextColor(resources.getColor(R.color.deep_blue_light_extra))
-                textTextInfo.setTextColor(resources.getColor(R.color.deep_blue_light_extra))
-                textMananufacturer.setTextColor(resources.getColor(R.color.deep_blue_light_extra))
-                textBrand.setTextColor(resources.getColor(R.color.deep_blue_light_extra))
-                textAndroidTvOs.setTextColor(resources.getColor(R.color.deep_blue_light_extra))
-                textAndroidSDK.setTextColor(resources.getColor(R.color.deep_blue_light_extra))
-                textTvOSBuildVersion.setTextColor(resources.getColor(R.color.deep_blue_light_extra))
-
-
-
-                textdeviceDescription.setTextColor(resources.getColor(R.color.white))
-                textModelDescription.setTextColor(resources.getColor(R.color.white))
-                textAndroidTvOsDescription.setTextColor(resources.getColor(R.color.white))
-                textSDKDescription.setTextColor(resources.getColor(R.color.white))
-                textTvOSBuildVersionDescription.setTextColor(resources.getColor(R.color.white))
-                textManufacturerDescription.setTextColor(resources.getColor(R.color.white))
-                textBrandDescription.setTextColor(resources.getColor(R.color.white))
-
-
-                // test connection buttons and connect buttons
-
-                textHardWareStatus.setTextColor(resources.getColor(R.color.white))
-                textHardWareStatus.setBackgroundResource(R.drawable.card_design_darktheme)
-
-                // textBtnhardWareAprroved.setTextColor(resources.getColor(R.color.white))
-                // textBtnhardWareAprroved.setBackgroundResource(R.drawable.card_design_darktheme_outline)
-
-
-
-
-                // fir back button
-                val drawable = ContextCompat.getDrawable(applicationContext, R.drawable.ic_baseline_arrow)
-                drawable?.setColorFilter(ContextCompat.getColor(applicationContext, R.color.white), PorterDuff.Mode.SRC_IN)
-                closeBs.setImageDrawable(drawable)
-
-
-
-
-                // for nav icons
-                val drawable_imageApproved = ContextCompat.getDrawable(applicationContext, R.drawable.ic_check_circle)
-                drawable_imageApproved?.setColorFilter(ContextCompat.getColor(applicationContext, R.color.white), PorterDuff.Mode.SRC_IN)
-                imageApproved.setImageDrawable(drawable_imageApproved)
-
-
-
-
-                val drawable_imageNotApproved = ContextCompat.getDrawable(applicationContext, R.drawable.ic_cancel)
-                drawable_imageNotApproved?.setColorFilter(ContextCompat.getColor(applicationContext, R.color.white), PorterDuff.Mode.SRC_IN)
-                imageNotApproved.setImageDrawable(drawable_imageNotApproved)
-
-
-
-                //  for divider i..n
-                divider21.setBackgroundColor(ContextCompat.getColor(applicationContext, R.color.light_gray))
-
-            }
-        }
-    }
 
     private fun startNetWorkCall() {
         binding.progressBar.visibility = View.VISIBLE
@@ -763,19 +683,18 @@ class SystemInfoActivity : AppCompatActivity() {
     }
 
     private fun loadBackGroundImage() {
+        val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
 
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
         val fileTypes = "app_background.png"
-        val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-        val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-
-        val pathFolder = "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
         val file = File(folder, fileTypes)
 
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
-
         }
 
     }

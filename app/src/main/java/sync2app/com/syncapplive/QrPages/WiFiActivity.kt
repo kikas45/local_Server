@@ -6,21 +6,15 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Color
-import android.graphics.PorterDuff
 import android.net.wifi.WifiManager
 import android.net.wifi.WifiNetworkSuggestion
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.provider.Settings
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.preference.PreferenceManager
 import com.bumptech.glide.Glide
 import sync2app.com.syncapplive.WebViewPage
 import sync2app.com.syncapplive.R
@@ -108,22 +102,21 @@ class WiFiActivity : AppCompatActivity() {
     }
 
     private fun loadBackGroundImage() {
+        val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
 
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
         val fileTypes = "app_background.png"
-        val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-        val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-
-        val pathFolder = "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
         val file = File(folder, fileTypes)
 
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
-
         }
-    }
 
+    }
 
 
     @SuppressLint("StringFormatInvalid")

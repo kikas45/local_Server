@@ -719,30 +719,32 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
         url: String,
         fileName: String,
     ) {
-
         val Syn2AppLive = Constants.Syn2AppLive
+        val baseDir = getExternalFilesDir(null) // App-private external files
+        val relativePath = "$Syn2AppLive/$get_UserID/$get_LicenseKey"
+        val targetDir = File(baseDir, relativePath)
 
-        val DeleteFolderPath = "/$Syn2AppLive/$get_UserID/$get_LicenseKey/$fileName"
+        // Ensure directory exists
+        if (!targetDir.exists()) targetDir.mkdirs()
 
-        val directoryPath = Environment.getExternalStorageDirectory().absolutePath + "/Download/$DeleteFolderPath"
-        val file = File(directoryPath)
-        delete(file)
+        val targetFile = File(targetDir, fileName)
 
+        // Delete existing
+        delete(targetFile)
+
+        val request = DownloadManager.Request(Uri.parse(url)).apply {
+            setTitle(fileName)
+            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            setDestinationUri(Uri.fromFile(targetFile)) // ✅ Safe destination
+        }
 
         val managerDownload = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-        val request = DownloadManager.Request(Uri.parse(url))
-        //  request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-        request.setTitle(fileName)
-        request.allowScanningByMediaScanner()
-        request.setDestinationInExternalPublicDir(
-            Environment.DIRECTORY_DOWNLOADS, DeleteFolderPath
-        )
         val downloadReferenceMain = managerDownload.enqueue(request)
 
-        val editor = myDownloadClass.edit()
-        editor.putLong(Constants.downloadKey, downloadReferenceMain)
-        editor.apply()
-
+        myDownloadClass.edit().apply {
+            putLong(Constants.downloadKey, downloadReferenceMain)
+            apply()
+        }
     }
 
 
@@ -808,33 +810,28 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
         fileName: String,
     ) {
         try {
-
             showCustomProgressDialog("Please wait for files to unpack")
 
             lifecycleScope.launch(Dispatchers.IO) {
-
                 val Syn2AppLive = Constants.Syn2AppLive
 
-                val finalFolderPath = "/$get_UserID/$get_LicenseKey"
-
+                val finalFolderPath = "$Syn2AppLive/$get_UserID/$get_LicenseKey"
                 val get_Clo = simpleSavedPassword.getString(Constants.get_UserID, "").toString()
-                val get_DEmo =
-                    simpleSavedPassword.getString(Constants.get_LicenseKey, "").toString()
+                val get_DEmo = simpleSavedPassword.getString(Constants.get_LicenseKey, "").toString()
 
-                val newConfigFolder = "/$get_Clo/$get_DEmo/App/"
+                val newConfigFolder = "$Syn2AppLive/$get_Clo/$get_DEmo/App"
 
-                val directoryPathString =
-                    Environment.getExternalStorageDirectory().absolutePath + "/Download/$Syn2AppLive" + finalFolderPath
-                val destinationFolder =
-                    File(Environment.getExternalStorageDirectory().absolutePath + "/Download/$Syn2AppLive/" + newConfigFolder)
+                val baseDir = getExternalFilesDir(null) ?: return@launch
+
+                val zipFile = File(File(baseDir, finalFolderPath), fileName)
+                val destinationFolder = File(baseDir, newConfigFolder)
 
                 if (!destinationFolder.exists()) {
                     destinationFolder.mkdirs()
                 }
 
-                val myFile = File(directoryPathString, File.separator + fileName)
-                if (myFile.exists()) {
-                    extractZip(myFile.toString(), destinationFolder.toString())
+                if (zipFile.exists()) {
+                    extractZip(zipFile.absolutePath, destinationFolder.absolutePath)
                 } else {
                     withContext(Dispatchers.Main) {
                         showToastMessage("Zip file could not be found")
@@ -844,6 +841,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
         } catch (_: Exception) {
         }
     }
+
 
     suspend fun extractZip(zipFilePath: String, destinationPath: String) {
         try {
@@ -2441,61 +2439,6 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
 
 
 
-
-        bindingCm.apply {
-
-
-            val preferences = android.preference.PreferenceManager.getDefaultSharedPreferences(
-                applicationContext
-            )
-
-            if (preferences.getBoolean("darktheme", false)) {
-                consMainAlertSubLayout.setBackgroundResource(R.drawable.card_design_account_number_dark_pop_layout)
-
-                textTitle.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-                textTwoMinutes.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-                text100minutes2.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-                text55minutes.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-                text1500minutes.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-                text3000minutes2.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-                text6000minutes.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-                textOneTwentyMinutes.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-                textOneEightThyMinutes2.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-                tex24000ThyMinutes.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-
-
-                val drawable_close_bs =
-                    ContextCompat.getDrawable(applicationContext, R.drawable.ic_baseline_arrow)
-                drawable_close_bs?.setColorFilter(
-                    ContextCompat.getColor(
-                        applicationContext, R.color.dark_light_gray_pop
-                    ), PorterDuff.Mode.SRC_IN
-                )
-                closeBs.setImageDrawable(drawable_close_bs)
-
-                val drawable_imageCrossClose =
-                    ContextCompat.getDrawable(applicationContext, R.drawable.ic_close_24)
-                drawable_imageCrossClose?.setColorFilter(
-                    ContextCompat.getColor(
-                        applicationContext, R.color.dark_light_gray_pop
-                    ), PorterDuff.Mode.SRC_IN
-                )
-                imageCrossClose.setImageDrawable(drawable_imageCrossClose)
-
-                divider21.setBackgroundColor(
-                    ContextCompat.getColor(
-                        applicationContext, R.color.dark_light_gray_pop
-                    )
-                )
-
-
-            }
-
-
-        }
-
-
-
         if (handlerMoveToWebviewPage != null) {
             handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
         }
@@ -2762,9 +2705,6 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
         val timePicker = viewOptions.findViewById<TimePicker>(R.id.timePicker)
         val cancelBtn = viewOptions.findViewById<Button>(R.id.cancelBtn)
         val setBtn = viewOptions.findViewById<Button>(R.id.setBtn)
-        val consMainAlert_sub_layout =
-            viewOptions.findViewById<ConstraintLayout>(R.id.consMainAlert_sub_layout)
-        val textView7 = viewOptions.findViewById<TextView>(R.id.textView7)
 
 
         //dialog props
@@ -2773,22 +2713,6 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
         syncDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
 
-        val preferences =
-            android.preference.PreferenceManager.getDefaultSharedPreferences(applicationContext)
-
-        if (preferences.getBoolean("darktheme", false)) {
-
-            consMainAlert_sub_layout.setBackgroundResource(R.drawable.card_design_account_number_dark_pop_layout)
-            textView7.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-
-
-            cancelBtn.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-            cancelBtn.setBackgroundResource(R.drawable.card_design_buy_gift_card_extra_dark_black)
-
-            setBtn.setTextColor(resources.getColor(R.color.dark_light_gray_pop))
-            setBtn.setBackgroundResource(R.drawable.card_design_buy_gift_card_extra_dark_black)
-
-        }
 
         if (handlerMoveToWebviewPage != null) {
             handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
@@ -3751,7 +3675,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                 val threeFolderPath = "/$getFolderClo/$getFolderSubpath/$Zip"
 
 
-                val Extracted = "App"
+                val Extracted = "${Constants.App}"
 
 
                 val getSyncMethods = sharedBiometric.getString(Constants.IMG_SELECTED_SYNC_METHOD, "").toString()
@@ -4452,6 +4376,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
     }
 
 
+
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun download(
         url: String,
@@ -4462,98 +4387,171 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
         Extracted: String,
         threeFolderPath: String,
     ) {
+        // 1. Safer delete logic using app-private path
+        val baseDir = getExternalFilesDir(null)
+        val deletePath = File(baseDir, "Syn2AppLive/$getFolderClo/$getFolderSubpath/$Zip/$fileNamy")
+        delete(deletePath)
 
+        handler.postDelayed({
 
-        //  val DeleteFolderPath = "/$getFolderClo/$getFolderSubpath/"
+            val finalFolderPath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/$Zip"
+            val zipFile = File(baseDir, "$finalFolderPath/$fileNamy")
 
-        val DeleteFolderPath = "/$getFolderClo/$getFolderSubpath/$Zip/$fileNamy"
+            // 2. Save preferences
+            with(myDownloadClass.edit()) {
+                putString(Constants.getFolderClo, getFolderClo)
+                putString(Constants.getFolderSubpath, getFolderSubpath)
+                putString(Constants.Zip, Zip)
+                putString("fileNamy", fileNamy)
+                putString(Constants.Extracted, Extracted)
+                remove(Constants.Manage_My_Sync_Start)
 
-        val directoryPath =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}$DeleteFolderPath"
-        val file = File(directoryPath)
-        delete(file)
-
-
-
-        handler.postDelayed(Runnable {
-
-            val finalFolderPath = "/$getFolderClo/$getFolderSubpath/$Zip"
-            val Syn2AppLive = "Syn2AppLive"
-
-            val editior = myDownloadClass.edit()
-            editior.putString(Constants.getFolderClo, getFolderClo)
-            editior.putString(Constants.getFolderSubpath, getFolderSubpath)
-            editior.putString(Constants.Zip, Zip)
-            editior.putString("fileNamy", fileNamy)
-            editior.putString(Constants.Extracted, Extracted)
-
-            // used to control Sync Start from  set up page
-            editior.remove(Constants.Manage_My_Sync_Start)
-
-
-            val get_savedIntervals = myDownloadClass.getLong(Constants.getTimeDefined, 0)
-
-            if (get_savedIntervals != 0L) {
-                editior.putLong(Constants.getTimeDefined, get_savedIntervals)
-
-            } else {
-                editior.putLong(Constants.getTimeDefined, Constants.t_5min)
-
+                val savedInterval = myDownloadClass.getLong(Constants.getTimeDefined, 0)
+                putLong(Constants.getTimeDefined, if (savedInterval != 0L) savedInterval else Constants.t_5min)
+                apply()
             }
 
-            editior.apply()
+            // 3. Ensure folders exist
+            val folder = File(baseDir, finalFolderPath)
+            if (!folder.exists()) folder.mkdirs()
 
+            // 4. Download with safe destination URI
+            val request = DownloadManager.Request(Uri.parse(url))
+            request.setTitle(fileNamy)
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            request.setDestinationUri(Uri.fromFile(zipFile))  // ✅ safe private storage
 
             val managerDownload = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-
-            val folder = File(Environment.getExternalStorageDirectory()
-                    .toString() + "/Download/$Syn2AppLive/$finalFolderPath"
-            )
-
-            if (!folder.exists()) {
-                folder.mkdirs()
-            }
-
-            val request = DownloadManager.Request(Uri.parse(url))
-            //  request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-            request.setTitle(fileNamy)
-            request.allowScanningByMediaScanner()
-            request.setDestinationInExternalPublicDir(
-                Environment.DIRECTORY_DOWNLOADS, "/$Syn2AppLive/$finalFolderPath/$fileNamy"
-            )
             val downloadReferenceMain = managerDownload.enqueue(request)
 
-            val editor = myDownloadClass.edit()
-            editor.putLong(Constants.downloadKey, downloadReferenceMain)
-            editor.apply()
+            myDownloadClass.edit().putLong(Constants.downloadKey, downloadReferenceMain).apply()
 
+            // 5. Move to unzip/next activity
+            val intent = Intent(applicationContext, DownlodZipActivity::class.java).apply {
+                putExtra(Constants.baseUrl, url)
+                putExtra(Constants.getFolderClo, getFolderClo)
+                putExtra(Constants.getFolderSubpath, getFolderSubpath)
+                putExtra(Constants.Zip, Zip)
+                putExtra(Constants.fileName, fileNamy)
+                putExtra(Constants.Extracted, Extracted)
+                putExtra(Constants.threeFolderPath, threeFolderPath)
+            }
 
-            val intent = Intent(applicationContext, DownlodZipActivity::class.java)
-            intent.putExtra(Constants.baseUrl, url)
-            intent.putExtra(Constants.getFolderClo, getFolderClo)
-            intent.putExtra(Constants.getFolderSubpath, getFolderSubpath)
-            intent.putExtra(Constants.Zip, Zip)
-            intent.putExtra(Constants.fileName, fileNamy)
-            intent.putExtra(Constants.Extracted, Extracted)
-
-            intent.putExtra(Constants.threeFolderPath, threeFolderPath)
-            intent.putExtra(Constants.baseUrl, url)
             startActivity(intent)
             finish()
 
+            sharedBiometric.edit().apply()
 
-            val editor222 = sharedBiometric.edit()
-            //  editor222.putString(Constants.showDownloadSyncStatus, "showDownloadSyncStatus")
-            editor222.apply()
-
-            if (customProgressDialog != null){
-                customProgressDialog.dismiss()
-            }
+            customProgressDialog?.dismiss()
 
         }, 3000)
-
-
     }
+
+
+
+
+//    @RequiresApi(Build.VERSION_CODES.Q)
+//    private fun download(
+//        url: String,
+//        getFolderClo: String,
+//        getFolderSubpath: String,
+//        Zip: String,
+//        fileNamy: String,
+//        Extracted: String,
+//        threeFolderPath: String,
+//    ) {
+//
+//
+//        //  val DeleteFolderPath = "/$getFolderClo/$getFolderSubpath/"
+//
+//        val DeleteFolderPath = "/$getFolderClo/$getFolderSubpath/$Zip/$fileNamy"
+//
+//        val directoryPath =
+//            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}$DeleteFolderPath"
+//        val file = File(directoryPath)
+//        delete(file)
+//
+//
+//
+//        handler.postDelayed(Runnable {
+//
+//            val finalFolderPath = "/$getFolderClo/$getFolderSubpath/$Zip"
+//            val Syn2AppLive = "Syn2AppLive"
+//
+//            val editior = myDownloadClass.edit()
+//            editior.putString(Constants.getFolderClo, getFolderClo)
+//            editior.putString(Constants.getFolderSubpath, getFolderSubpath)
+//            editior.putString(Constants.Zip, Zip)
+//            editior.putString("fileNamy", fileNamy)
+//            editior.putString(Constants.Extracted, Extracted)
+//
+//            // used to control Sync Start from  set up page
+//            editior.remove(Constants.Manage_My_Sync_Start)
+//
+//
+//            val get_savedIntervals = myDownloadClass.getLong(Constants.getTimeDefined, 0)
+//
+//            if (get_savedIntervals != 0L) {
+//                editior.putLong(Constants.getTimeDefined, get_savedIntervals)
+//
+//            } else {
+//                editior.putLong(Constants.getTimeDefined, Constants.t_5min)
+//
+//            }
+//
+//            editior.apply()
+//
+//
+//            val managerDownload = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+//
+//            val folder = File(Environment.getExternalStorageDirectory()
+//                    .toString() + "/Download/$Syn2AppLive/$finalFolderPath"
+//            )
+//
+//            if (!folder.exists()) {
+//                folder.mkdirs()
+//            }
+//
+//            val request = DownloadManager.Request(Uri.parse(url))
+//            //  request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+//            request.setTitle(fileNamy)
+//            request.allowScanningByMediaScanner()
+//            request.setDestinationInExternalPublicDir(
+//                Environment.DIRECTORY_DOWNLOADS, "/$Syn2AppLive/$finalFolderPath/$fileNamy"
+//            )
+//            val downloadReferenceMain = managerDownload.enqueue(request)
+//
+//            val editor = myDownloadClass.edit()
+//            editor.putLong(Constants.downloadKey, downloadReferenceMain)
+//            editor.apply()
+//
+//
+//            val intent = Intent(applicationContext, DownlodZipActivity::class.java)
+//            intent.putExtra(Constants.baseUrl, url)
+//            intent.putExtra(Constants.getFolderClo, getFolderClo)
+//            intent.putExtra(Constants.getFolderSubpath, getFolderSubpath)
+//            intent.putExtra(Constants.Zip, Zip)
+//            intent.putExtra(Constants.fileName, fileNamy)
+//            intent.putExtra(Constants.Extracted, Extracted)
+//
+//            intent.putExtra(Constants.threeFolderPath, threeFolderPath)
+//            intent.putExtra(Constants.baseUrl, url)
+//            startActivity(intent)
+//            finish()
+//
+//
+//            val editor222 = sharedBiometric.edit()
+//            //  editor222.putString(Constants.showDownloadSyncStatus, "showDownloadSyncStatus")
+//            editor222.apply()
+//
+//            if (customProgressDialog != null){
+//                customProgressDialog.dismiss()
+//            }
+//
+//        }, 3000)
+//
+//
+//    }
 
 
    private fun delete(file: File): Boolean {
@@ -4661,16 +4659,15 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
         }
     }
 
-    private fun getFilePath(CLO: String, DEMO: String, filename: String): String? {
 
-        val finalFolderPathDesired = "/" + CLO + "/" + DEMO + "/" + Constants.App
-        val destinationFolder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + finalFolderPathDesired
-        val filePath = "file://$destinationFolder$filename"
-        val myFile = File(destinationFolder, File.separator + filename)
+    private fun getFilePath(CLO: String, DEMO: String, filename: String): String? {
+        val baseDir = getExternalFilesDir(null)  // ✅ App-private scoped external storage
+        val relativePath = "${Constants.Syn2AppLive}/$CLO/$DEMO/${Constants.App}"
+        val destinationFolder = File(baseDir, relativePath)
+        val myFile = File(destinationFolder, filename)
 
         return if (myFile.exists()) {
-            filePath
+            myFile.toURI().toString()  // Use proper file URI (e.g. file:///...)
         } else {
             null
         }
@@ -5289,25 +5286,21 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
 
 
     private fun loadBackGroundImage() {
+        val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
 
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
         val fileTypes = "app_background.png"
-        val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-        val getFolderSubpath =
-            myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-
-        val pathFolder =
-            "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
         val file = File(folder, fileTypes)
 
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
-
         }
 
     }
-
 
     private fun setUpFullScreenWindows() {
         val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()

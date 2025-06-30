@@ -9,6 +9,7 @@ import android.app.DownloadManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.Log
 import android.util.Patterns
@@ -23,10 +24,17 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import sync2app.com.syncapplive.myService.ParsingSyncService
 import sync2app.com.syncapplive.myService.RetryParsingSyncService
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketTimeoutException
 import java.net.URI
 import java.net.URISyntaxException
 import java.util.regex.Pattern
@@ -271,6 +279,87 @@ object Utility {
                         )
             }
         }
+
+
+
+
+
+    fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        val network = connectivityManager.activeNetwork
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+
+        if (network != null && networkCapabilities != null &&
+            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        ) {
+            // This means the internet is reachable
+            callback(true)
+        } else {
+            callback(false)
+        }
+    }
+
+
+
+
+/*
+    fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = try {
+                Socket().use { socket ->
+                    socket.connect(InetSocketAddress("8.8.8.8", 53), 1500)
+                    true
+                }
+            } catch (e: SocketTimeoutException) {
+                false
+            } catch (e: Exception) {
+                false
+            }
+
+            withContext(Dispatchers.Main) {
+                callback(result)
+            }
+        }
+
+    }
+*/
+
+
+    // adding both andriod ad dns
+
+ /*   fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+
+        val isConnected = networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true &&
+                networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+
+        if (!isConnected) {
+            callback(false)
+            return
+        }
+
+        // Double-check with actual ping
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = try {
+                Socket().use { socket ->
+                    socket.connect(InetSocketAddress("8.8.8.8", 53), 1500)
+                    true
+                }
+            } catch (e: Exception) {
+                false
+            }
+
+            withContext(Dispatchers.Main) {
+                callback(result)
+            }
+        }
+    }
+
+*/
 
 
 }

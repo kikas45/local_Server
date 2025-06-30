@@ -276,128 +276,78 @@ class RetryParsingSyncService : Service() {
     }
 
     private fun getZipDownloadsManually(sn: String, folderName: String, fileName: String) {
-
         if (isProgresStarted) {
             isProgresStarted = false
-
 
             val intent = Intent(Constants.RECIVER_PROGRESS)
             intent.putExtra(Constants.ParsingStatusSync, Constants.PR_Downloading)
             sendBroadcast(intent)
 
-
             getDownloadStatus()
-            if (myHandler != null) {
-                myHandler.postDelayed(runnableGetDownloadProgress, 500)
-            }
-
+            myHandler?.postDelayed(runnableGetDownloadProgress, 500)
         }
 
-
-    val Syn2AppLive = Constants.Syn2AppLive
+        val Syn2AppLive = Constants.Syn2AppLive
         val Demo_Parsing_Folder = Constants.TEMP_PARS_FOLDER
-        val saveMyFileToStorage = "/$Syn2AppLive/$Demo_Parsing_Folder/CLO/MANUAL/DEMO/$folderName"
+        val relativePath = "$Syn2AppLive/$Demo_Parsing_Folder/CLO/MANUAL/DEMO/$folderName"
 
-        val getSavedEditTextInputSynUrlZip = sharedP.getString(Constants.getSavedEditTextInputSynUrlZip, "").toString()
-
-        var replacedUrl = getSavedEditTextInputSynUrlZip // Initialize it with original value
-
-
-
-        if (getSavedEditTextInputSynUrlZip.contains("/App/index.html")) {
-            replacedUrl = getSavedEditTextInputSynUrlZip.replace(
-                "/App/index.html",
-                "/$folderName/$fileName"
-            )
-
+        val originalUrl = sharedP.getString(Constants.getSavedEditTextInputSynUrlZip, "").orEmpty()
+        val replacedUrl = if (originalUrl.contains("/App/index.html")) {
+            originalUrl.replace("/App/index.html", "/$folderName/$fileName")
         } else {
-
             Log.d("getZipDownloadsManually", "Unable to replace this url")
+            originalUrl // fallback to the original
         }
 
+        val targetDir = File(getExternalFilesDir(null), relativePath)
+        val targetFile = File(targetDir, fileName)
+        if (targetFile.exists()) targetFile.delete()
 
         GlobalScope.launch(Dispatchers.IO) {
-            //  Log.d(KoloLog, "getZipDownloads:$getFileUrl ")
             try {
                 val result = checkUrlExistence(replacedUrl)
                 if (result) {
-                    //    Log.d(KoloLog, "checkUrlExistence: Sucessful")
-
-                    handlerParsing.postDelayed(Runnable {
-                        val editior = sharedP.edit()
-                        editior.putString(Constants.fileNumber, sn)
-                        editior.putString(Constants.folderName, folderName)
-                        editior.putString(Constants.fileName, fileName)
-                        editior.apply()
-
-                        val dir = File(
-                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                            saveMyFileToStorage
-                        )
-                        if (!dir.exists()) {
-                            dir.mkdirs()
+                    withContext(Dispatchers.Main) {
+                        sharedP.edit().apply {
+                            putString(Constants.fileNumber, sn)
+                            putString(Constants.folderName, folderName)
+                            putString(Constants.fileName, fileName)
+                            apply()
                         }
 
-                        val managerDownload =
-                            getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-
-                        // save files to this folder
-                        val folder = File(
-                            Environment.getExternalStorageDirectory()
-                                .toString() + "/Download/$saveMyFileToStorage"
-                        )
-
-                        if (!folder.exists()) {
-                            folder.mkdirs()
+                        if (!targetDir.exists()) {
+                            targetDir.mkdirs()
                         }
 
-                        val request = DownloadManager.Request(Uri.parse(replacedUrl))
-                        request.setTitle(fileName)
-                        request.allowScanningByMediaScanner()
-                        request.setDestinationInExternalPublicDir(
-                            Environment.DIRECTORY_DOWNLOADS, "/$saveMyFileToStorage/$fileName"
-                        )
+                        val managerDownload = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+                        val request = DownloadManager.Request(Uri.parse(replacedUrl)).apply {
+                            setTitle(fileName)
+                            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                            setDestinationUri(Uri.fromFile(targetFile)) // ✅ Scoped storage-compliant
+                        }
+
                         val downloadReferenceMain = managerDownload.enqueue(request)
                         downloadReference = downloadReferenceMain
-                        val editor = sharedP.edit()
-                        editor.putLong(Constants.downloadKey, downloadReferenceMain)
-                        editor.apply()
 
-
-                    }, 300)
-                } else {
-
-                    withContext(Dispatchers.Main) {
-                        getNextOnFailedDownload(
-                            sn = sn,
-                            folderName = folderName,
-                            fileName = fileName
-                        )
-
+                        sharedP.edit().putLong(Constants.downloadKey, downloadReferenceMain).apply()
                     }
-
-
+                } else {
+                    withContext(Dispatchers.Main) {
+                        getNextOnFailedDownload(sn, folderName, fileName)
+                    }
                 }
             } catch (e: Exception) {
-
                 withContext(Dispatchers.Main) {
-                    getNextOnFailedDownload(sn = sn, folderName = folderName, fileName = fileName)
-                    Log.d(KoloLog, "getZipDownloads: ${e.message.toString()}")
+                    getNextOnFailedDownload(sn, folderName, fileName)
+                    Log.d(KoloLog, "getZipDownloadsManually: ${e.message}")
                 }
-
-
             }
-
         }
-
-
     }
-
 
 
     @SuppressLint("SetTextI18n")
     private fun getZipDownloads(sn: String, folderName: String, fileName: String) {
-
         if (isProgresStarted) {
             isProgresStarted = false
 
@@ -405,88 +355,64 @@ class RetryParsingSyncService : Service() {
             intent.putExtra(Constants.ParsingStatusSync, Constants.PR_Downloading)
             sendBroadcast(intent)
 
-
             getDownloadStatus()
-            if (myHandler != null) {
-                myHandler.postDelayed(runnableGetDownloadProgress, 500)
-            }
+            myHandler?.postDelayed(runnableGetDownloadProgress, 500)
         }
 
-        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
-        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
-        val get_ModifiedUrl = sharedP.getString(Constants.get_ModifiedUrl, "").toString()
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").orEmpty()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").orEmpty()
+        val get_ModifiedUrl = sharedP.getString(Constants.get_ModifiedUrl, "").orEmpty()
         val Syn2AppLive = Constants.Syn2AppLive
         val Demo_Parsing_Folder = Constants.TEMP_PARS_FOLDER
-        val saveMyFileToStorage =
-            "/$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/$folderName"
 
+        val relativePath = "$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/$folderName"
         val getFileUrl = "$get_ModifiedUrl/$getFolderClo/$getFolderSubpath/$folderName/$fileName"
+        val targetDir = File(getExternalFilesDir(null), relativePath)
+        val targetFile = File(targetDir, fileName)
 
-        GlobalScope.launch(Dispatchers.IO){
-            //  Log.d(KoloLog, "getZipDownloads:$getFileUrl ")
+        if (targetFile.exists()) targetFile.delete()
+
+        GlobalScope.launch(Dispatchers.IO) {
             try {
                 val result = checkUrlExistence(getFileUrl)
                 if (result) {
-                    //    Log.d(KoloLog, "checkUrlExistence: Sucessful")
-
-                    handler.postDelayed(Runnable {
-                        val editior = sharedP.edit()
-                        editior.putString(Constants.fileNumber, sn)
-                        editior.putString(Constants.folderName, folderName)
-                        editior.putString(Constants.fileName, fileName)
-                        editior.apply()
-
-                        val dir = File(
-                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                            saveMyFileToStorage
-                        )
-                        if (!dir.exists()) {
-                            dir.mkdirs()
+                    withContext(Dispatchers.Main) {
+                        sharedP.edit().apply {
+                            putString(Constants.fileNumber, sn)
+                            putString(Constants.folderName, folderName)
+                            putString(Constants.fileName, fileName)
+                            apply()
                         }
 
-                        val managerDownload =
-                            getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-
-                        // save files to this folder
-                        val folder = File(
-                            Environment.getExternalStorageDirectory()
-                                .toString() + "/Download/$saveMyFileToStorage"
-                        )
-
-                        if (!folder.exists()) {
-                            folder.mkdirs()
+                        if (!targetDir.exists()) {
+                            targetDir.mkdirs()
                         }
 
-                        val request = DownloadManager.Request(Uri.parse(getFileUrl))
-                        request.setTitle(fileName)
-                        request.allowScanningByMediaScanner()
-                        request.setDestinationInExternalPublicDir(
-                            Environment.DIRECTORY_DOWNLOADS, "/$saveMyFileToStorage/$fileName"
-                        )
+                        val managerDownload = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+                        val request = DownloadManager.Request(Uri.parse(getFileUrl)).apply {
+                            setTitle(fileName)
+                            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                            setDestinationUri(Uri.fromFile(targetFile)) // ✅ Scoped storage-compliant
+                        }
+
                         val downloadReferenceMain = managerDownload.enqueue(request)
                         downloadReference = downloadReferenceMain
-                        val editor = sharedP.edit()
-                        editor.putLong(Constants.downloadKey, downloadReferenceMain)
-                        editor.apply()
 
-
-                    }, 300)
-                } else {
-                    withContext(Dispatchers.Main){
-                        getNextOnFailedDownload(sn = sn, folderName = folderName, fileName = fileName)
+                        sharedP.edit().putLong(Constants.downloadKey, downloadReferenceMain).apply()
                     }
-
+                } else {
+                    withContext(Dispatchers.Main) {
+                        getNextOnFailedDownload(sn, folderName, fileName)
+                    }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main){
-                    getNextOnFailedDownload(sn = sn, folderName = folderName, fileName = fileName)
-                    Log.d(KoloLog, "getZipDownloads: ${e.message.toString()}")
+                withContext(Dispatchers.Main) {
+                    getNextOnFailedDownload(sn, folderName, fileName)
+                    Log.d(KoloLog, "getZipDownloads: ${e.message}")
                 }
             }
-
         }
     }
-
 
     @SuppressLint("SuspiciousIndentation")
     private fun getNextOnFailedDownload(sn: String, folderName: String, fileName: String) {

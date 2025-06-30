@@ -790,9 +790,9 @@ class WebViewPage : AppCompatActivity() {
         textNoCameraAvaliable = findViewById(R.id.textNoCameraAvaliable)
 
 
-      //  CameraReceiver = CameraDisconnectedReceiver()
-       // val filter33 = IntentFilter(Constants.SYNC_CAMERA_DISCONNECTED)
-      //  registerReceiver(CameraReceiver, filter33)
+        //  CameraReceiver = CameraDisconnectedReceiver()
+        // val filter33 = IntentFilter(Constants.SYNC_CAMERA_DISCONNECTED)
+        //  registerReceiver(CameraReceiver, filter33)
 
         CameraReceiver = CameraDisconnectedReceiver()
         val filter33 = IntentFilter(Constants.SYNC_CAMERA_DISCONNECTED)
@@ -805,9 +805,9 @@ class WebViewPage : AppCompatActivity() {
 
 
 
-       // usbBroadcastReceiver = UsbBroadcastReceiver()
-       // val filter444 = getIntentFilter()
-       // registerReceiver(usbBroadcastReceiver, filter444)
+        // usbBroadcastReceiver = UsbBroadcastReceiver()
+        // val filter444 = getIntentFilter()
+        // registerReceiver(usbBroadcastReceiver, filter444)
 
         usbBroadcastReceiver = UsbBroadcastReceiver()
         val filter444 = getIntentFilter()
@@ -984,49 +984,49 @@ class WebViewPage : AppCompatActivity() {
     ) {
         lifecycleScope.launch {
             if (isActive){
-            try {
+                try {
 
-                val filePath = withContext(Dispatchers.IO) {
-                    try {
-                        getFilePath(CLO, DEMO, fileName)
-                    } catch (e: Exception) {
-                        showToastMessage("You need to Sync Files for Offline Usage")
-                        null
+                    val filePath = withContext(Dispatchers.IO) {
+                        try {
+                            getFilePath(CLO, DEMO, fileName)
+                        } catch (e: Exception) {
+                            showToastMessage("You need to Sync Files for Offline Usage")
+                            null
+                        }
                     }
-                }
 
-                // Now back on the main thread to update the UI
-                handler.postDelayed(Runnable {
-                    if (filePath != null) {
-                        if (isSystemRunning) {
-                            lifecycleScope.launch {
-                                loadOffline_Saved_Path_Offline_Webview(CLO, DEMO, fileName)
-                                Log.d(
-                                    "PETER",
-                                    " loadOffline_Saved_Path_Offline_Webview ::: State ..Powe;;"
-                                )
+                    // Now back on the main thread to update the UI
+                    handler.postDelayed(Runnable {
+                        if (filePath != null) {
+                            if (isSystemRunning) {
+                                lifecycleScope.launch {
+                                    loadOffline_Saved_Path_Offline_Webview(CLO, DEMO, fileName)
+                                    Log.d(
+                                        "PETER",
+                                        " loadOffline_Saved_Path_Offline_Webview ::: State ..Powe;;"
+                                    )
+                                }
+                            }
+                        } else {
+                            if (isSystemRunning) {
+                                Log.d("PETER", "loadOffline_Saved_Path_Offline_Webview ::: State ..")
+                                showPopInternetForWebPage(Constants.UnableToFindIndex)
                             }
                         }
-                    } else {
+
+                    }, 1500)
+
+
+                } catch (e: Exception) {
+                    handler.postDelayed(Runnable {
                         if (isSystemRunning) {
-                            Log.d("PETER", "loadOffline_Saved_Path_Offline_Webview ::: State ..")
-                            showPopInternetForWebPage(Constants.UnableToFindIndex)
+                            showToastMessage("You need to Sync Files for Offline Usage")
+                            simpleProgressbar!!.visibility = View.GONE
+                            webView!!.loadUrl("about:blank")
                         }
-                    }
-
-                }, 1500)
-
-
-            } catch (e: Exception) {
-                handler.postDelayed(Runnable {
-                    if (isSystemRunning) {
-                        showToastMessage("You need to Sync Files for Offline Usage")
-                        simpleProgressbar!!.visibility = View.GONE
-                        webView!!.loadUrl("about:blank")
-                    }
-                }, 1500)
+                    }, 1500)
+                }
             }
-        }
         }
     }
 
@@ -1203,6 +1203,8 @@ class WebViewPage : AppCompatActivity() {
 //        }
 //    }
 
+
+
     private fun InitWebvIewloadStates() {
         val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
         val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
@@ -1286,8 +1288,8 @@ class WebViewPage : AppCompatActivity() {
             load_live_Parther_url_Format()
         } else {
 
-             if (get_launching_state.equals(Constants.launch_WebView_Online_Manual_Index)) {
-                 val getSaved_manaul_index_edit_url_Input = myDownloadClass.getString(Constants.getSaved_manaul_index_edit_url_Input, "").toString()
+            if (get_launching_state.equals(Constants.launch_WebView_Online_Manual_Index)) {
+                val getSaved_manaul_index_edit_url_Input = myDownloadClass.getString(Constants.getSaved_manaul_index_edit_url_Input, "").toString()
                 loadOnlineLiveUrl(getSaved_manaul_index_edit_url_Input)
                 load_live_indicator()
 
@@ -1372,30 +1374,30 @@ class WebViewPage : AppCompatActivity() {
 
         }else{
 
-        finishAndRemoveTask()
-        Process.killProcess(Process.myTid())
+            finishAndRemoveTask()
+            Process.killProcess(Process.myTid())
 
-        if (LoadLastWebPageOnAccidentalExit) {
-            ClearLastUrl()
-        }
+            if (LoadLastWebPageOnAccidentalExit) {
+                ClearLastUrl()
+            }
         }
     }
 
 
     private fun getFilePath(CLO: String, DEMO: String, filename: String): String? {
-
-        val finalFolderPathDesired = "/" + CLO + "/" + DEMO + "/" + Constants.App
-        val destinationFolder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + finalFolderPathDesired
-        val filePath = "file://$destinationFolder$filename"
-        val myFile = File(destinationFolder, File.separator + filename)
+        val baseDir = getExternalFilesDir(null)  // ✅ App-private scoped external storage
+        val relativePath = "Syn2AppLive/$CLO/$DEMO/${Constants.App}"
+        val destinationFolder = File(baseDir, relativePath)
+        val myFile = File(destinationFolder, filename)
 
         return if (myFile.exists()) {
-            filePath
+            myFile.toURI().toString()  // Use proper file URI (e.g. file:///...)
         } else {
             null
         }
     }
+
+
 
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -1408,42 +1410,42 @@ class WebViewPage : AppCompatActivity() {
 
             if (isActive){
 
-            try {
+                try {
 
-                val filePath = withContext(Dispatchers.IO) {
-                    try {
-                        getFilePath(CLO, DEMO, fileName)
-                    } catch (e: Exception) {
-                        Log.d(TAG, "loadOffline_Saved_Path_Offline_Webview: ${e.message}")
-                        null
-                    }
-                }
-
-                // Now back on the main thread to update the UI
-                if (filePath != null) {
-                    if (isSystemRunning) {
-                        webView?.apply {
-
-                            clearHistory()
-                            loadUrl(filePath.toString())
-                            setupWebViewClients()
-                            load_offline_indicator()
+                    val filePath = withContext(Dispatchers.IO) {
+                        try {
+                            getFilePath(CLO, DEMO, fileName)
+                        } catch (e: Exception) {
+                            Log.d(TAG, "loadOffline_Saved_Path_Offline_Webview: ${e.message}")
+                            null
                         }
                     }
-                } else {
+
+                    // Now back on the main thread to update the UI
+                    if (filePath != null) {
+                        if (isSystemRunning) {
+                            webView?.apply {
+
+                                clearHistory()
+                                loadUrl(filePath.toString())
+                                setupWebViewClients()
+                                load_offline_indicator()
+                            }
+                        }
+                    } else {
+                        if (isSystemRunning) {
+                            showPopForTVConfiguration(Constants.compleConfiguration)
+                        }
+                    }
+
+                } catch (e: Exception) {
                     if (isSystemRunning) {
+                        Log.d(TAG, "loadOffline_Saved_Path_Offline_Webview: ${e.message}")
                         showPopForTVConfiguration(Constants.compleConfiguration)
                     }
                 }
-
-            } catch (e: Exception) {
-                if (isSystemRunning) {
-                    Log.d(TAG, "loadOffline_Saved_Path_Offline_Webview: ${e.message}")
-                    showPopForTVConfiguration(Constants.compleConfiguration)
-                }
             }
         }
-    }
     }
 
 
@@ -1457,62 +1459,62 @@ class WebViewPage : AppCompatActivity() {
 
             if (isActive){
 
-            try {
-                // Offload file I/O operation to a background thread
-                val filePath = withContext(Dispatchers.IO) {
-                    try {
-                        getFilePath(CLO, DEMO, filename)
-                    } catch (e: Exception) {
-                        showToastMessage("You need to Sync Files for Offline Usage")
-                        null
+                try {
+                    // Offload file I/O operation to a background thread
+                    val filePath = withContext(Dispatchers.IO) {
+                        try {
+                            getFilePath(CLO, DEMO, filename)
+                        } catch (e: Exception) {
+                            showToastMessage("You need to Sync Files for Offline Usage")
+                            null
+                        }
                     }
-                }
 
-                // Now back on the main thread to update the UI
-                handler.postDelayed(Runnable {
+                    // Now back on the main thread to update the UI
+                    handler.postDelayed(Runnable {
 
-                    if (filePath != null) {
-                        if (isSystemRunning) {
-                            webView?.apply {
-                                Log.d("PETER", "Yes The  FILES ARE BEEN CHECK after The user click from pop up for a states")
-                                clearHistory()
-                                loadUrl(filePath.toString())
-                                setupWebViewClients()
-                                load_offline_indicator()
+                        if (filePath != null) {
+                            if (isSystemRunning) {
+                                webView?.apply {
+                                    Log.d("PETER", "Yes The  FILES ARE BEEN CHECK after The user click from pop up for a states")
+                                    clearHistory()
+                                    loadUrl(filePath.toString())
+                                    setupWebViewClients()
+                                    load_offline_indicator()
+                                }
+                            }
+                        } else {
+                            if (isSystemRunning) {
+
+                                if (Utility.isNetworkAvailable(applicationContext)) {
+                                    loadOnlineUrl()
+                                    load_live_indicator()
+                                } else {
+                                    setUpTheFallingErrorLayout()
+
+                                }
                             }
                         }
-                    } else {
-                        if (isSystemRunning) {
 
+                    }, 1500)
+
+                } catch (e: Exception) {
+                    handler.postDelayed(Runnable {
+                        if (isSystemRunning) {
                             if (Utility.isNetworkAvailable(applicationContext)) {
                                 loadOnlineUrl()
                                 load_live_indicator()
                             } else {
+                                // show the offline page
                                 setUpTheFallingErrorLayout()
 
                             }
                         }
-                    }
-
-                }, 1500)
-
-            } catch (e: Exception) {
-                handler.postDelayed(Runnable {
-                    if (isSystemRunning) {
-                        if (Utility.isNetworkAvailable(applicationContext)) {
-                            loadOnlineUrl()
-                            load_live_indicator()
-                        } else {
-                            // show the offline page
-                            setUpTheFallingErrorLayout()
-
-                        }
-                    }
-                }, 1500)
+                    }, 1500)
 
 
+                }
             }
-        }
         }
     }
 
@@ -1684,7 +1686,7 @@ class WebViewPage : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 if (isSystemRunning) {
 
-                   /// errorLayout!!.visibility = View.GONE
+                    /// errorLayout!!.visibility = View.GONE
                     if (drawer_menu!!.visibility == View.VISIBLE) {
                         drawer_menu!!.visibility = View.GONE
                     }
@@ -1731,9 +1733,9 @@ class WebViewPage : AppCompatActivity() {
                     }
                     if (ShowInterstitialAd) {
                         Log.d("TAG", "The interstitial ad wasn't ready yet.")
-                      /*   if (mInterstitialAd != null) { mInterstitialAd!!.show(this@WebViewPage) } else {
-                            Log.d("TAG", "The interstitial ad wasn't ready yet.")
-                        }*/
+                        /*   if (mInterstitialAd != null) { mInterstitialAd!!.show(this@WebViewPage) } else {
+                              Log.d("TAG", "The interstitial ad wasn't ready yet.")
+                          }*/
 
                     }
 
@@ -1848,53 +1850,53 @@ class WebViewPage : AppCompatActivity() {
 
     private fun displayLocationSettingsRequest(context: Context) {
 
-  /*      try {
-            val googleApiClient = GoogleApiClient.Builder(context)
-                .addApi(LocationServices.API).build()
-            googleApiClient.connect()
-            val TAG = "YOUR-TAG-NAME"
-            val REQUEST_CHECK_SETTINGS = 0x1
-            val locationRequest = LocationRequest.create()
-            locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-            locationRequest.interval = 10000
-            locationRequest.fastestInterval = (10000 / 2).toLong()
-            val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-            builder.setAlwaysShow(true)
-            val result =
-                LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build())
-            result.setResultCallback { result1: LocationSettingsResult ->
-                val status = result1.status
-                when (status.statusCode) {
-                    LocationSettingsStatusCodes.SUCCESS -> Log.i(
-                        TAG,
-                        "All location settings are satisfied."
-                    )
+        /*      try {
+                  val googleApiClient = GoogleApiClient.Builder(context)
+                      .addApi(LocationServices.API).build()
+                  googleApiClient.connect()
+                  val TAG = "YOUR-TAG-NAME"
+                  val REQUEST_CHECK_SETTINGS = 0x1
+                  val locationRequest = LocationRequest.create()
+                  locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+                  locationRequest.interval = 10000
+                  locationRequest.fastestInterval = (10000 / 2).toLong()
+                  val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+                  builder.setAlwaysShow(true)
+                  val result =
+                      LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build())
+                  result.setResultCallback { result1: LocationSettingsResult ->
+                      val status = result1.status
+                      when (status.statusCode) {
+                          LocationSettingsStatusCodes.SUCCESS -> Log.i(
+                              TAG,
+                              "All location settings are satisfied."
+                          )
 
-                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
-                        Log.i(
-                            TAG,
-                            "Location settings are not satisfied. Show the user a dialog to upgrade location settings "
-                        )
-                        try {
-                            status.startResolutionForResult(
-                                this@WebViewPage,
-                                REQUEST_CHECK_SETTINGS
-                            )
-                        } catch (e: SendIntentException) {
-                            Log.i(TAG, "PendingIntent unable to execute request.")
-                        }
-                    }
+                          LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                              Log.i(
+                                  TAG,
+                                  "Location settings are not satisfied. Show the user a dialog to upgrade location settings "
+                              )
+                              try {
+                                  status.startResolutionForResult(
+                                      this@WebViewPage,
+                                      REQUEST_CHECK_SETTINGS
+                                  )
+                              } catch (e: SendIntentException) {
+                                  Log.i(TAG, "PendingIntent unable to execute request.")
+                              }
+                          }
 
-                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> Log.i(
-                        TAG,
-                        "Location settings are inadequate, and cannot be fixed here. Dialog not created."
-                    )
-                }
-            }
-        } catch (eP: Exception) {
-            Log.d(TAG, "HideErrorPage: " + eP.message.toString())
-        }
-        */
+                          LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> Log.i(
+                              TAG,
+                              "Location settings are inadequate, and cannot be fixed here. Dialog not created."
+                          )
+                      }
+                  }
+              } catch (eP: Exception) {
+                  Log.d(TAG, "HideErrorPage: " + eP.message.toString())
+              }
+              */
 
     }
 
@@ -1917,49 +1919,49 @@ class WebViewPage : AppCompatActivity() {
                 errorCode?.text = description
 
                 errorReloadButton!!.setOnClickListener {
-                if (isSystemRunning) {
-                    if (Utility.isNetworkAvailable(applicationContext)) {
-                        if (isSystemRunning) {
-                            webView!!.loadUrl(failingUrl)
-                            isErrorLayoutShown = true
-                        }
-                    } else {
-                        showToastMessage("Connect to an internet")
-                    }
-                }
-            }
-
-            handler.postDelayed(Runnable {
-                if (isSystemRunning) {
-                    handler.postDelayed(runnable!!, 4000)
                     if (isSystemRunning) {
-                        if (errorautoConnect?.visibility == View.GONE) {
-                            errorautoConnect?.visibility = View.VISIBLE
-                        }
-                    }
-                    errorautoConnect?.text = "Auto Reconnect: Standby"
-                    if (AdvancedControls.checkInternetConnection(applicationContext)) {
-                        if (isSystemRunning) {
-                            errorautoConnect!!.text = "Auto Reconnect: Trying to connect.."
-                        }
-                    } else {
-                        if (isSystemRunning) {
-                            if (Utility.isNetworkAvailable(applicationContext)) {
-                            webView!!.loadUrl(failingUrl)
-                            errorlayout!!.visibility = View.GONE
-                            webView!!.clearHistory()
-                            handler.removeCallbacks(runnable!!)
-
-                             isErrorLayoutShown = true
-
-                            } else {
-                                showToastMessage("Connect to an internet")
+                        if (Utility.isNetworkAvailable(applicationContext)) {
+                            if (isSystemRunning) {
+                                webView!!.loadUrl(failingUrl)
+                                isErrorLayoutShown = true
                             }
-
+                        } else {
+                            showToastMessage("Connect to an internet")
                         }
                     }
                 }
-            }.also { if (isSystemRunning) { runnable = it } }, 4000) }
+
+                handler.postDelayed(Runnable {
+                    if (isSystemRunning) {
+                        handler.postDelayed(runnable!!, 4000)
+                        if (isSystemRunning) {
+                            if (errorautoConnect?.visibility == View.GONE) {
+                                errorautoConnect?.visibility = View.VISIBLE
+                            }
+                        }
+                        errorautoConnect?.text = "Auto Reconnect: Standby"
+                        if (AdvancedControls.checkInternetConnection(applicationContext)) {
+                            if (isSystemRunning) {
+                                errorautoConnect!!.text = "Auto Reconnect: Trying to connect.."
+                            }
+                        } else {
+                            if (isSystemRunning) {
+                                if (Utility.isNetworkAvailable(applicationContext)) {
+                                    webView!!.loadUrl(failingUrl)
+                                    errorlayout!!.visibility = View.GONE
+                                    webView!!.clearHistory()
+                                    handler.removeCallbacks(runnable!!)
+
+                                    isErrorLayoutShown = true
+
+                                } else {
+                                    showToastMessage("Connect to an internet")
+                                }
+
+                            }
+                        }
+                    }
+                }.also { if (isSystemRunning) { runnable = it } }, 4000) }
 
         } catch (e: java.lang.Exception) {
             Log.d(TAG, "HideErrorPage: " + e.message.toString())
@@ -2031,35 +2033,56 @@ class WebViewPage : AppCompatActivity() {
         try {
             val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
-            val get_INSTALL_TV_JSON_USER_CLICKED =
-                sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
-                    .toString()
-            val showFloating_Button_APP =
-                sharedTVAPPModePreferences.getBoolean(Constants.hide_Floating_Button_APP, false)
+            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+            val showFloating_Button_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Floating_Button_APP, false)
 
 
-            if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
-                if (!showFloating_Button_APP) {
-                    web_button!!.visibility = View.VISIBLE
-                } else {
-                    web_button!!.visibility = View.GONE
-                }
-            }
+//            if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
+//                if (!showFloating_Button_APP) {
+//                    web_button!!.visibility = View.VISIBLE
+//                } else {
+//                    web_button!!.visibility = View.GONE
+//                }
+//            }
 
 
-            /// continue with previous JSon
-            /// continue with previous JSon
-            if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
-
-                val get_floating_bar_to_show =
-                    preferences.getBoolean(Constants.shwoFloatingButton, false)
-                if (ShowWebButton || get_floating_bar_to_show == false) {
+            if (!showFloating_Button_APP) {
                     web_button!!.visibility = View.VISIBLE
                 } else {
                     web_button!!.visibility = View.GONE
                 }
 
+
+
+            /// continue with previous JSon
+            /// continue with previous JSon
+
+
+
+            val get_floating_bar_to_show = preferences.getBoolean(Constants.shwoFloatingButton, false)
+            if (get_floating_bar_to_show == false) {
+                web_button!!.visibility = View.VISIBLE
+            } else {
+                web_button!!.visibility = View.GONE
             }
+
+
+
+
+
+//            if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
+//
+//                val get_floating_bar_to_show = preferences.getBoolean(Constants.shwoFloatingButton, false)
+//                if (ShowWebButton || get_floating_bar_to_show == false) {
+//                    web_button!!.visibility = View.VISIBLE
+//                } else {
+//                    web_button!!.visibility = View.GONE
+//                }
+//
+//
+//            }
+//
+
             /// end of part continue with previous JSon
             /// end part of continue with previous JSon
 
@@ -2343,12 +2366,12 @@ class WebViewPage : AppCompatActivity() {
             if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
 
                 // check if hide bottombar
-                if (preferences.getBoolean("hidebottombar", false)) {
+                if (preferences.getBoolean(Constants.hidebottombar, false)) {
                     ShowBottomBar = false
                 }
 
                 // enable Full Screen if true
-                if (preferences.getBoolean("fullscreen", false)) {
+                if (preferences.getBoolean(Constants.fullscreen, false)) {
                     window.setFlags(
                         WindowManager.LayoutParams.FLAG_FULLSCREEN,
                         WindowManager.LayoutParams.FLAG_FULLSCREEN
@@ -2357,7 +2380,7 @@ class WebViewPage : AppCompatActivity() {
 
 
                 /// enable immersive mode if true
-                if (preferences.getBoolean("immersive_mode", false)) {
+                if (preferences.getBoolean(Constants.immersive_mode, false)) {
                     ShowToolbar = false
                     window.setFlags(
                         WindowManager.LayoutParams.FLAG_FULLSCREEN,
@@ -3816,7 +3839,7 @@ class WebViewPage : AppCompatActivity() {
                             try {
                                 if (isSystemRunning) {
                                     myDownloadStatus()
-                                   // onAppRedirectToJsonPage()
+                                    // onAppRedirectToJsonPage()
                                 }
                                 Log.d("HFHGHHH", "onAppRedirectToJsonPage: internet Connection")
 
@@ -3877,7 +3900,6 @@ class WebViewPage : AppCompatActivity() {
                 if (isSystemRunning) {
 
 
-                    ///
                     val get_Api_state = sharedBiometric.getString(Constants.imagSwtichEnableSyncFromAPI, "").toString()
                     if (Utility.isNetworkAvailable(applicationContext)) {
 
@@ -4037,7 +4059,7 @@ class WebViewPage : AppCompatActivity() {
 
 
 
-      bindingCP.textContinue.setOnClickListener {
+        bindingCP.textContinue.setOnClickListener {
             Log.d("PETER", "InitWebvIewloadStates:: The user click from pop up for a states")
             dailaogShowPopCallingWebview()
 
@@ -4045,11 +4067,11 @@ class WebViewPage : AppCompatActivity() {
                 customInternetWebviewPage!!.dismiss()
             }
 
-          if ( countdownTimerForWebviewPage != null){
-              countdownTimerForWebviewPage?.cancel()
-          }
+            if ( countdownTimerForWebviewPage != null){
+                countdownTimerForWebviewPage?.cancel()
+            }
 
-          isCountDownDialogVisible  = false
+            isCountDownDialogVisible  = false
         }
 
 
@@ -4080,16 +4102,16 @@ class WebViewPage : AppCompatActivity() {
                 try {
                     countdownTimerForWebviewPage!!.start()
 
-                if (isCountDownDialogVisible && isSystemRunning && Utility.isNetworkAvailable(applicationContext)){
-                    if (hasWebviewPageLoadedBefore) {
-                        webView!!.clearHistory()
-                        webView!!.reload()
-                        showSnackBar("Refreshing, please wait...")
-                    } else {
-                        webView!!.clearHistory()
-                        InitWebvIewloadStatesWhenPopUpIsOn()
+                    if (isCountDownDialogVisible && isSystemRunning && Utility.isNetworkAvailable(applicationContext)){
+                        if (hasWebviewPageLoadedBefore) {
+                            webView!!.clearHistory()
+                            webView!!.reload()
+                            showSnackBar("Refreshing, please wait...")
+                        } else {
+                            webView!!.clearHistory()
+                            InitWebvIewloadStatesWhenPopUpIsOn()
+                        }
                     }
-                }
                 } catch (ignored: java.lang.Exception) {
                 }
             }
@@ -5074,49 +5096,47 @@ class WebViewPage : AppCompatActivity() {
                 }
 
                 Log.d("MADNNESSS", "getFilesDownloads: $sn/$folderName/$fileName")
-                // Create directory and delete existing file if necessary
-                val saveMyFileToStorage = constructFilePath(folderName)
-                val dir = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    saveMyFileToStorage
-                )
-                val myFile = File(dir, fileName)
-                delete(myFile)
 
-                // Delay and enqueue the download request
+                // ✅ Use app-private external storage
+                val baseDir = getExternalFilesDir(null)
+                val saveMyFileToStorage = constructFilePath(folderName)
+                val dir = File(baseDir, saveMyFileToStorage)
+                val targetFile = File(dir, fileName)
+
+                // Delete existing file
+                delete(targetFile)
+
                 delay(200)
 
-                // Re-create directory if it doesn't exist
                 if (!dir.exists()) {
                     dir.mkdirs()
                 }
 
                 val url = constructDownloadUrl(folderName, fileName)
-                val file = File(dir, fileName).absolutePath
-                val request = Request(url, file).apply {
+                val filePath = targetFile.absolutePath
+
+                val request = Request(url, filePath).apply {
                     priority = Priority.HIGH
                     networkType = NetworkType.ALL
                     addHeader("clientKey", "SD78DF93_3947&MVNGHE1WONG")
                 }
 
-                fetch!!.enqueue(request, { updatedRequest: Request? -> }) { error: Error ->
+                fetch?.enqueue(request, { updatedRequest: Request? ->
+                    // Optional success handling
+                }) { error: Error ->
                     Log.e("onRequest", "Error: $error")
-
                     Log.d("CloseError", "getFilesDownloads: $error")
-
                 }
 
-
-                // Save file number
-                val editor = myDownloadClass.edit()
-                editor.putInt(Constants.fileNumber, sn.toInt())
-                editor.apply()
+                myDownloadClass.edit().apply {
+                    putInt(Constants.fileNumber, sn.toInt())
+                    apply()
+                }
             }
         } catch (e: Exception) {
             Log.e("getFilesDownloads", "Error occurred: ${e.message}")
         }
     }
-
 
     private fun constructFilePath(folderName: String): String {
         val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
@@ -5188,9 +5208,7 @@ class WebViewPage : AppCompatActivity() {
 
             // Manual is allowed
             if (imagSwtich_get_manual.equals(Constants.imagSwtichEnableManualOrNot)) {
-                val get_edit_Saved_url_manual_zip =
-                    myDownloadClass.getString(Constants.getSavedEditTextInputSynUrlZip, "")
-                        .toString()
+                val get_edit_Saved_url_manual_zip = myDownloadClass.getString(Constants.getSavedEditTextInputSynUrlZip, "").toString()
 
                 lifecycleScope.launch {
                     val result = checkUrlExistence(get_edit_Saved_url_manual_zip)
@@ -5254,26 +5272,21 @@ class WebViewPage : AppCompatActivity() {
 
     private fun get_Zip_FilesDownloads(url: String) {
         try {
-
             binding.textStatusProcess.text = Constants.PR_checking
 
             lifecycleScope.launch(Dispatchers.IO) {
-                val myDownloadClass =
-                    getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-                val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-                val getFolderSubpath =
-                    myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-                val DeleteFolderPath =
-                    "/$getFolderClo/$getFolderSubpath/${Constants.Zip}/${Constants.fileNmae_App_Zip}"
-                val directoryPath =
-                    Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}$DeleteFolderPath"
-                val file = File(directoryPath)
-                delete(file)
+                val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+                val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").orEmpty()
+                val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").orEmpty()
+
+                val deleteFolderPath = "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.Zip}"
+                val targetDir = File(getExternalFilesDir(null), deleteFolderPath)
+                val targetFile = File(targetDir, Constants.fileNmae_App_Zip)
+
+                delete(targetFile)
             }
 
-
             handler.postDelayed({
-
                 lifecycleScope.launch(Dispatchers.IO) {
                     withContext(Dispatchers.Main) {
                         isdDownloadApi = false
@@ -5282,63 +5295,50 @@ class WebViewPage : AppCompatActivity() {
                         binding.textStatusProcess.text = Constants.PR_Downloading
                         binding.progressBarPref.visibility = View.VISIBLE
 
-                        val myDownloadClass =
-                            getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-                        val editorSyn = myDownloadClass.edit()
-                        editorSyn.putString(Constants.SynC_Status, Constants.PR_Downloading)
-                        editorSyn.apply()
-
+                        getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE).edit().apply {
+                            putString(Constants.SynC_Status, Constants.PR_Downloading)
+                            apply()
+                        }
                     }
 
-                    val myDownloadClass =
-                        getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-                    val getFolderClo =
-                        myDownloadClass.getString(Constants.getFolderClo, "").toString()
-                    val getFolderSubpath =
-                        myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
+                    val prefs = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+                    val getFolderClo = prefs.getString(Constants.getFolderClo, "").orEmpty()
+                    val getFolderSubpath = prefs.getString(Constants.getFolderSubpath, "").orEmpty()
+                    val finalFolderPath = "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.Zip}"
 
-                    val finalFolderPath = "/$getFolderClo/$getFolderSubpath/${Constants.Zip}"
-                    val dir = File(
-                        Environment.getExternalStorageDirectory()
-                            .toString() + "/Download/${Constants.Syn2AppLive}/$finalFolderPath"
-                    )
-
-                    // create folder if not exist
-                    if (!dir.exists()) {
-                        dir.mkdirs()
-                    }
+                    val dir = File(getExternalFilesDir(null), finalFolderPath)
+                    if (!dir.exists()) dir.mkdirs()
 
                     val file = File(dir, "App.zip").absolutePath
-                    val request = Request(url, file)
-                    request.priority = Priority.HIGH
-                    request.networkType = NetworkType.ALL
-                    request.addHeader("clientKey", "SD78DF93_3947&MVNGHE1WONG")
+
+                    val request = Request(url, file).apply {
+                        priority = Priority.HIGH
+                        networkType = NetworkType.ALL
+                        addHeader("clientKey", "SD78DF93_3947&MVNGHE1WONG")
+                    }
 
                     fetch?.enqueue(request, { updatedRequest: Request? ->
-                        // handle success
+                        // Handle success
                     }) { error: Error ->
                         Log.e("WebZippper", "Error: $error")
-
                         runOnUiThread {
                             // tell the system allow download again because of an error
                             isdDownloadApi = true
 
                         }
                     }
-
                 }
             }, 1500)
-
 
         } catch (e: Exception) {
             Log.e("WebZippper", "Exception occurred: ${e.message}")
             runOnUiThread {
-                // tell the system allow download again because of an error
                 isdDownloadApi = true
-
             }
         }
     }
+
+
 
 
     private fun funUnZipFile() {
@@ -5346,6 +5346,7 @@ class WebViewPage : AppCompatActivity() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                Log.d("THIS ZIP", "funUnZipFile: Located zip file")
 
                 withContext(Dispatchers.Main) {
                     binding.textStatusProcess.text = Constants.PR_checking
@@ -5354,82 +5355,67 @@ class WebViewPage : AppCompatActivity() {
                     binding.textDownladByes.text = "100%"
                 }
 
+                val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, Context.MODE_PRIVATE)
+                val getFolderClo = sharedP.getString(Constants.getFolderClo, "") ?: ""
+                val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "") ?: ""
 
-                val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-                val getFolderSubpath =
-                    myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-                val zipFileName = myDownloadClass.getString("Zip", "").toString()
-                val fileName = myDownloadClass.getString("fileNamy", "").toString()
-                val extractedFolder = myDownloadClass.getString(Constants.Extracted, "").toString()
+                val baseDir = getExternalFilesDir(null) // ✅ Safe, private directory
+                val zipFileDir = File(baseDir, "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.Zip}/${Constants.fileNmae_App_Zip}")  // from
+                val extractToDir = File(baseDir, "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App}")  // to
 
-                val finalFolderPath = "/$getFolderClo/$getFolderSubpath/$zipFileName"
-                val finalFolderPathDesired = "/$getFolderClo/$getFolderSubpath/$extractedFolder"
+                if (!extractToDir.exists()) extractToDir.mkdirs()
 
-                val directoryPathString =
-                    Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + finalFolderPath
-                val destinationFolder =
-                    File(Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + finalFolderPathDesired)
-
-                if (!destinationFolder.exists()) {
-                    destinationFolder.mkdirs()
-                }
-
-                val myFile = File(directoryPathString, File.separator + fileName)
-                if (myFile.exists()) {
-                    extractZip(myFile.absolutePath, destinationFolder.absolutePath)
+                val zipFile = File(zipFileDir, "")
+                if (zipFile.exists()) {
+                    extractZip(zipFile.absolutePath, extractToDir.absolutePath)
                 } else {
                     withContext(Dispatchers.Main) {
-                        binding.textStatusProcess.text = Constants.PR_Zip_error
-                        binding.progressBarPref.visibility = View.INVISIBLE
-                        binding.textFilecount.text = "1/1"
-                        binding.textDownladByes.visibility = View.INVISIBLE
+                        withContext(Dispatchers.Main) {
+                            binding.textStatusProcess.text = Constants.PR_Zip_error
+                            binding.progressBarPref.visibility = View.INVISIBLE
+                            binding.textFilecount.text = "1/1"
+                            binding.textDownladByes.visibility = View.INVISIBLE
+                            isdDownloadApi = true
 
-                        // tell the system allow download again because of an error
-                        isdDownloadApi = true
-                        //  showToastMessage("ZIP file not found")
-
+                            Log.d("THIS ZIP", "funUnZipFile: Unable to find the zip")
+                        }
                     }
                 }
+
+
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-
                     binding.textStatusProcess.text = Constants.PR_Zip_error
                     binding.progressBarPref.visibility = View.INVISIBLE
                     binding.textFilecount.text = "1/1"
                     binding.textDownladByes.visibility = View.INVISIBLE
-
-                    // tell the system allow download again because of an error
                     isdDownloadApi = true
                     showToastMessage("An error occurred: ${e.localizedMessage}")
-
-
+                    Log.d("THIS ZIP", "An error occurred: ${e.localizedMessage}")
                 }
             }
         }
     }
 
+
     private fun extractZip(zipFilePath: String, destinationPath: String) {
+
+        binding.textStatusProcess.text = Constants.PR_Extracting
+        binding.progressBarPref.visibility = View.VISIBLE
+        binding.textFilecount.text = "1/1"
+        binding.textDownladByes.text = "100%"
+
+        val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+        myDownloadClass.edit().putString(Constants.SynC_Status, Constants.PR_Extracting).apply()
+
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-
-                withContext(Dispatchers.Main) {
-                    binding.textStatusProcess.text = Constants.PR_Extracting
-                    binding.progressBarPref.visibility = View.VISIBLE
-                    binding.textFilecount.text = "1/1"
-                    binding.textDownladByes.text = "100%"
-
-                    val myDownloadClass =
-                        getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-                    val editorSyn = myDownloadClass.edit()
-                    editorSyn.putString(Constants.SynC_Status, Constants.PR_Extracting)
-                    editorSyn.apply()
-
-                }
-
-
+                Log.d("THIS ZIP", "extractZip: Strat extraction")
+                val zipFile = File(zipFilePath)
                 val buffer = ByteArray(1024)
-                val zipInputStream = ZipInputStream(FileInputStream(zipFilePath))
+                val zipInputStream = ZipInputStream(FileInputStream(zipFile))
 
                 var entry: ZipEntry? = zipInputStream.nextEntry
                 while (entry != null) {
@@ -5448,13 +5434,8 @@ class WebViewPage : AppCompatActivity() {
                         }
                     }
 
-                    MediaScannerConnection.scanFile(
-                        applicationContext,
-                        arrayOf(entryFile.absolutePath),
-                        null
-                    ) { path, uri ->
+                    MediaScannerConnection.scanFile(applicationContext, arrayOf(entryFile.absolutePath), null) { path, uri ->
                         Log.d("MediaScanner", "Scanned $path -> $uri")
-
                     }
 
                     entry = zipInputStream.nextEntry
@@ -5463,16 +5444,22 @@ class WebViewPage : AppCompatActivity() {
                 zipInputStream.close()
 
                 withContext(Dispatchers.Main) {
+                    showToastMessage("Extraction completed successfully.")
                     allExtractionCompleted()
+
+                    Log.d("THIS ZIP", "extractZip: completed extraction")
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
+                    showToastMessage("Error during extraction: ${e.localizedMessage}")
                     allExtractionCompleted()
+                    Log.d("THIS ZIP", "extractZip: Error extraction")
                 }
             }
         }
     }
+
 
 
     private fun allExtractionCompleted() {
@@ -5614,37 +5601,35 @@ class WebViewPage : AppCompatActivity() {
                     iswebViewRefreshingOnApiSync = true
                 }
 
-                val saveMyFileToStorage = "/${Constants.Syn2AppLive}/CLO/MANUAL/DEMO/$folderName"
                 val getSavedEditTextInputSynUrlZip =
-                    myDownloadClass.getString(Constants.getSavedEditTextInputSynUrlZip, "")
-                        .toString()
+                    myDownloadClass.getString(Constants.getSavedEditTextInputSynUrlZip, "").orEmpty()
                 val replacedUrl = replaceUrl(getSavedEditTextInputSynUrlZip, folderName, fileName)
 
                 replacedUrl?.let { url ->
-                    val directoryPath =
-                        Environment.getExternalStorageDirectory().absolutePath + "/Download/" + saveMyFileToStorage
-                    val myFile = File(directoryPath, fileName)
-                    delete(myFile)
+                    // ✅ Use app-private external storage
+                    val baseDir = getExternalFilesDir(null)
+                    val saveMyFileToStorage = "${Constants.Syn2AppLive}/CLO/MANUAL/DEMO/$folderName"
+                    val targetDir = File(baseDir, saveMyFileToStorage)
+                    val targetFile = File(targetDir, fileName)
+
+                    delete(targetFile)
 
                     delay(200)
 
-                    val dir = File(
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                        saveMyFileToStorage
-                    )
-                    if (!dir.exists()) {
-                        dir.mkdirs()
+                    if (!targetDir.exists()) {
+                        targetDir.mkdirs()
                     }
 
-                    val file = File(dir, fileName).absolutePath
-                    val request = Request(url, file).apply {
+                    val filePath = targetFile.absolutePath
+
+                    val request = Request(url, filePath).apply {
                         priority = Priority.HIGH
                         networkType = NetworkType.ALL
                         addHeader("clientKey", "SD78DF93_3947&MVNGHE1WONG")
                     }
 
                     fetch?.enqueue(request, { updatedRequest: Request? ->
-                        // Handle success
+                        // Handle success (optional callback)
                     }) { error: Error ->
                         Log.e("onRequest", "Error: $error")
                     }
@@ -5659,7 +5644,6 @@ class WebViewPage : AppCompatActivity() {
             Log.e("getZipDownloadsManually", "Exception occurred: ${e.message}", e)
         }
     }
-
 
     private fun replaceUrl(url: String, folderName: String, fileName: String): String? {
         return when {
@@ -5704,16 +5688,10 @@ class WebViewPage : AppCompatActivity() {
 
 
 
-                    Log.d(
-                        KoloLog,
-                        "onError:  An error cocured trying o download from path/url" + error.httpResponse?.code
-                    )
+                    Log.d(KoloLog, "onError:  An error cocured trying o download from path/url" + error.httpResponse?.code)
 
 
-                    Log.d(
-                        "FDNNDHGHDHHHD",
-                        "onError:  An error cocured trying o download from path/url" + error.httpResponse?.code
-                    )
+                    Log.d("FDNNDHGHDHHHD", "onError:  An error cocured trying o download from path/url" + error.httpResponse?.code)
 
 
                 }
@@ -5975,35 +5953,27 @@ class WebViewPage : AppCompatActivity() {
         initProgressParsingSyncFilesDownload = false
 
         lifecycleScope.launch(Dispatchers.IO) {
-            val Demo_Parsing_Folder = Constants.TEMP_PARS_FOLDER
-            val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-            val getFolderSubpath =
-                myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-            val saveDemoStorage =
-                "/${Constants.Syn2AppLive}/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/App/"
-            val directoryParsing =
-                Environment.getExternalStorageDirectory().absolutePath + "/Download/" + saveDemoStorage
-            val myFileParsing = File(directoryParsing)
-            delete(myFileParsing)
+            val demoParsingFolder = Constants.TEMP_PARS_FOLDER
+            val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").orEmpty()
+            val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").orEmpty()
 
-            val parsingStorage_second =
-                "/${Constants.Syn2AppLive}/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/"
-            val fileNameParsing = "/App/"
-            val dirParsing = File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                parsingStorage_second
-            )
-            val myFile_Parsing = File(dirParsing, fileNameParsing)
-            delete(myFile_Parsing)
+            // New scoped path for parsing directory
+            val scopedBasePath = "${Constants.Syn2AppLive}/$demoParsingFolder/$getFolderClo/$getFolderSubpath/App"
+            val scopedFolder = File(getExternalFilesDir(null), scopedBasePath)
+            delete(scopedFolder)
+
+            // Optional legacy secondary cleanup if needed
+            val secondaryPath = "${Constants.Syn2AppLive}/$demoParsingFolder/$getFolderClo/$getFolderSubpath"
+            val secondaryFolder = File(getExternalFilesDir(null), "$secondaryPath/App")
+            delete(secondaryFolder)
 
             withContext(Dispatchers.Main) {
                 binding.textStatusProcess.text = Constants.PR_Change_Found
-                handler.postDelayed(Runnable {
+                handler.postDelayed({
                     if (isSystemRunning) {
                         getAllIndexUrls(urlsss)
                     }
                 }, 7000)
-
             }
         }
     }
@@ -6510,161 +6480,6 @@ class WebViewPage : AppCompatActivity() {
     }
 
 
-    private fun copyFilesAndFolders() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-                val getFolderSubpath =
-                    myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-
-                // delete tempoaray parsing folder
-                val Syn2AppLive = Constants.Syn2AppLive
-                val Demo_Parsing_Folder = Constants.TEMP_PARS_FOLDER
-
-
-                val copyFilesFrom =
-                    "/$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/App/"
-                val dir = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    copyFilesFrom
-                )
-
-                val saveFilesTo = "/$Syn2AppLive/$getFolderClo/$getFolderSubpath/App/"
-                val path = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    saveFilesTo
-                )
-
-                // Check if the source folder exists
-                if (!dir.exists()) {
-                    withContext(Dispatchers.Main) {
-
-                        lifecycleScope.launch(Dispatchers.IO) {
-
-                            val saveDemoStorage =
-                                "/$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/App/"
-                            val directoryParsing =
-                                Environment.getExternalStorageDirectory().absolutePath + "/Download/" + saveDemoStorage
-                            val myFileParsing = File(directoryParsing)
-                            delete(myFileParsing)
-
-
-                            val parsingStorage_second =
-                                "/$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/"
-                            val fileNameParsing = "/App/"
-                            val dirParsing = File(
-                                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                                parsingStorage_second
-                            )
-                            val myFile_Parsing = File(dirParsing, fileNameParsing)
-                            delete(myFile_Parsing)
-
-                            withContext(Dispatchers.Main) {
-
-                                handler.postDelayed(Runnable {
-                                    if (isSystemRunning) {
-                                        Refresh_WebView_After_ParsingDownload()
-                                    }
-                                }, 4000)
-
-                            }
-
-                        }
-
-                    }
-                    return@launch
-                }
-
-                // Ensure the destination folder exists
-                if (!path.exists()) {
-                    path.mkdirs() // Create the folder if it doesn't exist
-                }
-
-                // Copy files and folders
-                copyDirectory(dir, path)
-
-                withContext(Dispatchers.Main) {
-
-                    lifecycleScope.launch(Dispatchers.IO) {
-
-                        val saveDemoStorage =
-                            "/$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/App/"
-                        val directoryParsing =
-                            Environment.getExternalStorageDirectory().absolutePath + "/Download/" + saveDemoStorage
-                        val myFileParsing = File(directoryParsing)
-                        delete(myFileParsing)
-
-
-                        val parsingStorage_second =
-                            "/$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/"
-                        val fileNameParsing = "/App/"
-                        val dirParsing = File(
-                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                            parsingStorage_second
-                        )
-                        val myFile_Parsing = File(dirParsing, fileNameParsing)
-                        delete(myFile_Parsing)
-
-                        withContext(Dispatchers.Main) {
-
-                            handler.postDelayed(Runnable {
-                                if (isSystemRunning) {
-                                    Refresh_WebView_After_ParsingDownload()
-                                }
-                            }, 4000)
-
-                        }
-
-                    }
-
-                }
-
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        val getFolderClo =
-                            myDownloadClass.getString(Constants.getFolderClo, "").toString()
-                        val getFolderSubpath =
-                            myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-
-                        // delete tempoaray parsing folder
-                        val Syn2AppLive = Constants.Syn2AppLive
-                        val Demo_Parsing_Folder = Constants.TEMP_PARS_FOLDER
-                        val saveDemoStorage =
-                            "/$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/App/"
-                        val directoryParsing =
-                            Environment.getExternalStorageDirectory().absolutePath + "/Download/" + saveDemoStorage
-                        val myFileParsing = File(directoryParsing)
-                        delete(myFileParsing)
-
-
-                        val parsingStorage_second =
-                            "/$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/"
-                        val fileNameParsing = "/App/"
-                        val dirParsing = File(
-                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                            parsingStorage_second
-                        )
-                        val myFile_Parsing = File(dirParsing, fileNameParsing)
-                        delete(myFile_Parsing)
-
-                        withContext(Dispatchers.Main) {
-                            handler.postDelayed(Runnable {
-                                if (isSystemRunning) {
-                                    Refresh_WebView_After_ParsingDownload()
-                                }
-                            }, 4000)
-                        }
-
-                    }
-
-                }
-            }
-        }
-    }
 
     private fun Refresh_WebView_After_ParsingDownload() {
         try {
@@ -6701,6 +6516,64 @@ class WebViewPage : AppCompatActivity() {
         } catch (_: Exception) {
         }
     }
+
+
+    private fun copyFilesAndFolders() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").orEmpty()
+                val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").orEmpty()
+
+                val Syn2AppLive = Constants.Syn2AppLive
+                val Demo_Parsing_Folder = Constants.TEMP_PARS_FOLDER
+
+                val sourceRelativePath = "$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/App/"
+                val sourceDir = File(getExternalFilesDir(null), sourceRelativePath)
+
+                val targetRelativePath = "$Syn2AppLive/$getFolderClo/$getFolderSubpath/App/"
+                val targetDir = File(getExternalFilesDir(null), targetRelativePath)
+
+                // If source doesn't exist, cleanup and return
+                if (!sourceDir.exists()) {
+                    cleanupAfterMissingSource(sourceRelativePath)
+                    return@launch
+                }
+
+                if (!targetDir.exists()) {
+                    targetDir.mkdirs()
+                }
+
+                copyDirectory(sourceDir, targetDir)
+
+                // Optional cleanup of source after copying
+                cleanupAfterMissingSource(sourceRelativePath)
+
+                withContext(Dispatchers.Main) {
+                    handler.postDelayed({
+                        if (isSystemRunning) {
+                            Refresh_WebView_After_ParsingDownload()
+                        }
+                    }, 4000)
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                cleanupAfterMissingSource("fallback/manual/path") // optional fallback
+            }
+        }
+    }
+
+    private fun cleanupAfterMissingSource(relativePath: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val dirToDelete = File(getExternalFilesDir(null), relativePath)
+                delete(dirToDelete)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
 
     // Function to copy a directory recursively
     private fun copyDirectory(source: File, destination: File) {
@@ -6842,23 +6715,23 @@ class WebViewPage : AppCompatActivity() {
                     currentSettings!!.current_day = MethodsSchedule.today()
                 }
 
-                val myDownloadClass =
-                    getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, Context.MODE_PRIVATE)
+                val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, Context.MODE_PRIVATE)
                 val company = myDownloadClass.getString(Constants.getFolderClo, "").toString()
                 val license = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
                 val syn2AppLive = Constants.Syn2AppLive
 
-                val finalFolderPath = "/$company/$license"
-
-                val scheduleFileFolder =
-                    File("${Environment.getExternalStorageDirectory()}/Download/$syn2AppLive$finalFolderPath/App/${Common.USER_SCHEDULE_FOLDER}")
+                // ✅ Use app-private external storage instead of Download directory
+                val scheduleFileFolder = File(
+                    getExternalFilesDir(null),
+                    "$syn2AppLive/$company/$license/App/${Common.USER_SCHEDULE_FOLDER}"
+                )
 
                 val savedState = Paper.book().read(Common.set_schedule_key, Common.schedule_online)
 
                 scheduleFile = if (Common.schedule_online == savedState) {
-                    File(scheduleFileFolder.absolutePath, Common.ONLINE_SCHEDULE_FILE)
+                    File(scheduleFileFolder, Common.ONLINE_SCHEDULE_FILE)
                 } else {
-                    File(scheduleFileFolder.absolutePath, Common.LOCAL_SCHEDULE_FILE)
+                    File(scheduleFileFolder, Common.LOCAL_SCHEDULE_FILE)
                 }
 
                 if (currentSettings!!.current_day != MethodsSchedule.today()) {
@@ -7196,7 +7069,7 @@ class WebViewPage : AppCompatActivity() {
 
                 // Load page
                 if (Utility.isNetworkAvailable(applicationContext)) {
-                    if (theUrl.contains("/Syn2AppLive/")) {
+                    if (theUrl.contains("/${Constants.Syn2AppLive}/")) {
                         val theOfflineFile = File(theUrl)
                         if (theOfflineFile.exists()) {
 
@@ -7349,27 +7222,27 @@ class WebViewPage : AppCompatActivity() {
     private fun load_Admin_Webview_Schedule(theUrl: String) {
         try {
             val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-            val company = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-            val license = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-            val filename = "/$theUrl"
-            val finalFolderPathDesired = "/" + company + "/" + license + "/" + Constants.App
-            val destinationFolder =
-                Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + finalFolderPathDesired
-            val filePath = "file://$destinationFolder$filename"
-            val myFile = File(destinationFolder, File.separator + filename)
+            val company = myDownloadClass.getString(Constants.getFolderClo, "").orEmpty()
+            val license = myDownloadClass.getString(Constants.getFolderSubpath, "").orEmpty()
+            val filename = theUrl.removePrefix("/") // ensure no leading slash
+            val finalFolderPath = "${Constants.Syn2AppLive}/$company/$license/${Constants.App}"
+
+            // ✅ Use app-private external storage
+            val destinationFolder = File(getExternalFilesDir(null), finalFolderPath)
+            val myFile = File(destinationFolder, filename)
 
             if (myFile.exists()) {
-                webView?.let { it.clearHistory() }
+                val filePath = "file://${myFile.absolutePath}"
+                webView?.clearHistory()
                 loadOnlineLiveUrl(filePath)
                 load_offline_indicator()
-
             } else {
-
                 InitWebvIewloadStates()
                 showToastMessage("Schedule Index File not found..")
             }
-        } catch (e: java.lang.Exception) {
-            Log.d(TAG, "load_Admin_Webview_Schedule: " + e.message.toString())
+
+        } catch (e: Exception) {
+            Log.d(TAG, "load_Admin_Webview_Schedule: ${e.message}")
         }
     }
 
@@ -7377,24 +7250,25 @@ class WebViewPage : AppCompatActivity() {
     private fun load_Admin_Webview_Schedule_Modified_url(theFullPath: String) {
         try {
             val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-            val company = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-            val license = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-            val finalFolderPathDesired = "/$company/$license/$theFullPath"
-            val destinationFolder =
-                Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + finalFolderPathDesired
-            val filePath = "file://$destinationFolder"
-            val myFile = File(destinationFolder)
-            if (myFile.exists()) {
-                webView?.let { it.clearHistory() }
+            val company = myDownloadClass.getString(Constants.getFolderClo, "").orEmpty()
+            val license = myDownloadClass.getString(Constants.getFolderSubpath, "").orEmpty()
+
+            // Clean and build relative path safely
+            val relativePath = "${Constants.Syn2AppLive}/$company/$license/$theFullPath".removePrefix("/")
+            val file = File(getExternalFilesDir(null), relativePath)
+
+            if (file.exists()) {
+                val filePath = "file://${file.absolutePath}"
+                webView?.clearHistory()
                 loadOnlineLiveUrl(filePath)
                 load_offline_indicator()
-
             } else {
-
                 InitWebvIewloadStates()
                 showToastMessage("Schedule Index File not found..")
             }
-        } catch (e: java.lang.Exception) {
+
+        } catch (e: Exception) {
+            Log.e("load_Admin_Webview_Schedule_Modified", "Error: ${e.message}")
         }
     }
 
@@ -7402,28 +7276,24 @@ class WebViewPage : AppCompatActivity() {
     private fun load_Offline_Page_From_Admin(theUrl: String) {
         try {
             val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-            val company = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-            val license = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-            val filename = "/$theUrl"
-            val finalFolderPathDesired = "/" + company + "/" + license + "/" + Constants.App
-            val destinationFolder =
-                Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + finalFolderPathDesired
-            val filePath = "file://$destinationFolder$filename"
-            val myFile = File(destinationFolder, File.separator + filename)
+            val company = myDownloadClass.getString(Constants.getFolderClo, "").orEmpty()
+            val license = myDownloadClass.getString(Constants.getFolderSubpath, "").orEmpty()
+            val cleanFilename = theUrl.removePrefix("/")
 
+            val relativePath = "${Constants.Syn2AppLive}/$company/$license/${Constants.App}/$cleanFilename"
+            val file = File(getExternalFilesDir(null), relativePath)
 
-            if (myFile.exists()) {
-                webView?.let { it.clearHistory() }
+            if (file.exists()) {
+                val filePath = "file://${file.absolutePath}"
+                webView?.clearHistory()
                 loadOnlineLiveUrl(filePath)
                 load_offline_indicator()
-
             } else {
-
                 showToastMessage("Schedule Index File not found..")
                 InitWebvIewloadStates()
-
             }
-        } catch (e: java.lang.Exception) {
+        } catch (e: Exception) {
+            Log.e("load_Offline_Page_From_Admin", "Error: ${e.message}")
         }
     }
 
@@ -8009,29 +7879,20 @@ class WebViewPage : AppCompatActivity() {
 
     private fun CheckShortCutImage() {
         try {
-
-            val get_ShortCutStatus =
-                sharedBiometric.getString(Constants.Do_NO_SHOW_SHORT_CUT_AGAIN, "").toString()
+            val get_ShortCutStatus = sharedBiometric
+                .getString(Constants.Do_NO_SHOW_SHORT_CUT_AGAIN, "").orEmpty()
 
             if (get_ShortCutStatus != Constants.Do_NO_SHOW_SHORT_CUT_AGAIN) {
-
-                handler.postDelayed(Runnable {
+                handler.postDelayed({
                     if (isSystemRunning) {
-
                         lifecycleScope.launch(Dispatchers.IO) {
+                            val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+                            val company = myDownloadClass.getString(Constants.getFolderClo, "").orEmpty()
+                            val license = myDownloadClass.getString(Constants.getFolderSubpath, "").orEmpty()
 
-                            val myDownloadClass =
-                                getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-                            val getFolderClo =
-                                myDownloadClass.getString(Constants.getFolderClo, "").toString()
-                            val getFolderSubpath =
-                                myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-                            val pathFolder =
-                                "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-                            val folder =
-                                Environment.getExternalStorageDirectory().absolutePath + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder
-                            val fileTypes = "app_logo.png"
-                            val file = File(folder, fileTypes)
+                            val relativePath = "${Constants.Syn2AppLive}/$company/$license/${Constants.App}/Config"
+                            val folder = File(getExternalFilesDir(null), relativePath)
+                            val file = File(folder, "app_logo.png")
 
                             if (file.exists()) {
                                 withContext(Dispatchers.Main) {
@@ -8043,46 +7904,33 @@ class WebViewPage : AppCompatActivity() {
                                 }
                             }
                         }
-
                     }
                 }, 7000)
-
             }
-
-
         } catch (e: Exception) {
-            Log.d(TAG, "CheckShortCutImage: " + e.message.toString())
+            Log.d(TAG, "CheckShortCutImage: ${e.message}")
         }
-
     }
 
     private fun initShortCut() {
         try {
             binding.adView.visibility = View.VISIBLE
-
             startCountDownShortCut(5)
 
             binding.textAgreeYes.setOnClickListener {
-
                 lifecycleScope.launch(Dispatchers.IO) {
+                    val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+                    val company = myDownloadClass.getString(Constants.getFolderClo, "").orEmpty()
+                    val license = myDownloadClass.getString(Constants.getFolderSubpath, "").orEmpty()
 
-                    val myDownloadClass =
-                        getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-                    val getFolderClo =
-                        myDownloadClass.getString(Constants.getFolderClo, "").toString()
-                    val getFolderSubpath =
-                        myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-                    val pathFolder =
-                        "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-                    val folder =
-                        Environment.getExternalStorageDirectory().absolutePath + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder
-                    val fileTypes = "app_logo.png"
-                    val file = File(folder, fileTypes)
+                    val relativePath = "${Constants.Syn2AppLive}/$company/$license/${Constants.App}/Config"
+                    val folder = File(getExternalFilesDir(null), relativePath)
+                    val file = File(folder, "app_logo.png")
 
                     val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                     if (Build.VERSION.SDK_INT >= 25) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            CustomShortcutsDemo.setUp(applicationContext, getFolderSubpath, bitmap)
+                            CustomShortcutsDemo.setUp(applicationContext, license, bitmap)
                         }
                     }
 
@@ -8090,56 +7938,33 @@ class WebViewPage : AppCompatActivity() {
                         shortcutPin(applicationContext, Constants.shortcut_messages_id, 1)
                     }
                 }
+
                 binding.adView.visibility = View.GONE
+                countdownTimer_Short_Cut?.cancel()
 
-                countdownTimer_Short_Cut.let {
-                    it?.cancel()
+                sharedBiometric.edit().apply {
+                    putString(Constants.Do_NO_SHOW_SHORT_CUT_AGAIN, Constants.Do_NO_SHOW_SHORT_CUT_AGAIN)
+                    putString(Constants.imageUseBranding, Constants.imageUseBranding)
+                    putString(Constants.imgToggleImageBackground, Constants.imgToggleImageBackground)
+                    putString(Constants.imgToggleImageSplashOrVideoSplash, Constants.imgToggleImageSplashOrVideoSplash)
+                    apply()
                 }
-
-
-                // save so it doesn't show again
-                val editText88 = sharedBiometric.edit()
-                editText88.putString(
-                    Constants.Do_NO_SHOW_SHORT_CUT_AGAIN,
-                    Constants.Do_NO_SHOW_SHORT_CUT_AGAIN
-                )
-                editText88.putString(Constants.imageUseBranding, Constants.imageUseBranding)
-                editText88.putString(
-                    Constants.imgToggleImageBackground,
-                    Constants.imgToggleImageBackground
-                )
-                editText88.putString(
-                    Constants.imgToggleImageSplashOrVideoSplash,
-                    Constants.imgToggleImageSplashOrVideoSplash
-                )
-                editText88.apply()
-
             }
-
-
 
             binding.textAgreeNO.setOnClickListener {
                 binding.adView.visibility = View.GONE
-                countdownTimer_Short_Cut.let {
-                    it?.cancel()
+                countdownTimer_Short_Cut?.cancel()
+
+                sharedBiometric.edit().apply {
+                    putString(Constants.Do_NO_SHOW_SHORT_CUT_AGAIN, Constants.Do_NO_SHOW_SHORT_CUT_AGAIN)
+                    apply()
                 }
-
-                // save so it doesn't show again
-                val editText88 = sharedBiometric.edit()
-                editText88.putString(
-                    Constants.Do_NO_SHOW_SHORT_CUT_AGAIN,
-                    Constants.Do_NO_SHOW_SHORT_CUT_AGAIN
-                )
-                editText88.apply()
-
             }
 
-
         } catch (e: Exception) {
-            Log.d(TAG, "initShortCut: " + e.message.toString())
+            Log.d(TAG, "initShortCut: ${e.message}")
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun shortcutPin(context: Context, shortcut_id: String, requestCode: Int) {
@@ -8363,9 +8188,9 @@ class WebViewPage : AppCompatActivity() {
 
 
             // initialize connection broadCast listener
-           // connectivityReceiver = ConnectivityReceiver()
-           // val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-           // registerReceiver(connectivityReceiver, intentFilter)
+            // connectivityReceiver = ConnectivityReceiver()
+            // val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+            // registerReceiver(connectivityReceiver, intentFilter)
             connectivityReceiver = ConnectivityReceiver()
             val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
 
@@ -8605,17 +8430,21 @@ class WebViewPage : AppCompatActivity() {
 
 
     private fun restartApp() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            FileUtils.deleteQuietly(cacheDir)
-            FileUtils.deleteQuietly(externalCacheDir)
-        }
+
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            FileUtils.deleteQuietly(cacheDir)
+//            FileUtils.deleteQuietly(externalCacheDir)
+//        }
+
+
 
         val handlerRestart = Handler(Looper.getMainLooper())
         handlerRestart.postDelayed(Runnable {
-           finishAffinity()
-           val intent = Intent(applicationContext, SplashVideoActivity::class.java)
-           startActivity(intent)
-       }, 3000)
+            finishAffinity()
+            val intent = Intent(applicationContext, SplashVideoActivity::class.java)
+            startActivity(intent)
+
+        }, 3000)
 
     }
 
@@ -8690,10 +8519,7 @@ class WebViewPage : AppCompatActivity() {
             TRIM_MEMORY_RUNNING_LOW,
             TRIM_MEMORY_RUNNING_CRITICAL -> {
                 showWarning("Device is running low on memory. Please close unused apps.")
-                lifecycleScope.launch(Dispatchers.IO) {
-                    FileUtils.deleteQuietly(cacheDir)
-                    FileUtils.deleteQuietly(externalCacheDir)
-                }
+             //   lifecycleScope.launch(Dispatchers.IO) { FileUtils.deleteQuietly(cacheDir)FileUtils.deleteQuietly(externalCacheDir) }
             }
         }
     }

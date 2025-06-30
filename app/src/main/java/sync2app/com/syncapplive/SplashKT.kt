@@ -195,7 +195,7 @@ class SplashKT : AppCompatActivity() {
         handler = Handler(Looper.getMainLooper())
         imageHelper?.setOnClickListener(View.OnClickListener {
             showToolHelpPiopUp()
-        //   Toast.makeText(Splash.this, "Please wait", Toast.LENGTH_SHORT).show();
+            //   Toast.makeText(Splash.this, "Please wait", Toast.LENGTH_SHORT).show();
         })
 
 
@@ -322,37 +322,48 @@ class SplashKT : AppCompatActivity() {
     }
 
 
+
+
     private fun loadImage() {
         splash_image = findViewById(R.id.splash_image)
         val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
         val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
         val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
-        val pathFolder =
-            "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder
+
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
         val fileTypes = "app_logo.png"
         val file = File(folder, fileTypes)
+
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.splashImage)
         }
     }
+
+
 
     private fun loadBackGroundImage() {
         backgroundImage = findViewById(R.id.backgroundImage)
         val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
         val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
         val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
-        val pathFolder =
-            "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder
+
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
         val fileTypes = "app_background.png"
         val file = File(folder, fileTypes)
+
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
         }
     }
+
+
+
+
+
 
     fun ApiCall(context: Context?, url: String?) {
 
@@ -442,7 +453,7 @@ class SplashKT : AppCompatActivity() {
                         //FLOATING BUTTON
                         constants.Web_button_link = remoteJson.getString("webBtnUrl")
                         constants.Web_button_Img_link = remoteJson.getString("webBtnImgUrl")
-                        constants.ShowWebBtn = remoteJson.getBoolean("ShowWebBtn")
+                       // constants.ShowWebBtn = remoteJson.getBoolean("ShowWebBtn")
 
 
                         //ADS
@@ -821,7 +832,7 @@ class SplashKT : AppCompatActivity() {
         if (imageHelper!!.visibility == View.VISIBLE) {
             imageHelper!!.visibility = View.GONE
         }
-        
+
     }
 
     private fun manageUIStateOnNetworkIssuesForRetry(){
@@ -880,9 +891,9 @@ class SplashKT : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-      //  connectivityReceiver = ConnectivityReceiver()
-      //  val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-      //  registerReceiver(connectivityReceiver, intentFilter)
+        //  connectivityReceiver = ConnectivityReceiver()
+        //  val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        //  registerReceiver(connectivityReceiver, intentFilter)
 
         connectivityReceiver = ConnectivityReceiver()
         val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
@@ -1222,7 +1233,7 @@ class SplashKT : AppCompatActivity() {
                                 Log.d("MAMMA", "Appp: $urlPath")
                             }
 
-                             startActivity(myActivity)
+                            startActivity(myActivity)
                             finish()
 
 
@@ -1244,20 +1255,20 @@ class SplashKT : AppCompatActivity() {
         }
     }
 
-    private fun getFilePath(CLO: String, DEMO: String, filename: String): String? {
 
-        val finalFolderPathDesired = "/" + CLO + "/" + DEMO + "/" + Constants.App
-        val destinationFolder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + finalFolderPathDesired
-        val filePath = "file://$destinationFolder$filename"
-        val myFile = File(destinationFolder, File.separator + filename)
+    private fun getFilePath(CLO: String, DEMO: String, filename: String): String? {
+        val baseDir = getExternalFilesDir(null)  // ✅ App-private scoped external storage
+        val relativePath = "Syn2AppLive/$CLO/$DEMO/${Constants.App}"
+        val destinationFolder = File(baseDir, relativePath)
+        val myFile = File(destinationFolder, filename)
 
         return if (myFile.exists()) {
-            filePath
+            myFile.toURI().toString()  // Use proper file URI (e.g. file:///...)
         } else {
             null
         }
     }
+
 
 
     private fun showToastMessage(message: String) {

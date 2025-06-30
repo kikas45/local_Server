@@ -243,8 +243,8 @@ class SettingsActivityKT : AppCompatActivity() {
         val builder = AlertDialog.Builder(this@SettingsActivityKT)
         builder.setMessage("Are you sure want to clear cache?")
         builder.setPositiveButton("Yes") { dialog, which ->
-            FileUtils.deleteQuietly(cacheDir)
-            FileUtils.deleteQuietly(externalCacheDir)
+          //  FileUtils.deleteQuietly(cacheDir)
+           // FileUtils.deleteQuietly(externalCacheDir)
             binding.textEnableCacheMode.text = "Free up" + " 0 Bytes " + "of space"
             Snackbar.make(findViewById(android.R.id.content),
                 "cache has been cleared",
@@ -978,6 +978,8 @@ class SettingsActivityKT : AppCompatActivity() {
                 }
 
             }else{
+
+
                 val img_imgHideDrawerIcon = preferences.getBoolean(Constants.hide_drawer_icon, false)
                 imgHideDrawerIcon.isChecked = img_imgHideDrawerIcon == true
 
@@ -1017,9 +1019,6 @@ class SettingsActivityKT : AppCompatActivity() {
                     ), PorterDuff.Mode.SRC_IN
                     )
                     imageViewShwoFloatingButton.setImageDrawable(drawable_imageViewHidebottombar)
-
-
-
 
 
                 }
@@ -1426,27 +1425,19 @@ class SettingsActivityKT : AppCompatActivity() {
         val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
         val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
         val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
-        val pathFolder =
-            "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder
+
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
         val fileTypes = "app_background.png"
         val file = File(folder, fileTypes)
+
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
         }
+
     }
 
-    private fun setDrawableColor(imageView: ImageView, drawableId: Int, colorId: Int) {
-        val drawable = ContextCompat.getDrawable(applicationContext, drawableId)
-        if (drawable != null) {
-            drawable.setColorFilter(
-                ContextCompat.getColor(applicationContext, colorId),
-                PorterDuff.Mode.SRC_IN
-            )
-            imageView.setImageDrawable(drawable)
-        }
-    }
 
     @SuppressLint("UseCompatLoadingForDrawables")
     private fun showCustomProgressDialog(message: String) {

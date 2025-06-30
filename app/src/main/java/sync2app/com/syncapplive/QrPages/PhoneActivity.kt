@@ -72,20 +72,20 @@ class PhoneActivity : AppCompatActivity() {
     }
 
     private fun loadBackGroundImage() {
+        val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
 
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
         val fileTypes = "app_background.png"
-        val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-        val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-
-        val pathFolder = "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
         val file = File(folder, fileTypes)
 
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
-
         }
+
     }
 
 

@@ -1,4 +1,5 @@
 package sync2app.com.syncapplive.additionalSettings
+
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
@@ -17,6 +18,7 @@ import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
 import android.media.AudioManager
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
@@ -41,8 +43,12 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.bumptech.glide.Glide
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import sync2app.com.syncapplive.R
 import sync2app.com.syncapplive.SettingsActivityKT
 import sync2app.com.syncapplive.additionalSettings.autostartAppOncrash.Methods
@@ -57,6 +63,8 @@ import sync2app.com.syncapplive.databinding.CustomShortCutLayoutBinding
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
 class AdditionalSettingsActivity : AppCompatActivity() {
 
@@ -112,7 +120,6 @@ class AdditionalSettingsActivity : AppCompatActivity() {
     private lateinit var customimageRadipoButton: RadioButton
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAppAdminBinding.inflate(layoutInflater)
@@ -120,8 +127,7 @@ class AdditionalSettingsActivity : AppCompatActivity() {
 
 
         binding.textTitle.setOnClickListener {
-           /// startActivity(Intent(applicationContext, Kolo_ConfigDOwwnload::class.java))
-          //  startActivity(Intent(applicationContext, Kolo_Download_Grab_files_Manager::class.java))
+            funUnZipFile()
         }
 
 
@@ -134,19 +140,22 @@ class AdditionalSettingsActivity : AppCompatActivity() {
     }
 
     private fun setUpFullScreenWindows() {
-        val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+        val get_INSTALL_TV_JSON_USER_CLICKED =
+            sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                .toString()
         if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
             val img_imgImmesriveModeToggle = preferences.getBoolean(Constants.immersive_mode, false)
-            if (img_imgImmesriveModeToggle){
+            if (img_imgImmesriveModeToggle) {
                 Utility.hideSystemBars(window)
-            }else {
+            } else {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
             }
 
 
-        }else{
+        } else {
 
-            val immersive_Mode_APP = sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
+            val immersive_Mode_APP =
+                sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
             if (immersive_Mode_APP) {
                 Utility.hideSystemBars(window)
             } else {
@@ -157,7 +166,6 @@ class AdditionalSettingsActivity : AppCompatActivity() {
     }
 
 
-
     private fun initUtilityForOnCreateView() {
         applyOritenation()
 
@@ -166,7 +174,8 @@ class AdditionalSettingsActivity : AppCompatActivity() {
         binding.apply {
             // Hide Some Buttons for Mobile Mode
             val sharedBiometricPref = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-            val get_AppMode = sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
+            val get_AppMode =
+                sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
             if (get_AppMode != Constants.TV_Mode) {
 
                 imageView43.visibility = View.GONE
@@ -187,7 +196,7 @@ class AdditionalSettingsActivity : AppCompatActivity() {
                 divider19.visibility = View.GONE
                 divider57.visibility = View.GONE
 
-            }else{
+            } else {
                 textEbnableLockScreen.visibility = View.GONE
                 imageView1.visibility = View.GONE
                 imgEnableLockScreen.visibility = View.GONE
@@ -305,10 +314,10 @@ class AdditionalSettingsActivity : AppCompatActivity() {
 
 
             textAppSettings.setOnClickListener {
-               // val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-              //  val uri = Uri.fromParts("package", packageName, null)
+                // val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                //  val uri = Uri.fromParts("package", packageName, null)
                 // intent.data = uri
-               // startActivity(intent)
+                // startActivity(intent)
 
                 val intent = Intent(applicationContext, SettingsActivityKT::class.java)
                 startActivity(intent)
@@ -387,7 +396,8 @@ class AdditionalSettingsActivity : AppCompatActivity() {
             val editor = sharedBiometric.edit()
 
 
-            val imgFingerPrint = sharedBiometric.getString(Constants.imgAllowFingerPrint, "").toString()
+            val imgFingerPrint =
+                sharedBiometric.getString(Constants.imgAllowFingerPrint, "").toString()
             val autoBooatApp = sharedBiometric.getString(Constants.imgEnableAutoBoot, "").toString()
             val lockDown = sharedBiometric.getString(Constants.imgEnableLockScreen, "").toString()
 
@@ -397,21 +407,21 @@ class AdditionalSettingsActivity : AppCompatActivity() {
             imgEnableLockScreen.isChecked = lockDown.equals(Constants.imgEnableLockScreen)
 
 
-            if (lockDown == Constants.imgEnableLockScreen){
+            if (lockDown == Constants.imgEnableLockScreen) {
                 textEbnableLockScreen.text = "Device Lock Down Enabled"
-            }else{
+            } else {
                 textEbnableLockScreen.text = "Device Lock Down Disabled"
             }
 
-            if (imgFingerPrint == Constants.imgAllowFingerPrint){
+            if (imgFingerPrint == Constants.imgAllowFingerPrint) {
                 textAllowFingerPrint.text = "Fingerprint Enabled"
-            }else{
+            } else {
                 textAllowFingerPrint.text = "Fingerprint Disabled"
             }
 
-            if (autoBooatApp == Constants.imgEnableAutoBoot){
+            if (autoBooatApp == Constants.imgEnableAutoBoot) {
                 textenaleBootFromscreen.text = "Auto Boot Enabled"
-            }else{
+            } else {
                 textenaleBootFromscreen.text = "Auto Boot Disabled"
             }
 
@@ -439,7 +449,8 @@ class AdditionalSettingsActivity : AppCompatActivity() {
                         val edito333r = sharedBiometric.edit()
                         edito333r.remove(Constants.imgEnableLockScreen)
                         edito333r.apply()
-                        val intent = Intent(applicationContext, AdditionalSettingsActivity::class.java)
+                        val intent =
+                            Intent(applicationContext, AdditionalSettingsActivity::class.java)
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         intent.putExtra(LOCK_ACTIVITY_KEY, false)
                         startActivity(intent)
@@ -450,7 +461,6 @@ class AdditionalSettingsActivity : AppCompatActivity() {
 
                 }
             }
-
 
 
             // enable finger print
@@ -466,8 +476,6 @@ class AdditionalSettingsActivity : AppCompatActivity() {
                     textAllowFingerPrint.text = "Fingerprint Disabled"
                 }
             }
-
-
 
 
             /// enable the Auto Boot
@@ -499,7 +507,11 @@ class AdditionalSettingsActivity : AppCompatActivity() {
             }
 
 
-            if (Settings.System.canWrite(applicationContext) && isIgnoringBatteryOptimizations(applicationContext, packageName)) {
+            if (Settings.System.canWrite(applicationContext) && isIgnoringBatteryOptimizations(
+                    applicationContext,
+                    packageName
+                )
+            ) {
                 val editor = sharedBiometric.edit()
                 editor.putString(Constants.imgEnableAutoBoot, Constants.imgEnableAutoBoot)
                 editor.putString(Constants.BattryOptimzationOkay, Constants.BattryOptimzationOkay)
@@ -508,7 +520,6 @@ class AdditionalSettingsActivity : AppCompatActivity() {
                 binding.textenaleBootFromscreen.text = "Auto Boot Enabled"
 
             }
-
 
 
         } catch (e: Exception) {
@@ -540,8 +551,13 @@ class AdditionalSettingsActivity : AppCompatActivity() {
             }
 
 
-            val getBattryOptimization = sharedBiometric.getString(Constants.BattryOptimzationOkay, "").toString()
-            if (Settings.System.canWrite(applicationContext) && isIgnoringBatteryOptimizations(applicationContext, packageName) && getBattryOptimization != Constants.BattryOptimzationOkay) {
+            val getBattryOptimization =
+                sharedBiometric.getString(Constants.BattryOptimzationOkay, "").toString()
+            if (Settings.System.canWrite(applicationContext) && isIgnoringBatteryOptimizations(
+                    applicationContext,
+                    packageName
+                ) && getBattryOptimization != Constants.BattryOptimzationOkay
+            ) {
                 val editor = sharedBiometric.edit()
                 editor.putString(Constants.imgEnableAutoBoot, Constants.imgEnableAutoBoot)
                 editor.putString(Constants.BattryOptimzationOkay, Constants.BattryOptimzationOkay)
@@ -554,7 +570,6 @@ class AdditionalSettingsActivity : AppCompatActivity() {
         }
 
     }
-
 
 
     private fun shareMyApk() {
@@ -758,28 +773,26 @@ class AdditionalSettingsActivity : AppCompatActivity() {
     }
 
     private fun loadBackGroundImage() {
+        val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
 
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
         val fileTypes = "app_background.png"
-        val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-        val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-
-        val pathFolder =
-            "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
         val file = File(folder, fileTypes)
 
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
-
         }
 
     }
 
-
     @SuppressLint("MissingInflatedId", "NewApi")
     private fun showPopShortCustom() {
-        val bindingCM: CustomShortCutLayoutBinding = CustomShortCutLayoutBinding.inflate(layoutInflater)
+        val bindingCM: CustomShortCutLayoutBinding =
+            CustomShortCutLayoutBinding.inflate(layoutInflater)
         val builder = AlertDialog.Builder(this)
         builder.setView(bindingCM.getRoot())
         val alertDialog = builder.create()
@@ -794,8 +807,6 @@ class AdditionalSettingsActivity : AppCompatActivity() {
         customimageRadipoButton = bindingCM.customimageRadipoButton
 
 
-
-
         var defaultradio = false
         var customradio = false
 
@@ -804,7 +815,7 @@ class AdditionalSettingsActivity : AppCompatActivity() {
         val editTextText = bindingCM.editTextText
         val imgCancel = bindingCM.imgCancel
         val imgCancelSmall = bindingCM.imgCancelSmall
-        custImageView =bindingCM.custImageView
+        custImageView = bindingCM.custImageView
         val defaultImageFaltImage = bindingCM.defaultImageFaltImage
         val defaultImageRadioButton = bindingCM.defaultImageRadioButton
         customimageRadipoButton = bindingCM.customimageRadipoButton
@@ -870,7 +881,7 @@ class AdditionalSettingsActivity : AppCompatActivity() {
                     showToastMessage("Add name")
                 }
             } else {
-                 showToastMessage("Image and name required")
+                showToastMessage("Image and name required")
             }
 
 
@@ -878,7 +889,10 @@ class AdditionalSettingsActivity : AppCompatActivity() {
             if (customradio) {
                 if (getEditString.isNotEmpty() && isImagePicked) {
                     if (Build.VERSION.SDK_INT >= 25) {
-                        val bitmap = MediaStore.Images.Media.getBitmap(applicationContext.contentResolver, imagePicked)
+                        val bitmap = MediaStore.Images.Media.getBitmap(
+                            applicationContext.contentResolver,
+                            imagePicked
+                        )
                         CustomShortcuts.setUp(applicationContext, getEditString, bitmap)
                     }
                     if (Build.VERSION.SDK_INT >= 28) {
@@ -889,7 +903,7 @@ class AdditionalSettingsActivity : AppCompatActivity() {
                     showToastMessage("Image and name required")
                 }
             } else {
-                 showToastMessage("Image and name required")
+                showToastMessage("Image and name required")
             }
         }
 
@@ -898,7 +912,6 @@ class AdditionalSettingsActivity : AppCompatActivity() {
 
         alertDialog.show()
     }
-
 
 
     private fun imageChooser() {
@@ -973,22 +986,120 @@ class AdditionalSettingsActivity : AppCompatActivity() {
         } catch (ignored: java.lang.Exception) {
         }
     }
+
     @SuppressLint("SourceLockedOrientationActivity")
     private fun applyOritenation() {
-        val getState = sharedBiometric.getString(Constants.IMG_TOGGLE_FOR_ORIENTATION, "").toString()
+        val getState =
+            sharedBiometric.getString(Constants.IMG_TOGGLE_FOR_ORIENTATION, "").toString()
 
-        if (getState == Constants.USE_POTRAIT){
+        if (getState == Constants.USE_POTRAIT) {
             requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
-        }else if (getState == Constants.USE_LANDSCAPE){
+        } else if (getState == Constants.USE_LANDSCAPE) {
 
             requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
-        }else if (getState == Constants.USE_UNSEPECIFIED){
+        } else if (getState == Constants.USE_UNSEPECIFIED) {
             requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 
         }
 
+    }
+
+    private fun funUnZipFile() {
+
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                Log.d("THIS ZIP", "funUnZipFile: Located zip file")
+
+                val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, Context.MODE_PRIVATE)
+                val getFolderClo = sharedP.getString(Constants.getFolderClo, "") ?: ""
+                val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "") ?: ""
+
+                val baseDir = getExternalFilesDir(null) // ✅ Safe, private directory
+                val zipFileDir = File(baseDir, "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.Zip}/${Constants.fileNmae_App_Zip}")  // from
+                val extractToDir = File(baseDir, "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App}")  // to
+
+                if (!extractToDir.exists()) extractToDir.mkdirs()
+
+                val zipFile = File(zipFileDir, "")
+                if (zipFile.exists()) {
+                    extractZip(zipFile.absolutePath, extractToDir.absolutePath)
+                } else {
+                    withContext(Dispatchers.Main) {
+                        withContext(Dispatchers.Main) {
+                            Log.d("THIS ZIP", "funUnZipFile: Unable to find the zip")
+                        }
+                    }
+                }
+
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    showToastMessage("An error occurred: ${e.localizedMessage}")
+                    Log.d("THIS ZIP", "An error occurred: ${e.localizedMessage}")
+                }
+            }
+        }
+    }
+
+
+    private fun extractZip(zipFilePath: String, destinationPath: String) {
+
+        val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+        myDownloadClass.edit().putString(Constants.SynC_Status, Constants.PR_Extracting).apply()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                Log.d("THIS ZIP", "extractZip: Strat extraction")
+                val zipFile = File(zipFilePath)
+                val buffer = ByteArray(1024)
+                val zipInputStream = ZipInputStream(FileInputStream(zipFile))
+
+                var entry: ZipEntry? = zipInputStream.nextEntry
+                while (entry != null) {
+                    val entryFile = File(destinationPath, entry.name)
+                    if (entry.isDirectory) {
+                        entryFile.mkdirs()
+                    } else {
+                        val parentDir = entryFile.parentFile
+                        if (!parentDir.exists()) parentDir.mkdirs()
+
+                        FileOutputStream(entryFile).use { outputStream ->
+                            var len: Int
+                            while (zipInputStream.read(buffer).also { len = it } > 0) {
+                                outputStream.write(buffer, 0, len)
+                            }
+                        }
+                    }
+
+                    MediaScannerConnection.scanFile(
+                        applicationContext,
+                        arrayOf(entryFile.absolutePath),
+                        null
+                    ) { path, uri ->
+                        Log.d("MediaScanner", "Scanned $path -> $uri")
+                    }
+
+                    entry = zipInputStream.nextEntry
+                }
+
+                zipInputStream.close()
+
+                withContext(Dispatchers.Main) {
+                    showToastMessage("Extraction completed successfully.")
+                    Log.d("THIS ZIP", "extractZip: completed extraction")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    showToastMessage("Error during extraction: ${e.localizedMessage}")
+                    Log.d("THIS ZIP", "extractZip: Error extraction")
+                }
+            }
+        }
     }
 
 }

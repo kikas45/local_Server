@@ -19,8 +19,6 @@
     <string name="initializing">initializing..</string>
 
 
-
-
     <string name="next">NEXT</string>
     <string name="skip">SKIP</string>
     <string name="start">GOT IT</string>
@@ -39,8 +37,6 @@
 
     <!-- Others -->
     <string name="android_version_does_not_support_feature">Your Android version does not support this feature.</string>
-
-
 
 
     <string name="go_parent_label">"⬆️ Parent folder"</string>

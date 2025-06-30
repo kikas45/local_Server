@@ -88,10 +88,12 @@ public class ScheduleMediaActivity extends AppCompatActivity {
         /// String license = "DE_MO_2021001";
 
 
-        String finalFolderPath = "/" + company + "/" + license;
         String syn2AppLive = "Syn2AppLive";
 
-        File folder = new File(Environment.getExternalStorageDirectory().toString() + "/Download/" + syn2AppLive + finalFolderPath);
+        File baseDir = getExternalFilesDir(null); // app-specific external directory
+        String relativePath = syn2AppLive + "/" + company + "/" + license;
+        File folder = new File(baseDir, relativePath);
+
         if (!folder.exists()) {
             folder.mkdirs();
         }
@@ -231,16 +233,6 @@ public class ScheduleMediaActivity extends AppCompatActivity {
 
     }
 
-    private void setDividerColor(View divider, int colorId) {
-        divider.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), colorId));
-    }
-
-
-    private void setTextColor(TextView textView, int colorId) {
-        textView.setTextColor(ContextCompat.getColor(getApplicationContext(), colorId));
-    }
-
-
     private void setDrawableColor(ImageView imageView, int drawableId, int colorId) {
         Drawable drawable = ContextCompat.getDrawable(getApplicationContext(), drawableId);
         if (drawable != null) {
@@ -251,13 +243,14 @@ public class ScheduleMediaActivity extends AppCompatActivity {
 
 
     private void loadBackGroundImage() {
-        String fileTypes = "app_background.png";
-        SharedPreferences myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, Context.MODE_PRIVATE);
-        String getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "");
-        String getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "");
+        SharedPreferences sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE);
+        String getFolderClo = sharedP.getString(Constants.getFolderClo, "");
+        String getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "");
 
-        String pathFolder = "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config";
-        String folder = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder;
+        File baseDir = getExternalFilesDir(null); // App-private external storage
+        String relativePath = "Syn2AppLive/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/Config";
+        File folder = new File(baseDir, relativePath);
+        String fileTypes = "app_background.png";
         File file = new File(folder, fileTypes);
 
         if (file.exists()) {
@@ -272,6 +265,7 @@ public class ScheduleMediaActivity extends AppCompatActivity {
         finish();
     }
 
+    @SuppressLint("MissingSuperCall")
     @Override
     public void onBackPressed() {
         funcloseActivity();

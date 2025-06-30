@@ -28,6 +28,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
+import com.bumptech.glide.Glide
 import com.hbb20.CountryCodePicker
 import sync2app.com.syncapplive.R
 import sync2app.com.syncapplive.WebViewPage
@@ -39,6 +40,7 @@ import sync2app.com.syncapplive.databinding.ActivityInformationBinding
 import sync2app.com.syncapplive.databinding.CustomExitOrNotBinding
 import sync2app.com.syncapplive.databinding.CustomPopInformationPageBinding
 import sync2app.com.syncapplive.databinding.ProgressValidateUserDialogLayoutBinding
+import java.io.File
 import java.util.regex.Pattern
 
 
@@ -114,6 +116,14 @@ class InformationActivity : AppCompatActivity() {
         performButtonClick()
 
         setUpFullScreenWindows()
+
+        // set up background
+        val get_imgToggleImageBackground = sharedBiometric.getString(Constants.imgToggleImageBackground, "")
+        val get_imageUseBranding = sharedBiometric.getString(Constants.imageUseBranding, "")
+        if (get_imgToggleImageBackground.equals(Constants.imgToggleImageBackground) && get_imageUseBranding.equals(Constants.imageUseBranding) ){
+            loadBackGroundImage()
+        }
+
 
 
 
@@ -212,6 +222,26 @@ class InformationActivity : AppCompatActivity() {
 
         }
     }
+
+
+    private fun loadBackGroundImage() {
+        val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
+
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
+        val fileTypes = "app_background.png"
+        val file = File(folder, fileTypes)
+
+        if (file.exists()) {
+            Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
+        }
+
+    }
+
+
 
     private fun setupListeners() {
         binding.textSaveButton.setOnClickListener {

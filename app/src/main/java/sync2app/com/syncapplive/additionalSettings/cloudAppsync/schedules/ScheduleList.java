@@ -99,20 +99,20 @@ public class ScheduleList extends AppCompatActivity {
     }
 
     private void loadBackGroundImage() {
-        String fileTypes = "app_background.png";
-        SharedPreferences myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, Context.MODE_PRIVATE);
-        String getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "");
-        String getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "");
+        SharedPreferences sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE);
+        String getFolderClo = sharedP.getString(Constants.getFolderClo, "");
+        String getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "");
 
-        String pathFolder = "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config";
-        String folder = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder;
+        File baseDir = getExternalFilesDir(null); // App-private external storage
+        String relativePath = "Syn2AppLive/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/Config";
+        File folder = new File(baseDir, relativePath);
+        String fileTypes = "app_background.png";
         File file = new File(folder, fileTypes);
 
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage);
         }
     }
-
 
     private void checkDirectory() {
 
@@ -123,44 +123,31 @@ public class ScheduleList extends AppCompatActivity {
         String USER_SCHEDULE_FOLDER = "Schedules";
         String LOCAL_SCHEDULE_FILE = "localSchedules.csv";
 
+        // ✅ Safe app-private external directory
+        File baseFolder = new File(getExternalFilesDir(null), Syn2AppLive + "/" + company + "/" + license);
 
-        String finalFolderPath = "/" + company + "/" + license;
+        File scheduleFileFolder = new File(baseFolder, "App/" + USER_SCHEDULE_FOLDER);
+        if (!scheduleFileFolder.exists()) {
+            scheduleFileFolder.mkdirs(); // Make sure the schedule folder exists
+        }
 
+        scheduleFile = new File(scheduleFileFolder, LOCAL_SCHEDULE_FILE);
 
-        File folder = new File(Environment.getExternalStorageDirectory().toString() + "/Download/" + Syn2AppLive + finalFolderPath);
-
-        File scheduleFileFolder = new File(Environment.getExternalStorageDirectory().toString() + "/Download/" + Syn2AppLive + finalFolderPath + "/App/" + USER_SCHEDULE_FOLDER);
-        scheduleFile = new File(scheduleFileFolder.getAbsolutePath(), LOCAL_SCHEDULE_FILE);
-
-        if (folder.exists()) {
-
+        if (baseFolder.exists()) {
             if (!scheduleFile.exists()) {
-
                 try (FileWriter writer = new FileWriter(scheduleFile, true)) {
-
                     StringBuilder sb = new StringBuilder();
-                    sb.append("id");
-                    sb.append(',');
-                    sb.append("redirect_url");
-                    sb.append(',');
-                    sb.append("isDaily");
-                    sb.append(',');
-                    sb.append("isWeekly");
-                    sb.append(',');
-                    sb.append("isOneTime");
-                    sb.append(',');
-                    sb.append("day");
-                    sb.append(',');
-                    sb.append("startTime");
-                    sb.append(',');
-                    sb.append("stopTime");
-                    sb.append(',');
-                    sb.append("duration");
-                    sb.append(',');
-                    sb.append("date");
-                    sb.append(',');
-                    sb.append("priority");
-                    sb.append('\n');
+                    sb.append("id").append(',');
+                    sb.append("redirect_url").append(',');
+                    sb.append("isDaily").append(',');
+                    sb.append("isWeekly").append(',');
+                    sb.append("isOneTime").append(',');
+                    sb.append("day").append(',');
+                    sb.append("startTime").append(',');
+                    sb.append("stopTime").append(',');
+                    sb.append("duration").append(',');
+                    sb.append("date").append(',');
+                    sb.append("priority").append('\n');
 
                     writer.write(sb.toString());
 
@@ -169,17 +156,11 @@ public class ScheduleList extends AppCompatActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
             }
 
-
         } else {
-
             showInfoDialog("File Error", "Schedule Folder Missing, Please Contact Support");
-
         }
-
-
     }
 
 
@@ -190,35 +171,25 @@ public class ScheduleList extends AppCompatActivity {
         String license = my_DownloadClass.getString(Constants.getFolderSubpath, "");
         String Syn2AppLive = Constants.Syn2AppLive;
         String LOCAL_SCHEDULE_FILE = "localSchedules.csv";
-        String ONLINE_SCHEDULE_FILE = "/onlineSchedules.csv";
+        String ONLINE_SCHEDULE_FILE = "onlineSchedules.csv"; // ⚠️ Don't prefix with '/' here
         String USER_SCHEDULE_FOLDER = "Schedules";
 
-        String finalFolderPath = "/" + company + "/" + license;
+        // ✅ Use app-private external storage path
+        File basePath = new File(getExternalFilesDir(null), Syn2AppLive + "/" + company + "/" + license + "/App/" + USER_SCHEDULE_FOLDER);
 
-        File folder = new File(Environment.getExternalStorageDirectory().toString() + "/Download/" + Syn2AppLive + finalFolderPath + "/App/" + USER_SCHEDULE_FOLDER);
-
-
-        if (folder.exists()) {
-
-            //switch location based on user pref
+        if (basePath.exists()) {
+            // Switch file based on saved preference
             String savedState = Paper.book().read(Common.set_schedule_key, Common.schedule_online);
 
             if (Common.schedule_online.equals(savedState)) {
-                //set file to use
-                scheduleFile = new File(folder.getAbsolutePath(), ONLINE_SCHEDULE_FILE);
-
+                scheduleFile = new File(basePath, ONLINE_SCHEDULE_FILE);
             } else {
-
-                //set file to use
-                scheduleFile = new File(folder.getAbsolutePath(), LOCAL_SCHEDULE_FILE);
+                scheduleFile = new File(basePath, LOCAL_SCHEDULE_FILE);
             }
 
         } else {
-
             showInfoDialogScheduleNotFound("Error", "Schedule folder is missing, please re-sync or contact support");
-
         }
-
     }
 
 
@@ -566,6 +537,7 @@ public class ScheduleList extends AppCompatActivity {
         isActivityRunning = false;
     }
 
+    @SuppressLint("MissingSuperCall")
     @Override
     public void onBackPressed() {
 

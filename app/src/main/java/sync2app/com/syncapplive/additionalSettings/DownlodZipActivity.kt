@@ -525,31 +525,30 @@ class DownlodZipActivity : AppCompatActivity() {
     private fun funUnZipFile() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
-                val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
-                val zipFileName = sharedP.getString("Zip", "").toString()
-                val fileName = sharedP.getString("fileNamy", "").toString()
-                val extractedFolder = sharedP.getString(Constants.Extracted, "").toString()
+                val getFolderClo = sharedP.getString(Constants.getFolderClo, "") ?: ""
+                val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "") ?: ""
+                val zipFileName = sharedP.getString("Zip", "") ?: ""
+                val fileName = sharedP.getString("fileNamy", "") ?: ""
+                val extractedFolder = sharedP.getString(Constants.Extracted, "") ?: ""
 
-                val finalFolderPath = "/$getFolderClo/$getFolderSubpath/$zipFileName"
-                val finalFolderPathDesired = "/$getFolderClo/$getFolderSubpath/$extractedFolder"
+                val baseDir = getExternalFilesDir(null) // ✅ Safe, private directory
+                val zipFileDir = File(baseDir, "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.Zip}/${Constants.fileNmae_App_Zip}")  // from
+                val extractToDir = File(baseDir, "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App}")  // to
 
-                val directoryPathString = Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + finalFolderPath
-                val destinationFolder = File(Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + finalFolderPathDesired)
+                if (!extractToDir.exists()) extractToDir.mkdirs()
 
-                if (!destinationFolder.exists()) {
-                    destinationFolder.mkdirs()
-                }
-
-                val myFile = File(directoryPathString, File.separator + fileName)
-                if (myFile.exists()) {
-                    extractZip(myFile.absolutePath, destinationFolder.absolutePath)
+                val zipFile = File(zipFileDir, "")  /// instead of fileName
+                if (zipFile.exists()) {
+                    extractZip(zipFile.absolutePath, extractToDir.absolutePath)
                 } else {
                     withContext(Dispatchers.Main) {
-                        showToastMessage("ZIP file not found: $directoryPathString")
+                        showToastMessage("ZIP file not found: ${zipFile.absolutePath}")
                         allExtractionCompleted()
                     }
                 }
+
+
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
@@ -652,61 +651,53 @@ class DownlodZipActivity : AppCompatActivity() {
         }catch (_:Exception){}
     }
 
+
     @SuppressLint("SuspiciousIndentation")
     private fun stratLauncOnline() {
         try {
+            val getFolderClo = sharedP.getString("getFolderClo", "") ?: ""
+            val getFolderSubpath = sharedP.getString("getFolderSubpath", "") ?: ""
 
-
-            val getFolderClo = sharedP.getString("getFolderClo", "").toString()
-            val getFolderSubpath = sharedP.getString("getFolderSubpath", "").toString()
-
-            val editor = sharedP.edit()
-
-
-            editor.putString(Constants.getFolderClo, getFolderClo)
-            editor.putString(Constants.getFolderSubpath, getFolderSubpath)
-            editor.apply()
-
-            val imagSwtichEnableManualOrNot = sharedBiometric.getString(Constants.imagSwtichEnableManualOrNot, "")
-            if (imagSwtichEnableManualOrNot.equals(Constants.imagSwtichEnableManualOrNot)) {
-                val editText88 = sharedBiometric.edit()
-                editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Online_Manual_Index)
-                editText88.apply()
-            }else{
-                val editText88 = sharedBiometric.edit()
-                editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Online)
-                editText88.apply()
+            with(sharedP.edit()) {
+                putString(Constants.getFolderClo, getFolderClo)
+                putString(Constants.getFolderSubpath, getFolderSubpath)
+                apply()
             }
 
+            val imagSwitch = sharedBiometric.getString(Constants.imagSwtichEnableManualOrNot, "")
+            val launchMode = if (imagSwitch == Constants.imagSwtichEnableManualOrNot) {
+                Constants.launch_WebView_Online_Manual_Index
+            } else {
+                Constants.launch_WebView_Online
+            }
 
+            sharedBiometric.edit()
+                .putString(Constants.get_Launching_State_Of_WebView, launchMode)
+                .apply()
 
             lifecycleScope.launch(Dispatchers.IO) {
-                val getFolderClo = sharedP.getString("getFolderClo", "").toString()
-                val getFolderSubpath = sharedP.getString("getFolderSubpath", "").toString()
-                val Zip = sharedP.getString("Zip", "").toString()
-                val fileName = sharedP.getString("fileName", "").toString()
+                val zip = sharedP.getString("Zip", "") ?: ""
+                val fileName = sharedP.getString("fileName", "") ?: ""
 
-                val finalFolderPath = "/$getFolderClo/$getFolderSubpath/$Zip/$fileName"
-                val directoryPath = Environment.getExternalStorageDirectory().absolutePath + "/Download/Syn2AppLive/" + finalFolderPath
+                // ✅ Use safe base directory
+                val baseDir = getExternalFilesDir(null)
+                val finalFolderPath = "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/$zip"
+                val targetFile = File(baseDir, "$finalFolderPath/$fileName")
 
-                val myFile = File(directoryPath, fileName.toString())
-                delete(myFile)
+                if (targetFile.exists()) {
+                    targetFile.delete()
+                }
 
-                withContext(Dispatchers.Main){
-
-                    val editor = sharedBiometric.edit()
-                    editor.remove(Constants.CALL_RE_SYNC_MANGER)
-                    editor.apply()
-
-                    val intent = Intent(applicationContext, WebViewPage::class.java)
-                    startActivity(intent)
+                withContext(Dispatchers.Main) {
+                    sharedBiometric.edit().remove(Constants.CALL_RE_SYNC_MANGER).apply()
+                    startActivity(Intent(applicationContext, WebViewPage::class.java))
                     finish()
                 }
             }
-
-
-        }catch (_:Exception){}
+        } catch (_: Exception) {}
     }
+
+
 
 
     private fun showToastMessage(messages: String) {
@@ -756,31 +747,34 @@ class DownlodZipActivity : AppCompatActivity() {
     }
 
 
+
     private fun second_cancel_download() {
         try {
-
-
             lifecycleScope.launch(Dispatchers.IO) {
-                val getFolderClo = sharedP.getString("getFolderClo", "").toString()
-                val getFolderSubpath = sharedP.getString("getFolderSubpath", "").toString()
-                val Zip = sharedP.getString("Zip", "").toString()
-                val fileName = sharedP.getString("fileName", "").toString()
+                val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+                val getFolderClo = sharedP.getString("${Constants.getFolderClo}", "") ?: ""
+                val getFolderSubpath = sharedP.getString("${Constants.getFolderSubpath}", "") ?: ""
+                val zip = sharedP.getString("${Constants.Zip}", "") ?: ""
+                val fileName = sharedP.getString("${Constants.fileName}", "") ?: ""
 
-                val finalFolderPath = "/$getFolderClo/$getFolderSubpath/$Zip/$fileName"
-                val directoryPath = Environment.getExternalStorageDirectory().absolutePath + "/Download/Syn2AppLive/" + finalFolderPath
 
-                val myFile = File(directoryPath, fileName.toString())
-                delete(myFile)
+                Log.d("second_cancel_download", ":  $getFolderClo ::  $getFolderSubpath ::  $zip  :: $fileName  ")
 
-                withContext(Dispatchers.Main){
+                // Use app-private storage now
+                val baseDir = getExternalFilesDir(null)
+                val finalPath = File(baseDir, "Syn2AppLive/$getFolderClo/$getFolderSubpath/$zip/$fileName")
+
+                if (finalPath.exists()) {
+                    finalPath.delete()
+                }
+
+                withContext(Dispatchers.Main) {
                     startActivity(Intent(applicationContext, ReSyncActivity::class.java))
                     finish()
                 }
             }
 
-
-
-        } catch (ignored: java.lang.Exception) {
+        } catch (ignored: Exception) {
         }
     }
 
@@ -797,58 +791,54 @@ class DownlodZipActivity : AppCompatActivity() {
         Extracted: String,
         threeFolderPath: String,
     ) {
+        // Build safe private app storage path
+        val baseFolder = getExternalFilesDir(null)  // Root of app-private external storage
+        val targetDir = File(baseFolder, "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/")
 
+        // Optional: Delete old folder if exists
+        if (targetDir.exists()) {
+            targetDir.deleteRecursively()
+        }
 
-        val DeleteFolderPath = "/$getFolderClo/$getFolderSubpath/"
-        val directoryPath = Environment.getExternalStorageDirectory().absolutePath + "/Download/Syn2AppLive$DeleteFolderPath"
-        val file = File(directoryPath)
-        delete(file)
+        handler.postDelayed({
 
+            val zipFilePath = File(targetDir, Zip) // This is where the zip will be saved
 
-
-        handler.postDelayed(Runnable {
-
-            val finalFolderPath = "/$getFolderClo/$getFolderSubpath/$Zip"
-            val Syn2AppLive = "Syn2AppLive"
-
-            val editior = sharedP.edit()
-            editior.putString(Constants.getFolderClo, getFolderClo)
-            editior.putString(Constants.getFolderSubpath, getFolderSubpath)
-            editior.putString("Zip", Zip)
-            editior.putString("fileNamy", fileNamy)
-            editior.putString("Extracted", Extracted)
-            editior.putString(Constants.baseUrl, url)
-
-            editior.remove(Constants.PASS_URL)
-            editior.apply()
-
-
-            val managerDownload = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-
-            val folder = File(Environment.getExternalStorageDirectory().toString() + "/Download/$Syn2AppLive/$finalFolderPath")
-
-            if (!folder.exists()) {
-                folder.mkdirs()
+            // Save state in shared prefs
+            with(sharedP.edit()) {
+                putString(Constants.getFolderClo, getFolderClo)
+                putString(Constants.getFolderSubpath, getFolderSubpath)
+                putString("Zip", Zip)
+                putString("fileNamy", fileNamy)
+                putString("Extracted", Extracted)
+                putString(Constants.baseUrl, url)
+                remove(Constants.PASS_URL)
+                apply()
             }
 
+            // Ensure directory exists
+            if (!targetDir.exists()) {
+                targetDir.mkdirs()
+            }
+
+            // Prepare DownloadManager request
             val request = DownloadManager.Request(Uri.parse(url))
-            //  request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
             request.setTitle(fileNamy)
-            request.allowScanningByMediaScanner()
-            request.setDestinationInExternalPublicDir(
-                Environment.DIRECTORY_DOWNLOADS, "/$Syn2AppLive/$finalFolderPath/$fileNamy"
-            )
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+
+            // Point to app-private destination (absolute path required)
+            request.setDestinationUri(Uri.fromFile(zipFilePath))
+
+            val managerDownload = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
             val downloadReferenceMain = managerDownload.enqueue(request)
 
-            val editor = sharedP.edit()
-            editor.putLong(Constants.downloadKey, downloadReferenceMain)
-            editor.apply()
-
+            sharedP.edit().putLong(Constants.downloadKey, downloadReferenceMain).apply()
 
         }, 1000)
-
-
     }
+
+
+
 
 
     fun delete(file: File): Boolean {
@@ -871,23 +861,25 @@ class DownlodZipActivity : AppCompatActivity() {
         super.onBackPressed()
     }
 
+
     private fun loadBackGroundImage() {
-
         val fileTypes = "app_background.png"
-        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
-        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "") ?: ""
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "") ?: ""
 
-        val pathFolder = "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
-        val file = File(folder, fileTypes)
+        val safeBaseDir = getExternalFilesDir(null) // ✅ App-private safe location
+        val imagePath = File(safeBaseDir, "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App}/Config/$fileTypes")
 
-        if (file.exists()) {
-            Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
-
+        if (imagePath.exists()) {
+            Glide.with(this)
+                .load(imagePath)
+                .centerCrop()
+                .into(binding.backgroundImage)
         }
-
     }
+
+
+
 
 
     @SuppressLint("SourceLockedOrientationActivity")

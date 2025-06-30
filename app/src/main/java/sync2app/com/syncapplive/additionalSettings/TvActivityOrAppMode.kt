@@ -183,7 +183,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
         )
     }
 
-   // private var preferences: SharedPreferences? = null
+    // private var preferences: SharedPreferences? = null
 
     private val preferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(applicationContext)
@@ -199,7 +199,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
         // only works on 13
         // Register the broadcast receiver dynamically
-       // registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+        // registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
         val filter = IntentFilter().apply {
             addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
@@ -223,7 +223,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
         setUpInternetAmination()
 
-       // setUpdarkUITheme()  ///   for dark theme, enable it latter if needed
+        // setUpdarkUITheme()  ///   for dark theme, enable it latter if needed
 
         applyOritenation()
 
@@ -573,8 +573,8 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
 
         // worlks only for 13
-       // connectivityReceiver = ConnectivityReceiver()
-       // val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        // connectivityReceiver = ConnectivityReceiver()
+        // val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         //registerReceiver(connectivityReceiver, intentFilter)
 
         connectivityReceiver = ConnectivityReceiver()
@@ -1162,7 +1162,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
     override fun onResume() {
         super.onResume()
-       isMyActivityRunning = true
+        isMyActivityRunning = true
         if (btnisClicked) {
             if (prefs.getBoolean("button_clicked", false)) {
                 startPermissionProcess()
@@ -1191,7 +1191,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
     private fun startPermissionProcess() {
 
-         isInitPermissionOnNetworkCall = true
+        isInitPermissionOnNetworkCall = true
 
         if (Build.VERSION.SDK_INT >= 30) {
             when {
@@ -1471,38 +1471,38 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
     }
 
 
+
     private fun cleanUpFolder() {
+        val all_folder_delete = sharedBiometric.getString(Constants.ALL_FOLDER_DELETE, "").toString()
 
-        val all_folder_delete =
-            sharedBiometric.getString(Constants.ALL_FOLDER_DELETE, "").toString()
         if (all_folder_delete != Constants.ALL_FOLDER_DELETE) {
-
             lifecycleScope.launch(Dispatchers.IO) {
                 var isCleaned = false
-                val directoryPath =
-                    Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/"
-                val file = File(directoryPath)
-                delete(file)
-                val editor = sharedBiometric.edit()
-                editor.putString(Constants.ALL_FOLDER_DELETE, Constants.ALL_FOLDER_DELETE)
-                editor.apply()
+
+                val baseDir = getExternalFilesDir(null)
+                val directoryPath = File(baseDir, "Syn2AppLive") // app-private folder
+                delete(directoryPath) // custom delete function that recursively deletes
+
+                sharedBiometric.edit()
+                    .putString(Constants.ALL_FOLDER_DELETE, Constants.ALL_FOLDER_DELETE)
+                    .apply()
 
                 withContext(Dispatchers.Main) {
                     if (!isCleaned) {
-
-                        handler.postDelayed(Runnable {
+                        handler.postDelayed({
                             isCleaned = true
                             loadBackGroundImageIfExist()
-                        }, 1000)
+                        }, 6000)
                     }
                 }
             }
-
         } else {
             loadBackGroundImageIfExist()
         }
-
     }
+
+
+
 
 
     private fun showToastMessage(message: String) {
@@ -1518,39 +1518,41 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
 
     private fun loadImage() {
-
         val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
         val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-        val pathFolder = "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder = Environment.getExternalStorageDirectory().absolutePath + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder
+
+        // Use app-private external directory
+        val baseDir = getExternalFilesDir(null)
+        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
+
         val fileTypes = "app_logo.png"
         val file = File(folder, fileTypes)
+
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.imageView2)
         }
-
-
     }
 
 
+
+
     private fun loadBackGroundImage() {
+        val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
 
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
         val fileTypes = "app_background.png"
-        val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
-        val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
-
-        val pathFolder =
-            "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
         val file = File(folder, fileTypes)
 
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
-
         }
-    }
 
+    }
 
 
 
@@ -1575,7 +1577,6 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
 
     private fun loadBackGroundImageIfExist() {
-
         file1 = false
         file2 = false
         file3 = false
@@ -1585,16 +1586,13 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
         val get_UserID = binding.editTextUserID.text.toString().trim()
         val get_LicenseKey = binding.editTextLicenseKey.text.toString().trim()
 
-        val pathFolder =
-            "/" + get_UserID + "/" + get_LicenseKey + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
+        val relativePath = "${Constants.Syn2AppLive}/$get_UserID/$get_LicenseKey/${Constants.App}/Config"
+        val folder = File(getExternalFilesDir(null), relativePath)
         val file = File(folder, fileTypes)
 
         if (file.exists()) {
             isBrandindImagesFound = true
             onAllPermissionsGranted()
-
         } else {
             checkForValidConfileurl()
         }
@@ -1602,37 +1600,30 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
 
     private fun checkForValidConfileurl() {
-
-        val get_tMaster = simpleSavedPassword.getString(Constants.get_editTextMaster, "").toString()
+        val get_tMaster = simpleSavedPassword.getString(Constants.get_editTextMaster, "").orEmpty()
         val get_UserID = binding.editTextUserID.text.toString().trim()
         val get_LicenseKey = binding.editTextLicenseKey.text.toString().trim()
 
-        val ServerUrl = "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameOne"
-
+        val serverUrl = "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameOne"
         var isCalled = false
 
         lifecycleScope.launch(Dispatchers.IO) {
+            val syn2AppLive = Constants.Syn2AppLive
+            val relativePath = "$syn2AppLive/$get_UserID/$get_LicenseKey/App/Config"
+            val targetFolder = File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), relativePath)
 
-            val Syn2AppLive = Constants.Syn2AppLive
-            val innerFolder = "/App/Config/"
-            val saveDemoStorage = "/$Syn2AppLive/$get_UserID/$get_LicenseKey/$innerFolder"
-            val directoryParsing =
-                Environment.getExternalStorageDirectory().absolutePath + "/Download/" + saveDemoStorage
-            val myFileParsing = File(directoryParsing)
-            delete(myFileParsing)
+            delete(targetFolder) // Scoped-storage friendly deletion
 
             withContext(Dispatchers.Main) {
-
                 if (!isCalled) {
                     isCalled = true
                     if (!file1) {
                         file1 = true
-                        handler.postDelayed(Runnable {
-                            startDownload(get_UserID, get_LicenseKey, ServerUrl, fileNameOne)
+                        handler.postDelayed({
+                            startDownload(get_UserID, get_LicenseKey, serverUrl, fileNameOne)
                             showToastMessage("Initializing settings")
                         }, 1000)
                     }
-
                 }
             }
         }
@@ -1642,55 +1633,39 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
     private fun startDownload(
         getFolderClo: String,
         getFolderSubpath: String,
-        ServerUrl: String,
+        serverUrl: String,
         fileName: String
     ) {
+        val syn2AppLive = Constants.Syn2AppLive
+        val innerFolder = "App/Config"
+        val relativePath = "$syn2AppLive/$getFolderClo/$getFolderSubpath/$innerFolder"
 
-        val Syn2AppLive = Constants.Syn2AppLive
-        val innerFolder = "/App/Config/"
-        val saveMyFileToStorage = "/$Syn2AppLive/$getFolderClo/$getFolderSubpath/$innerFolder"
+        lifecycleScope.launch(Dispatchers.IO) {
+            val result = checkUrlExistence(serverUrl)
+            withContext(Dispatchers.Main) {
+                if (result) {
+                    val targetDir = File(getExternalFilesDir(null), relativePath)
+                    if (!targetDir.exists()) {
+                        targetDir.mkdirs()
+                    }
 
+                    val file = File(targetDir, fileName)
+                    val request = DownloadManager.Request(Uri.parse(serverUrl)).apply {
+                        setTitle(fileName)
+                        setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                        setDestinationUri(Uri.fromFile(file)) // ✅ Scoped & app-safe
+                    }
 
-
-        lifecycleScope.launch {
-            val result = checkUrlExistence(ServerUrl)
-            if (result) {
-
-                val dir = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    saveMyFileToStorage
-                )
-                if (!dir.exists()) {
-                    dir.mkdirs()
+                    val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                    downloadId = downloadManager.enqueue(request)
+                } else {
+                    showPopsForMyConnectionTest(getFolderClo, getFolderSubpath, "Invalid User!")
                 }
-
-                // save files to this folder
-                val folder = File(
-                    Environment.getExternalStorageDirectory()
-                        .toString() + "/Download/$saveMyFileToStorage"
-                )
-
-                if (!folder.exists()) {
-                    folder.mkdirs()
-                }
-
-                val request = DownloadManager.Request(Uri.parse(ServerUrl))
-                request.setTitle(fileName)
-                request.allowScanningByMediaScanner()
-                request.setDestinationInExternalPublicDir(
-                    Environment.DIRECTORY_DOWNLOADS, "/$saveMyFileToStorage/$fileName"
-                )
-                val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                downloadId = downloadManager.enqueue(request)
-
-
-            } else {
-                showPopsForMyConnectionTest(getFolderClo, getFolderSubpath, "Invalid User!")
-
             }
-
         }
     }
+
+
 
     @SuppressLint("MissingInflatedId", "SetTextI18n")
     private fun showPopsForMyConnectionTest(

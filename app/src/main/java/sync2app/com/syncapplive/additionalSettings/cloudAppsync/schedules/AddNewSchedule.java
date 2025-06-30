@@ -138,18 +138,7 @@ public class AddNewSchedule extends AppCompatActivity {
     }
 
 
-    private void setTextColor(TextView textView, int colorId) {
-        textView.setTextColor(ContextCompat.getColor(getApplicationContext(), colorId));
-    }
 
-
-    private void setDrawableColor(ImageView imageView, int drawableId, int colorId) {
-        Drawable drawable = ContextCompat.getDrawable(getApplicationContext(), drawableId);
-        if (drawable != null) {
-            drawable.setColorFilter(ContextCompat.getColor(getApplicationContext(), colorId), PorterDuff.Mode.SRC_IN);
-            imageView.setImageDrawable(drawable);
-        }
-    }
 
 
     private void initialize() {
@@ -476,19 +465,19 @@ public class AddNewSchedule extends AppCompatActivity {
 
 
     private void loadBackGroundImage() {
-        String fileTypes = "app_background.png";
-        SharedPreferences myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, Context.MODE_PRIVATE);
-        String getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "");
-        String getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "");
+        SharedPreferences sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE);
+        String getFolderClo = sharedP.getString(Constants.getFolderClo, "");
+        String getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "");
 
-        String pathFolder = "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config";
-        String folder = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder;
+        File baseDir = getExternalFilesDir(null); // App-private external storage
+        String relativePath = "Syn2AppLive/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/Config";
+        File folder = new File(baseDir, relativePath);
+        String fileTypes = "app_background.png";
         File file = new File(folder, fileTypes);
 
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(activity.backgroundImage);
         }
-        activity.backgroundImage.setVisibility(View.VISIBLE);
     }
 
 
@@ -580,16 +569,13 @@ public class AddNewSchedule extends AppCompatActivity {
 
         String USER_SCHEDULE_FOLDER = "Schedules";
         String LOCAL_SCHEDULE_FILE = "localSchedules.csv";
-
-
-        String finalFolderPath = "/" + company + "/" + license;
         String Syn2AppLive = Constants.Syn2AppLive;
 
-        File folder = new File(Environment.getExternalStorageDirectory().toString() + "/Download/" + Syn2AppLive + finalFolderPath);
-
-        File scheduleFileFolder = new File(Environment.getExternalStorageDirectory().toString() + "/Download/" + Syn2AppLive + finalFolderPath + "/App/" + USER_SCHEDULE_FOLDER);
-
-        scheduleFile = new File(scheduleFileFolder.getAbsolutePath(), LOCAL_SCHEDULE_FILE);
+        // ✅ Safe root directory
+        File baseDir = getExternalFilesDir(null);
+        File folder = new File(baseDir, Syn2AppLive + "/" + company + "/" + license);
+        File scheduleFileFolder = new File(folder, "App/" + USER_SCHEDULE_FOLDER);
+        scheduleFile = new File(scheduleFileFolder, LOCAL_SCHEDULE_FILE);
 
         if (folder.exists()) {
 
@@ -637,7 +623,6 @@ public class AddNewSchedule extends AppCompatActivity {
             showInfoDialog("File Error", "Schedule Folder Missing, Please Contact Support");
 
         }
-
 
     }
 
@@ -994,24 +979,21 @@ public class AddNewSchedule extends AppCompatActivity {
         String license = my_DownloadClass.getString(Constants.getFolderSubpath, "");
         String Syn2AppLive = Constants.Syn2AppLive;
 
-        String finalFolderPathDesired = "/" + company + "/" + license;
+        String finalFolderPathDesired = Syn2AppLive + "/" + company + "/" + license + "/App/";
 
-        //fetch strings
         String theUrl;
         if (!activity.locationSwitch.isChecked()) {
 
-            //create path
-            String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/" + Syn2AppLive + finalFolderPathDesired + "/App/";
-            //create url
-            theUrl = path + "/" + activity.redirectUrl.getText().toString().trim();
+            // ✅ Use app-specific external directory
+            File appPrivateDir = new File(getExternalFilesDir(null), finalFolderPathDesired);
+            File targetFile = new File(appPrivateDir, activity.redirectUrl.getText().toString().trim());
 
+            theUrl = targetFile.getAbsolutePath();
 
         } else {
-
-            //create url
             theUrl = activity.redirectUrl.getText().toString().trim();
-
         }
+
 
         //validate
         if (TextUtils.isEmpty(theUrl)) {
@@ -1576,6 +1558,7 @@ public class AddNewSchedule extends AppCompatActivity {
 
 
 
+    @SuppressLint("MissingSuperCall")
     @Override
     public void onBackPressed() {
         Intent intent = new Intent(getApplicationContext(), ScheduleMediaActivity.class);

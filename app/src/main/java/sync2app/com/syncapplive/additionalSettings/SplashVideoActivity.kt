@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import sync2app.com.syncapplive.R
 import sync2app.com.syncapplive.additionalSettings.autostartAppOncrash.Methods
@@ -123,41 +124,38 @@ class SplashVideoActivity : AppCompatActivity() {
     }
 
     private fun loadImage(fileTypes: String) {
-        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
-        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").orEmpty()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").orEmpty()
 
-        val pathFolder = "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder = Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
-        val file = File(folder, fileTypes)
+        val relativePath = "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val fileDir = File(getExternalFilesDir(null), relativePath)
+        val imageFile = File(fileDir, fileTypes)
 
-        if (file.exists()) {
-            Glide.with(this).load(file).centerCrop().into(binding.splashImage)
+        if (imageFile.exists()) {
+            Glide.with(this).load(imageFile).centerCrop().into(binding.splashImage)
             delayedSkipToHome()
         } else {
             startActivity(Intent(this, TvActivityOrAppMode::class.java))
             finish()
         }
-
     }
 
     private fun loadMyVideo(fileType: String) {
-        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
-        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").orEmpty()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").orEmpty()
 
-        val pathFolder =
-            "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
-        val file = File(folder, fileType)
+        val relativePath = "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val videoDir = File(getExternalFilesDir(null), relativePath)
+        val videoFile = File(videoDir, fileType)
 
-        if (file.exists()) {
-            loadUrlExo(Uri.parse(file.toString()))
-
+        if (videoFile.exists()) {
+            loadUrlExo(Uri.parse(videoFile.toString()))
         } else {
             startActivity(Intent(this, TvActivityOrAppMode::class.java))
             finish()
         }
     }
+
 
 
     private fun loadUrlExo(urls: Uri) {
@@ -167,29 +165,30 @@ class SplashVideoActivity : AppCompatActivity() {
             binding.exoPlayerView.keepScreenOn = false
             binding.exoPlayerView.showController()
             binding.exoPlayerView.controllerHideOnTouch = false
+
             val videoUrl = Uri.parse(urls.toString())
             val media = MediaItem.fromUri(videoUrl)
             exoPlayer!!.setMediaItem(media)
             exoPlayer!!.prepare()
             exoPlayer!!.play()
 
-
             exoPlayer!!.addListener(object : Player.Listener {
-                @Deprecated("Deprecated in Java")
                 override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-                    super.onPlayerStateChanged(playWhenReady, playbackState)
                     if (playbackState == Player.STATE_ENDED) {
                         skipToHome()
                     }
                 }
-            })
 
+                override fun onPlayerError(error: PlaybackException) {
+                    // Handle the error properly here
+                    skipToHome()
+                }
+            })
 
         } catch (e: Exception) {
             skipToHome()
         }
     }
-
 
     @SuppressLint("SourceLockedOrientationActivity")
     private fun playTheSplashVideo() {

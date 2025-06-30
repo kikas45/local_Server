@@ -34,7 +34,9 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import sync2app.com.syncapplive.WebViewPage
 import sync2app.com.syncapplive.R
 import sync2app.com.syncapplive.additionalSettings.autostartAppOncrash.Methods
@@ -179,6 +181,11 @@ class RetryApiDownloadActivity : AppCompatActivity() {
             closeDownloadpage()
         }
 
+
+      binding.textRetryBtn.setOnClickListener {
+            closeDownloadpage()
+        }
+
         binding.textLaunchApplication.setOnClickListener {
             stratMyACtivity()
         }
@@ -188,7 +195,7 @@ class RetryApiDownloadActivity : AppCompatActivity() {
 
         startMyCSVApiDownload()
 
-        binding.textRetryBtn.setOnClickListener {
+ /*       binding.textRetryBtn.setOnClickListener {
 
             if (isFailedDownload == true) {
                 try {
@@ -212,7 +219,7 @@ class RetryApiDownloadActivity : AppCompatActivity() {
 
 
         }
-
+*/
 
 
         binding.apply {
@@ -330,17 +337,54 @@ class RetryApiDownloadActivity : AppCompatActivity() {
     }
 
 
-    private fun closeDownloadpage() {
-        dnViewModel.deleteAllFiles()
-        mfilesViewModel.deleteAllFiles()
-        dnFailedViewModel.deleteAllFiles()
 
-        val intent = Intent(applicationContext, ReSyncActivity::class.java)
-        startActivity(intent)
-        finish()
+    private fun closeDownloadpage() {
+
+
+        lifecycleScope.launch(Dispatchers.IO) {
+
+            dnViewModel.deleteAllFiles()
+            mfilesViewModel.deleteAllFiles()
+            dnFailedViewModel.deleteAllFiles()
+
+            val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+            val getFolderClo = sharedP.getString("${Constants.getFolderClo}", "") ?: ""
+            val getFolderSubpath = sharedP.getString("${Constants.getFolderSubpath}", "") ?: ""
+            val zip = sharedP.getString("${Constants.Zip}", "") ?: ""
+            val fileName = sharedP.getString("${Constants.fileName}", "") ?: ""
+
+
+            Log.d("second_cancel_download", ":  $getFolderClo ::  $getFolderSubpath ::  $zip  :: $fileName  ")
+
+            // Use app-private storage now
+            val baseDir = getExternalFilesDir(null)
+            val finalPath = File(baseDir, "Syn2AppLive/$getFolderClo/$getFolderSubpath/$zip/$fileName")
+
+            if (finalPath.exists()) {
+                finalPath.delete()
+            }
+
+            withContext(Dispatchers.Main) {
+
+                if (downloadCompleteReceiver != null) {
+                    unregisterReceiver(downloadCompleteReceiver)
+                }
+
+                myHandler.postDelayed(Runnable {
+                    val intent = Intent(applicationContext, ReSyncActivity::class.java)
+                    startActivity(intent)
+                    finishAffinity()
+
+                }, 500)
+            }
+        }
+
 
         try {
-            customProgressDialog.cancel()
+
+            if ( customProgressDialog != null){
+                customProgressDialog.cancel()
+            }
         } catch (e: Exception) {
         }
     }
@@ -524,21 +568,21 @@ class RetryApiDownloadActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun getZipDownloads(sn: String, folderName: String, fileName: String) {
 
-
         val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
         val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
         val get_ModifiedUrl = sharedP.getString(Constants.get_ModifiedUrl, "").toString()
 
-
         val Syn2AppLive = Constants.Syn2AppLive
-        val saveMyFileToStorage = "/$Syn2AppLive/$getFolderClo/$getFolderSubpath/$folderName"
+        val relativePath = "$Syn2AppLive/$getFolderClo/$getFolderSubpath/$folderName"
 
+        val baseDir = getExternalFilesDir(null) // ✅ App-private scoped external dir
+        val targetDir = File(baseDir, relativePath)
+        val targetFile = File(targetDir, fileName)
 
-        // delete existing files first
-        val directoryPath =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/" + saveMyFileToStorage
-        val myFile = File(directoryPath, fileName)
-        delete(myFile)
+        // Delete existing file if it exists
+        if (targetFile.exists()) {
+            targetFile.delete()
+        }
 
         val getFileUrl = "$get_ModifiedUrl/$getFolderClo/$getFolderSubpath/$folderName/$fileName"
 
@@ -550,10 +594,8 @@ class RetryApiDownloadActivity : AppCompatActivity() {
                         binding.textRemainging.visibility = View.VISIBLE
                         binding.textPercentageCompleted.visibility = View.VISIBLE
 
-                        ///   val fileNum = sn.toInt().toDouble()
                         val fileNum = currentDownloadIndex.toDouble()
                         val totalPercentage = ((fileNum / totalFiles.toDouble()) * 100).toInt()
-
                         binding.textPercentageCompleted.text = "$totalPercentage% Complete"
 
                         val editior = sharedP.edit()
@@ -562,34 +604,16 @@ class RetryApiDownloadActivity : AppCompatActivity() {
                         editior.putString(Constants.fileName, fileName)
                         editior.apply()
 
-
-                        val dir = File(
-                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                            saveMyFileToStorage
-                        )
-                        if (!dir.exists()) {
-                            dir.mkdirs()
+                        if (!targetDir.exists()) {
+                            targetDir.mkdirs()
                         }
-
 
                         val managerDownload = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-
-                        // save files to this folder
-                        val folder = File(
-                            Environment.getExternalStorageDirectory()
-                                .toString() + "/Download/$saveMyFileToStorage"
-                        )
-
-                        if (!folder.exists()) {
-                            folder.mkdirs()
-                        }
-
                         val request = DownloadManager.Request(Uri.parse(getFileUrl))
                         request.setTitle(fileName)
-                        request.allowScanningByMediaScanner()
-                        request.setDestinationInExternalPublicDir(
-                            Environment.DIRECTORY_DOWNLOADS, "/$saveMyFileToStorage/$fileName"
-                        )
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                        request.setDestinationUri(Uri.fromFile(targetFile))  // ✅ Scoped-safe URI
+
                         val downloadReferenceMain = managerDownload.enqueue(request)
 
                         val editor = sharedP.edit()
@@ -598,7 +622,6 @@ class RetryApiDownloadActivity : AppCompatActivity() {
 
                     }, 300)
                 } else {
-
                     Log.d("GRAB_FAILED_URL", "$folderName/$fileName")
 
                     binding.textRemainging.visibility = View.VISIBLE
@@ -615,16 +638,13 @@ class RetryApiDownloadActivity : AppCompatActivity() {
                         folderName,
                         fileName
                     )
-
-
                 }
             } catch (e: Exception) {
+                Log.e("DownloadError", "Exception: ${e.message}")
             }
-
         }
-
-
     }
+
 
     private fun checkWhatAreaToDownloadFrom(sn: String, folderName: String, fileName: String) {
 
@@ -684,36 +704,34 @@ class RetryApiDownloadActivity : AppCompatActivity() {
 
     private fun getZipDownloadsManually(sn: String, folderName: String, fileName: String) {
         val Syn2AppLive = Constants.Syn2AppLive
-        val saveMyFileToStorage = "/$Syn2AppLive/CLO/MANUAL/DEMO/$folderName"
+        val relativePath = "$Syn2AppLive/CLO/MANUAL/DEMO/$folderName"
+
+        val baseDir = getExternalFilesDir(null)  // ✅ App-private scoped storage
+        val targetDir = File(baseDir, relativePath)
+        val targetFile = File(targetDir, fileName)
+
+        // Clean up old file if it exists
+        if (targetFile.exists()) {
+            targetFile.delete()
+        }
 
         val getSavedEditTextInputSynUrlZip =
             sharedP.getString(Constants.getSavedEditTextInputSynUrlZip, "").toString()
 
-        var replacedUrl = getSavedEditTextInputSynUrlZip // Initialize it with original value
+        var replacedUrl = getSavedEditTextInputSynUrlZip
 
-
-        if (getSavedEditTextInputSynUrlZip.contains("/Start/start1.csv")) {
-            replacedUrl = getSavedEditTextInputSynUrlZip.replace(
-                "/Start/start1.csv",
-                "/$folderName/$fileName"
-            )
-
-        } else if (getSavedEditTextInputSynUrlZip.contains("/Api/update1.csv")) {
-            replacedUrl = getSavedEditTextInputSynUrlZip.replace(
-                "/Api/update1.csv", "/$folderName/$fileName"
-            )
-        } else {
-
-            Log.d("getZipDownloadsManually", "Unable to replace this url")
+        replacedUrl = when {
+            replacedUrl.contains("/Start/start1.csv") -> {
+                replacedUrl.replace("/Start/start1.csv", "/$folderName/$fileName")
+            }
+            replacedUrl.contains("/Api/update1.csv") -> {
+                replacedUrl.replace("/Api/update1.csv", "/$folderName/$fileName")
+            }
+            else -> {
+                Log.d("getZipDownloadsManually", "Unable to replace this url")
+                replacedUrl
+            }
         }
-
-
-        // delete existing files first
-        val directoryPath =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/" + saveMyFileToStorage
-        val myFile = File(directoryPath, fileName)
-        delete(myFile)
-
 
         lifecycleScope.launch {
             try {
@@ -723,10 +741,8 @@ class RetryApiDownloadActivity : AppCompatActivity() {
                         binding.textRemainging.visibility = View.VISIBLE
                         binding.textPercentageCompleted.visibility = View.VISIBLE
 
-                        ///   val fileNum = sn.toInt().toDouble()
                         val fileNum = currentDownloadIndex.toDouble()
                         val totalPercentage = ((fileNum / totalFiles.toDouble()) * 100).toInt()
-
                         binding.textPercentageCompleted.text = "$totalPercentage% Complete"
 
                         val editior = sharedP.edit()
@@ -735,34 +751,16 @@ class RetryApiDownloadActivity : AppCompatActivity() {
                         editior.putString(Constants.fileName, fileName)
                         editior.apply()
 
-
-                        val dir = File(
-                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                            saveMyFileToStorage
-                        )
-                        if (!dir.exists()) {
-                            dir.mkdirs()
+                        if (!targetDir.exists()) {
+                            targetDir.mkdirs()
                         }
-
 
                         val managerDownload = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-
-                        // save files to this folder
-                        val folder = File(
-                            Environment.getExternalStorageDirectory()
-                                .toString() + "/Download/$saveMyFileToStorage"
-                        )
-
-                        if (!folder.exists()) {
-                            folder.mkdirs()
-                        }
-
                         val request = DownloadManager.Request(Uri.parse(replacedUrl))
                         request.setTitle(fileName)
-                        request.allowScanningByMediaScanner()
-                        request.setDestinationInExternalPublicDir(
-                            Environment.DIRECTORY_DOWNLOADS, "/$saveMyFileToStorage/$fileName"
-                        )
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                        request.setDestinationUri(Uri.fromFile(targetFile))  // ✅ Scoped-safe path
+
                         val downloadReferenceMain = managerDownload.enqueue(request)
 
                         val editor = sharedP.edit()
@@ -785,17 +783,12 @@ class RetryApiDownloadActivity : AppCompatActivity() {
                         folderName,
                         fileName
                     )
-
-
                 }
             } catch (e: Exception) {
+                Log.e("DownloadError", "Exception: ${e.message}")
             }
-
         }
-
-
     }
-
 
     private val runnableGetDownloadProgress: Runnable = object : Runnable {
         @RequiresApi(Build.VERSION_CODES.TIRAMISU)

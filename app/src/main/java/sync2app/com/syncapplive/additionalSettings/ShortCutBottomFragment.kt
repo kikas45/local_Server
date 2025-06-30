@@ -265,23 +265,21 @@ class ShortCutBottomFragment : BottomSheetDialogFragment() {
         } catch (ignored: java.lang.Exception) {
         }
     }
-    private fun loadBackGroundImage() {
 
+    private fun loadBackGroundImage() {
         val fileTypes = "app_background.png"
         val getFolderClo = myDownloadClass.getString(Constants.getFolderClo, "").toString()
         val getFolderSubpath = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
 
-        val pathFolder = "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}/" + pathFolder
-        val file = File(folder, fileTypes)
+        val baseDir = requireContext().getExternalFilesDir(null)
+        val relativePath = "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val file = File(File(baseDir, relativePath), fileTypes)
 
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
-
         }
-
     }
+
 
 
 
