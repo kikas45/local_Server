@@ -27,6 +27,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.Window
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
@@ -148,9 +151,9 @@ class SettingsActivityKT : AppCompatActivity() {
 
             try {
 
-              handler.postDelayed(Runnable {
-                  showExitConfirmationDialog()
-              }, 200)
+                handler.postDelayed(Runnable {
+                    showExitConfirmationDialog()
+                }, 200)
 
             } catch (e: Exception) {
             }
@@ -243,8 +246,8 @@ class SettingsActivityKT : AppCompatActivity() {
         val builder = AlertDialog.Builder(this@SettingsActivityKT)
         builder.setMessage("Are you sure want to clear cache?")
         builder.setPositiveButton("Yes") { dialog, which ->
-          //  FileUtils.deleteQuietly(cacheDir)
-           // FileUtils.deleteQuietly(externalCacheDir)
+            FileUtils.deleteQuietly(cacheDir)
+            FileUtils.deleteQuietly(externalCacheDir)
             binding.textEnableCacheMode.text = "Free up" + " 0 Bytes " + "of space"
             Snackbar.make(findViewById(android.R.id.content),
                 "cache has been cleared",
@@ -311,8 +314,8 @@ class SettingsActivityKT : AppCompatActivity() {
             val hide_TV_Mode_Label = sharedTVAPPModePreferences.getBoolean(Constants.hide_TV_Mode_Label, false)
             val hideFull_ScreenLabel = sharedTVAPPModePreferences.getBoolean(Constants.hide_Full_ScreenLabel, false)
             val hide_Immersive_ModeLabel = sharedTVAPPModePreferences.getBoolean(Constants.hide_Immersive_ModeLabel, false)
-            val hide_Bottom_Bar_Label_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Immersive_ModeLabel, false)
-            val hide_Floating_ButtonLabel_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Immersive_ModeLabel, false)
+            val hide_Bottom_Bar_Label_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Bottom_Bar_Label_APP, false)
+            val hide_Floating_ButtonLabel_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Floating_Button_APP, false)
             val hide_Bottom_MenuIconLabel_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Bottom_MenuIconLabel_APP, false)
 
 
@@ -326,7 +329,7 @@ class SettingsActivityKT : AppCompatActivity() {
                 }
 
 
-            if (hideFull_ScreenLabel) {
+                if (hideFull_ScreenLabel) {
                     imgFullScreenToggle.visibility = View.GONE
                     textFullScreen.visibility = View.GONE
                     imageView1.visibility = View.GONE
@@ -358,10 +361,10 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
                 if (hide_Bottom_MenuIconLabel_APP) {
-                imgHideDrawerIcon.visibility = View.GONE
-                textHideDrawerIcon.visibility = View.GONE
-                imageViewHideDrawerIcon.visibility = View.GONE
-               // divider62.visibility = View.GONE
+                    imgHideDrawerIcon.visibility = View.GONE
+                    textHideDrawerIcon.visibility = View.GONE
+                    imageViewHideDrawerIcon.visibility = View.GONE
+                    // divider62.visibility = View.GONE
                 }
 
 
@@ -728,28 +731,17 @@ class SettingsActivityKT : AppCompatActivity() {
 
             val immersive_Mode_APP = sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
+
                 imgImmesriveModeToggle.isChecked = immersive_Mode_APP == true
+            }else{
+                val img_imgImmesriveModeToggle = preferences.getBoolean(Constants.immersive_mode, false)
+                imgImmesriveModeToggle.isChecked = img_imgImmesriveModeToggle == true
             }
 
 
 
-            //  if it is not clicked
-            val sharedBiometricPref = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-            val get_AppMode = sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
 
-            if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED){
-                if (get_AppMode != Constants.TV_Mode) {
-                    val img_imgImmesriveModeToggle = preferences.getBoolean(Constants.immersive_mode, false)
-                    imgImmesriveModeToggle.isChecked = img_imgImmesriveModeToggle == true
-
-                }else{
-                    val img_imgImmesriveModeToggle = preferences.getBoolean(Constants.immersive_mode, false)
-                    imgImmesriveModeToggle.isChecked = img_imgImmesriveModeToggle == false
-                }
-            }
         }
-
-
 
 
         // img_geolocation Mode
@@ -871,7 +863,7 @@ class SettingsActivityKT : AppCompatActivity() {
                     editorTVJSON.apply()
 
 
-                        textHidebottombar.setTextColor(resources.getColor(R.color.dark_light_gray))
+                    textHidebottombar.setTextColor(resources.getColor(R.color.dark_light_gray))
                     val drawable_imageViewHidebottombar =
                         ContextCompat.getDrawable(applicationContext, R.drawable.ic_toolbar_bottom)
                     drawable_imageViewHidebottombar?.setColorFilter(
@@ -978,8 +970,6 @@ class SettingsActivityKT : AppCompatActivity() {
                 }
 
             }else{
-
-
                 val img_imgHideDrawerIcon = preferences.getBoolean(Constants.hide_drawer_icon, false)
                 imgHideDrawerIcon.isChecked = img_imgHideDrawerIcon == true
 
@@ -1021,8 +1011,10 @@ class SettingsActivityKT : AppCompatActivity() {
                     imageViewShwoFloatingButton.setImageDrawable(drawable_imageViewHidebottombar)
 
 
-                }
-                else {
+
+
+
+                } else {
                     textShwoFloatingButton.text = "Show Floating Button"
                     editor.putBoolean(Constants.shwoFloatingButton, false)
                     editor.apply()
@@ -1425,19 +1417,27 @@ class SettingsActivityKT : AppCompatActivity() {
         val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
         val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
         val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
-
-        val baseDir = getExternalFilesDir(null) // App-private external storage
-        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
-        val folder = File(baseDir, relativePath)
+        val pathFolder =
+            "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
+        val folder =
+            Environment.getExternalStorageDirectory().absolutePath + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder
         val fileTypes = "app_background.png"
         val file = File(folder, fileTypes)
-
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
         }
-
     }
 
+    private fun setDrawableColor(imageView: ImageView, drawableId: Int, colorId: Int) {
+        val drawable = ContextCompat.getDrawable(applicationContext, drawableId)
+        if (drawable != null) {
+            drawable.setColorFilter(
+                ContextCompat.getColor(applicationContext, colorId),
+                PorterDuff.Mode.SRC_IN
+            )
+            imageView.setImageDrawable(drawable)
+        }
+    }
 
     @SuppressLint("UseCompatLoadingForDrawables")
     private fun showCustomProgressDialog(message: String) {
@@ -1461,935 +1461,935 @@ class SettingsActivityKT : AppCompatActivity() {
 
     @SuppressLint("InflateParams", "SuspiciousIndentation")
     private fun showExitConfirmationDialog() {
-      try {
-          val binding: CustomConfirmExitDialogBinding = CustomConfirmExitDialogBinding.inflate(layoutInflater)
-          val builder = AlertDialog.Builder(this)
-          builder.setView(binding.getRoot())
-          val alertDialog = builder.create()
-          alertDialog.setCanceledOnTouchOutside(false)
-          alertDialog.setCancelable(false)
-
-          // Set the background of the AlertDialog to be transparent
-          if (alertDialog.window != null) {
-              alertDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-              alertDialog.window!!.attributes.windowAnimations = R.style.PauseDialogAnimation
-          }
-
-          val editTextText2: EditText = binding.editTextText2
-          val textHome: TextView = binding.textHome
-          val textView4: TextView = binding.textView4
-          val textContinueLogin: TextView = binding.textLoginAdmin2
-          val textLogoutButton: TextView = binding.textLogoutButton
-          val textExit: TextView = binding.textExit
-          val textSettings: TextView = binding.textAppSettings
-          val textAppAdmin: TextView = binding.textAppAdmin
-          val textReSync: TextView = binding.textReSync
-          val btnMobilAppSettings: TextView = binding.btnMobilAppSettings
-          val btnMobilAppAdmin: TextView = binding.btnMobilAppAdmin
-          val textLaunchOnline: TextView = binding.textLaunchOnline
-          val textLaunchOffline: TextView = binding.textLaunchOffline
-          val textForgetPassword: TextView = binding.textForgetPasswordHome
-          val textCanCellDialog: TextView = binding.textCanCellDialog
-          val textAppSettings: TextView = binding.textAppSettings
-          val textForgetPasswordHome: TextView = binding.textForgetPasswordHome
-          val imagePassowrdSettings: ImageView = binding.imagePassowrdSettings
-          val imgClearCatch: ImageView = binding.imgClearCatch
-          val imgWifi: ImageView = binding.imgWifi
-          val imgMaintainace: ImageView = binding.imgMaintainace
-          val divider2: View = binding.divider2
-          val consMainAlert_sub_layout: ConstraintLayout = binding.consMainAlertSubLayout
-          val imgToggle: ImageView = binding.imgToggle
-          val imgToggleNzotVisible: ImageView = binding.imgToggleNzotVisible
-
-
-          val preferences = android.preference.PreferenceManager.getDefaultSharedPreferences(applicationContext)
-
-
-          // Hide Some Buttons for Mobile Mode
-          val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
-          val installTVMode = sharedTVAPPModePreferences.getBoolean(Constants.installTVMode, false)
-          if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
-              if (installTVMode){
-
-                  btnMobilAppSettings.visibility = View.GONE
-                  btnMobilAppAdmin.visibility = View.GONE
-
-                  textReSync.visibility = View.VISIBLE
-                  textLaunchOnline.visibility = View.VISIBLE
-                  textLaunchOffline.visibility = View.VISIBLE
-                  textAppSettings.visibility = View.VISIBLE
-                  textAppAdmin.visibility = View.VISIBLE
-              }else{
-                  btnMobilAppSettings.visibility = View.VISIBLE
-                  btnMobilAppAdmin.visibility = View.VISIBLE
-
-
-                  textReSync.visibility = View.GONE
-                  textLaunchOnline.visibility = View.GONE
-                  textLaunchOffline.visibility = View.GONE
-                  textAppSettings.visibility = View.GONE
-                  textAppAdmin.visibility = View.GONE
-              }
-          }
-
-
+        try {
+            val binding: CustomConfirmExitDialogBinding = CustomConfirmExitDialogBinding.inflate(layoutInflater)
+            val builder = AlertDialog.Builder(this)
+            builder.setView(binding.getRoot())
+            val alertDialog = builder.create()
+            alertDialog.setCanceledOnTouchOutside(false)
+            alertDialog.setCancelable(false)
+
+            // Set the background of the AlertDialog to be transparent
+            if (alertDialog.window != null) {
+                alertDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                alertDialog.window!!.attributes.windowAnimations = R.style.PauseDialogAnimation
+            }
+
+            val editTextText2: EditText = binding.editTextText2
+            val textHome: TextView = binding.textHome
+            val textView4: TextView = binding.textView4
+            val textContinueLogin: TextView = binding.textLoginAdmin2
+            val textLogoutButton: TextView = binding.textLogoutButton
+            val textExit: TextView = binding.textExit
+            val textSettings: TextView = binding.textAppSettings
+            val textAppAdmin: TextView = binding.textAppAdmin
+            val textReSync: TextView = binding.textReSync
+            val btnMobilAppSettings: TextView = binding.btnMobilAppSettings
+            val btnMobilAppAdmin: TextView = binding.btnMobilAppAdmin
+            val textLaunchOnline: TextView = binding.textLaunchOnline
+            val textLaunchOffline: TextView = binding.textLaunchOffline
+            val textForgetPassword: TextView = binding.textForgetPasswordHome
+            val textCanCellDialog: TextView = binding.textCanCellDialog
+            val textAppSettings: TextView = binding.textAppSettings
+            val textForgetPasswordHome: TextView = binding.textForgetPasswordHome
+            val imagePassowrdSettings: ImageView = binding.imagePassowrdSettings
+            val imgClearCatch: ImageView = binding.imgClearCatch
+            val imgWifi: ImageView = binding.imgWifi
+            val imgMaintainace: ImageView = binding.imgMaintainace
+            val divider2: View = binding.divider2
+            val consMainAlert_sub_layout: ConstraintLayout = binding.consMainAlertSubLayout
+            val imgToggle: ImageView = binding.imgToggle
+            val imgToggleNzotVisible: ImageView = binding.imgToggleNzotVisible
+
+
+            val preferences = android.preference.PreferenceManager.getDefaultSharedPreferences(applicationContext)
+
+
+            // Hide Some Buttons for Mobile Mode
+            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+            val installTVMode = sharedTVAPPModePreferences.getBoolean(Constants.installTVMode, false)
+            if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
+                if (installTVMode){
+
+                    btnMobilAppSettings.visibility = View.GONE
+                    btnMobilAppAdmin.visibility = View.GONE
+
+                    textReSync.visibility = View.VISIBLE
+                    textLaunchOnline.visibility = View.VISIBLE
+                    textLaunchOffline.visibility = View.VISIBLE
+                    textAppSettings.visibility = View.VISIBLE
+                    textAppAdmin.visibility = View.VISIBLE
+                }else{
+                    btnMobilAppSettings.visibility = View.VISIBLE
+                    btnMobilAppAdmin.visibility = View.VISIBLE
+
+
+                    textReSync.visibility = View.GONE
+                    textLaunchOnline.visibility = View.GONE
+                    textLaunchOffline.visibility = View.GONE
+                    textAppSettings.visibility = View.GONE
+                    textAppAdmin.visibility = View.GONE
+                }
+            }
+
+
 
 
 
-          /// use previous json
-          /// use previous json
-          // Hide Some Buttons for Mobile Mode
-          if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
-              val sharedBiometricPref = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-              val get_AppMode = sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
-              if (get_AppMode == Constants.TV_Mode) {
+            /// use previous json
+            /// use previous json
+            // Hide Some Buttons for Mobile Mode
+            if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
+                val sharedBiometricPref = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+                val get_AppMode = sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
+                if (get_AppMode == Constants.TV_Mode) {
 
-                  btnMobilAppSettings.visibility = View.GONE
-                  btnMobilAppAdmin.visibility = View.GONE
+                    btnMobilAppSettings.visibility = View.GONE
+                    btnMobilAppAdmin.visibility = View.GONE
 
-                  textReSync.visibility = View.VISIBLE
-                  textLaunchOnline.visibility = View.VISIBLE
-                  textLaunchOffline.visibility = View.VISIBLE
-                  textAppSettings.visibility = View.VISIBLE
-                  textAppAdmin.visibility = View.VISIBLE
+                    textReSync.visibility = View.VISIBLE
+                    textLaunchOnline.visibility = View.VISIBLE
+                    textLaunchOffline.visibility = View.VISIBLE
+                    textAppSettings.visibility = View.VISIBLE
+                    textAppAdmin.visibility = View.VISIBLE
 
-              } else {
+                } else {
 
 
-                  btnMobilAppSettings.visibility = View.VISIBLE
-                  btnMobilAppAdmin.visibility = View.VISIBLE
+                    btnMobilAppSettings.visibility = View.VISIBLE
+                    btnMobilAppAdmin.visibility = View.VISIBLE
 
 
-                  textReSync.visibility = View.GONE
-                  textLaunchOnline.visibility = View.GONE
-                  textLaunchOffline.visibility = View.GONE
-                  textAppSettings.visibility = View.GONE
-                  textAppAdmin.visibility = View.GONE
+                    textReSync.visibility = View.GONE
+                    textLaunchOnline.visibility = View.GONE
+                    textLaunchOffline.visibility = View.GONE
+                    textAppSettings.visibility = View.GONE
+                    textAppAdmin.visibility = View.GONE
 
-              }
-          }
+                }
+            }
 
-          /// end part of  use previous json
-          /// end part of  use previous json
+            /// end part of  use previous json
+            /// end part of  use previous json
 
 
-          // Load the shake animation
-          val shakeAnimation = AnimationUtils.loadAnimation(this, R.anim.shake)
+            // Load the shake animation
+            val shakeAnimation = AnimationUtils.loadAnimation(this, R.anim.shake)
 
 
-          imgToggle.setOnClickListener {
-              imgToggle.visibility = View.INVISIBLE
-              imgToggleNzotVisible.visibility = View.VISIBLE
-              editTextText2.transformationMethod = null
-              editTextText2.setSelection(editTextText2.length())
-          }
+            imgToggle.setOnClickListener {
+                imgToggle.visibility = View.INVISIBLE
+                imgToggleNzotVisible.visibility = View.VISIBLE
+                editTextText2.transformationMethod = null
+                editTextText2.setSelection(editTextText2.length())
+            }
 
-          imgToggleNzotVisible.setOnClickListener {
-              imgToggle.visibility = View.VISIBLE
-              imgToggleNzotVisible.visibility = View.INVISIBLE
-              editTextText2.transformationMethod = PasswordTransformationMethod.getInstance()
-              editTextText2.setSelection(editTextText2.length())
-          }
+            imgToggleNzotVisible.setOnClickListener {
+                imgToggle.visibility = View.VISIBLE
+                imgToggleNzotVisible.visibility = View.INVISIBLE
+                editTextText2.transformationMethod = PasswordTransformationMethod.getInstance()
+                editTextText2.setSelection(editTextText2.length())
+            }
 
 
-          textCanCellDialog.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
+            textCanCellDialog.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
 
-              alertDialog.dismiss()
+                alertDialog.dismiss()
 
-              handler.postDelayed(Runnable {
-                  val getInfoPageState = sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
-                  if(getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED){
-                      startActivity(Intent(applicationContext, WebViewPage::class.java))
-                      finish()
-                  }else{
-                      startActivity(Intent(applicationContext, InformationActivity::class.java))
-                      finish()
-                  }
-              }, 500)
+                handler.postDelayed(Runnable {
+                    val getInfoPageState = sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
+                    if(getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED){
+                        startActivity(Intent(applicationContext, WebViewPage::class.java))
+                        finish()
+                    }else{
+                        startActivity(Intent(applicationContext, InformationActivity::class.java))
+                        finish()
+                    }
+                }, 500)
 
-          }
+            }
 
 
-          ///  Logic To remove Password
-          get_Current_Time_State_for_Password(editTextText2, imgToggle,imgToggleNzotVisible )
+            ///  Logic To remove Password
+            get_Current_Time_State_for_Password(editTextText2, imgToggle,imgToggleNzotVisible )
 
 
-          // remove password with Time
-          val getPrefilledPassword = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-          val getPassTimeInt = simpleSavedPassword.getInt(Constants.REFRESH_PASSWORD, 1).toInt()
-          if (getPrefilledPassword == Constants.passowrdPrefeilled) {
+            // remove password with Time
+            val getPrefilledPassword = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+            val getPassTimeInt = simpleSavedPassword.getInt(Constants.REFRESH_PASSWORD, 1).toInt()
+            if (getPrefilledPassword == Constants.passowrdPrefeilled) {
 
-              imgToggle.visibility = View.INVISIBLE
-              imgToggleNzotVisible.visibility = View.INVISIBLE
+                imgToggle.visibility = View.INVISIBLE
+                imgToggleNzotVisible.visibility = View.INVISIBLE
 
-              val timeStamp = getPassTimeInt * 70 * 1000L
+                val timeStamp = getPassTimeInt * 70 * 1000L
 
-              handler.postDelayed(Runnable {
-                  get_Current_Time_State_for_Password(editTextText2, imgToggle,imgToggleNzotVisible )
-              }, timeStamp)
+                handler.postDelayed(Runnable {
+                    get_Current_Time_State_for_Password(editTextText2, imgToggle,imgToggleNzotVisible )
+                }, timeStamp)
 
-          }
+            }
 
 
-          val getDidUserInputPassowrd222 = simpleSavedPassword.getString(Constants.Did_User_Input_PassWord, "").toString()
-          val getPasswordPrefilled222 = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-          val getSimpleAdminPassword222 = simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+            val getDidUserInputPassowrd222 = simpleSavedPassword.getString(Constants.Did_User_Input_PassWord, "").toString()
+            val getPasswordPrefilled222 = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+            val getSimpleAdminPassword222 = simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
 
-          val smPassowrd = getSimpleAdminPassword222
+            val smPassowrd = getSimpleAdminPassword222
 
-          textDetctor(smPassowrd, editTextText2, divider2)
+            textDetctor(smPassowrd, editTextText2, divider2)
 
 
-          if (getPasswordPrefilled222 == Constants.passowrdPrefeilled) {
-              editTextText2.setText(getSimpleAdminPassword222)
-              editTextText2.isEnabled = false
-          } else if (getDidUserInputPassowrd222 == Constants.Did_User_Input_PassWord) {
-              editTextText2.isEnabled = true
-              editTextText2.setText(getSimpleAdminPassword222)
-          } else {
-              editTextText2.isEnabled = true
-          }
+            if (getPasswordPrefilled222 == Constants.passowrdPrefeilled) {
+                editTextText2.setText(getSimpleAdminPassword222)
+                editTextText2.isEnabled = false
+            } else if (getDidUserInputPassowrd222 == Constants.Did_User_Input_PassWord) {
+                editTextText2.isEnabled = true
+                editTextText2.setText(getSimpleAdminPassword222)
+            } else {
+                editTextText2.isEnabled = true
+            }
 
 
 
 
-          textReSync.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
+            textReSync.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
 
-              val getPasswordPrefilled = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
+                val getPasswordPrefilled = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
 
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-                  hideKeyBoard(editTextText2)
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(
-                          Constants.Did_User_Input_PassWord,
-                          Constants.Did_User_Input_PassWord
-                      )
-                      editor.apply()
-                  }
-
-                  val editor333 = sharedBiometric.edit()
-                  editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
-                  editor333.apply()
-
-                  startActivity(Intent(applicationContext, ReSyncActivity::class.java))
-                  finish()
-
-                  alertDialog.dismiss()
-
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-
-
-          imagePassowrdSettings.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-
-                  val editor = simpleSavedPassword.edit()
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(Constants.Did_User_Input_PassWord, Constants.Did_User_Input_PassWord)
-                      editor.apply()
-                  }
-
-                  val editor333 = sharedBiometric.edit()
-                  editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
-                  editor333.apply()
-
-
-                  startActivity(Intent(applicationContext, PasswordActivity::class.java))
-                  finish()
-
-                  hideKeyBoard(editTextText2)
-                  alertDialog.dismiss();
-
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-
-          imgWifi.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-                  hideKeyBoard(editTextText2)
-                  val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
-                  startActivity(intent)
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(
-                          Constants.Did_User_Input_PassWord,
-                          Constants.Did_User_Input_PassWord
-                      )
-                      editor.apply()
-                  }
-                  // alertDialog.dismiss();
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-
-
-          imgClearCatch.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-                  hideKeyBoard(editTextText2)
-                  val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                  val uri = Uri.fromParts("package", packageName, null)
-                  intent.data = uri
-                  startActivity(intent)
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(
-                          Constants.Did_User_Input_PassWord,
-                          Constants.Did_User_Input_PassWord
-                      )
-                      editor.apply()
-                  }
-
-                  //  alertDialog.dismiss();
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-
-
-
-          textSettings.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-
-                  hideKeyBoard(editTextText2)
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(
-                          Constants.Did_User_Input_PassWord,
-                          Constants.Did_User_Input_PassWord
-                      )
-                      editor.apply()
-                  }
-
-                  alertDialog.dismiss()
-
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-          btnMobilAppSettings.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              val getPasswordPrefilled = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword = simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-                  hideKeyBoard(editTextText2)
-
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(Constants.Did_User_Input_PassWord, Constants.Did_User_Input_PassWord)
-                      editor.apply()
-                  }
-
-                  alertDialog.dismiss()
-
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-
-
-          textAppAdmin.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-                  hideKeyBoard(editTextText2)
-
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(
-                          Constants.Did_User_Input_PassWord,
-                          Constants.Did_User_Input_PassWord
-                      )
-                      editor.apply()
-                  }
-
-                  val editor333 = sharedBiometric.edit()
-                  editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
-                  editor333.apply()
-
-
-                  val myactivity = Intent(this@SettingsActivityKT, AdditionalSettingsActivity::class.java)
-                  startActivity(myactivity)
-                  finish()
-
-
-                  alertDialog.dismiss()
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-          btnMobilAppAdmin.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-                  hideKeyBoard(editTextText2)
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(
-                          Constants.Did_User_Input_PassWord,
-                          Constants.Did_User_Input_PassWord
-                      )
-                      editor.apply()
-                  }
-
-
-                  val editor333 = sharedBiometric.edit()
-                  editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
-                  editor333.apply()
-
-
-                  val myactivity = Intent(this@SettingsActivityKT, AdditionalSettingsActivity::class.java)
-                  startActivity(myactivity)
-                  finish()
-
-
-                  alertDialog.dismiss()
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-
-
-
-
-          imgMaintainace.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-                  hideKeyBoard(editTextText2)
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(
-                          Constants.Did_User_Input_PassWord,
-                          Constants.Did_User_Input_PassWord
-                      )
-                      editor.apply()
-                  }
-
-                  val editor333 = sharedBiometric.edit()
-                  editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
-                  editor333.apply()
-
-                  val myactivity = Intent(this@SettingsActivityKT, MaintenanceActivity::class.java)
-                  startActivity(myactivity)
-                  finish()
-
-                  alertDialog.dismiss();
-
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-
-
-          textExit.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-
-              hideKeyBoard(editTextText2)
-
-              val getPasswordPrefilled = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword = simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-
-                  val lockDown = sharedBiometric.getString(Constants.imgEnableLockScreen, "").toString()
-
-                  if (lockDown == Constants.imgEnableLockScreen){
-
-                      showToastMessage("Kindly Remove App from Lock down mode")
-
-                  }else{
-
-                      val editor = myDownloadMangerClass.edit()
-                      editor.remove(Constants.SynC_Status)
-                      editor.apply()
-                      second_cancel_download()
-
-                      val editor22 = simpleSavedPassword.edit()
-                      editor22.remove(Constants.Did_User_Input_PassWord)
-                      editor22.apply()
-
-
-                      alertDialog.dismiss()
-
-                      handler.postDelayed(Runnable {
-                          finishAndRemoveTask()
-                          Process.killProcess(Process.myTid())
-                      }, 200)
-
-                  }
-
-              } else {
-
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-
-              }
-
-
-          }
-
-
-
-          textForgetPassword.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              val isSavedEmail = simpleSavedPassword.getString(Constants.isSavedEmail, "").toString()
-              hideKeyBoard(editTextText2)
-              if (isSavedEmail.isNotEmpty() && isValidEmail(isSavedEmail)) {
-
-                  showPopChangePassowrdDialog()
-                  alertDialog.dismiss()
-
-              } else {
-                  showPopRedirectuser()
-                  alertDialog.dismiss()
-              }
-          }
-
-
-
-
-
-          textLogoutButton.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-
-                  val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-                  val editor_sharedBiometric = sharedBiometric.edit()
-                  editor_sharedBiometric.remove(Constants.MY_TV_OR_APP_MODE)
-                  editor_sharedBiometric.remove(Constants.FIRST_TIME_APP_START)
-                  editor_sharedBiometric.remove(Constants.Did_User_Input_PassWord)
-                  editor_sharedBiometric.apply()
-
-                  second_cancel_download()
-                  hideKeyBoard(editTextText2)
-
-                  alertDialog.dismiss()
-
-                  val handler1 = Handler(Looper.getMainLooper())
-                  handler1.postDelayed({
-                      val myactivity = Intent(this@SettingsActivityKT, TvActivityOrAppMode::class.java)
-                      startActivity(myactivity)
-                      finish()
-                  }, 200)
-
-
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-
-
-          }
-
-
-
-
-
-
-          textLaunchOnline.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              hideKeyBoard(editTextText2)
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-
-              val getTvMode = sharedBiometric.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-                  if (getTvMode == Constants.TV_Mode) {
-                      if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                          editor.putString(
-                              Constants.Did_User_Input_PassWord,
-                              Constants.Did_User_Input_PassWord
-                          )
-                      }
-                      editor.putString(Constants.imgAllowLunchFromOnline, "imgAllowLunchFromOnline")
-                      editor.apply()
-
-                      val imagSwtichEnableManualOrNot =
-                          sharedBiometric.getString(Constants.imagSwtichEnableManualOrNot, "")
-                              .toString()
-                      if (imagSwtichEnableManualOrNot.equals(Constants.imagSwtichEnableManualOrNot)) {
-                          val editText88 = sharedBiometric.edit()
-                          editText88.putString(
-                              Constants.get_Launching_State_Of_WebView,
-                              Constants.launch_WebView_Online_Manual_Index
-                          )
-                          editText88.apply()
-                      } else {
-                          val editText88 = sharedBiometric.edit()
-                          editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Online)
-                          editText88.apply()
-                      }
-
-
-                      val intent = Intent(applicationContext, WebViewPage::class.java)
-                      startActivity(intent)
-                      finish()
-
-
-                      alertDialog.dismiss()
-
-                  } else {
-
-                      if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                          editor.putString(
-                              Constants.Did_User_Input_PassWord,
-                              Constants.Did_User_Input_PassWord
-                          )
-                      }
-                      editor.remove(Constants.imgAllowLunchFromOnline)
-                      editor.apply()
-
-
-                      val editText88 = sharedBiometric.edit()
-                      editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
-                      editText88.apply()
-
-
-                      val intent = Intent(applicationContext, SplashKT::class.java)
-                      startActivity(intent)
-                      finish()
-
-
-                      alertDialog.dismiss()
-
-
-                  }
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-
-          textLaunchOffline.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              hideKeyBoard(editTextText2)
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(
-                          Constants.Did_User_Input_PassWord,
-                          Constants.Did_User_Input_PassWord
-                      )
-                  }
-
-                  editor.remove(Constants.imgAllowLunchFromOnline)
-                  editor.apply()
-
-
-                  val imagSwtichEnableManualOrNot =
-                      sharedBiometric.getString(Constants.imagSwtichEnableManualOrNot, "").toString()
-                  if (imagSwtichEnableManualOrNot.equals(Constants.imagSwtichEnableManualOrNot)) {
-                      val editText88 = sharedBiometric.edit()
-                      editText88.putString(
-                          Constants.get_Launching_State_Of_WebView,
-                          Constants.launch_WebView_Offline_Manual_Index
-                      )
-                      editText88.apply()
-                  } else {
-                      val editText88 = sharedBiometric.edit()
-                      editText88.putString(
-                          Constants.get_Launching_State_Of_WebView,
-                          Constants.launch_WebView_Offline
-                      )
-                      editText88.apply()
-                  }
-
-
-                  val intent = Intent(applicationContext, WebViewPage::class.java)
-                  startActivity(intent)
-                  finish()
-
-
-                  alertDialog.dismiss()
-
-
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-
-
-          textHome.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-
-                  hideKeyBoard(editTextText2)
-                  moveTaskToBack(true)
-
-
-              } else {
-                  hideKeyBoard(editTextText2)
-                  // showToastMessage("Wrong password")
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-
-          }
-
-
-
-          textContinueLogin.setOnClickListener {
-              if (handlerMoveToWebviewPage != null){
-                  handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
-              }
-              val getPasswordPrefilled =
-                  simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-              val getSimpleAdminPassword =
-                  simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
-              val editor = simpleSavedPassword.edit()
-
-              val editTextText = editTextText2.text.toString().trim { it <= ' ' }
-
-              if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
-                  hideKeyBoard(editTextText2)
-                  if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                      editor.putString(
-                          Constants.Did_User_Input_PassWord,
-                          Constants.Did_User_Input_PassWord
-                      )
-                      editor.apply()
-                  }
-
-
-                  alertDialog.dismiss()
-
-              } else {
-                  hideKeyBoard(editTextText2)
-                  showPop_For_wrong_Password("Wrong password")
-                  editTextText2.error = "Wrong password"
-                  editTextText2.setTextColor(resources.getColor(R.color.red))
-                  editTextText2.setHintTextColor(resources.getColor(R.color.red))
-                  editTextText2.startAnimation(shakeAnimation)
-                  divider2.startAnimation(shakeAnimation)
-                  divider2.setBackgroundColor(resources.getColor(R.color.red))
-              }
-          }
-
-          alertDialog.show()
-      }catch (e:Exception){
-          Log.d(TAG, "showExitConfirmationDialog: Erro ${e.message}")
-      }
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+                    hideKeyBoard(editTextText2)
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
+                        editor.apply()
+                    }
+
+                    val editor333 = sharedBiometric.edit()
+                    editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
+                    editor333.apply()
+
+                    startActivity(Intent(applicationContext, ReSyncActivity::class.java))
+                    finish()
+
+                    alertDialog.dismiss()
+
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+
+
+            imagePassowrdSettings.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+
+                    val editor = simpleSavedPassword.edit()
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(Constants.Did_User_Input_PassWord, Constants.Did_User_Input_PassWord)
+                        editor.apply()
+                    }
+
+                    val editor333 = sharedBiometric.edit()
+                    editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
+                    editor333.apply()
+
+
+                    startActivity(Intent(applicationContext, PasswordActivity::class.java))
+                    finish()
+
+                    hideKeyBoard(editTextText2)
+                    alertDialog.dismiss();
+
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+
+            imgWifi.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+                    hideKeyBoard(editTextText2)
+                    val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                    startActivity(intent)
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
+                        editor.apply()
+                    }
+                    // alertDialog.dismiss();
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+
+
+            imgClearCatch.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+                    hideKeyBoard(editTextText2)
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    val uri = Uri.fromParts("package", packageName, null)
+                    intent.data = uri
+                    startActivity(intent)
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
+                        editor.apply()
+                    }
+
+                    //  alertDialog.dismiss();
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+
+
+
+            textSettings.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+
+                    hideKeyBoard(editTextText2)
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
+                        editor.apply()
+                    }
+
+                    alertDialog.dismiss()
+
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+            btnMobilAppSettings.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                val getPasswordPrefilled = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword = simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+                    hideKeyBoard(editTextText2)
+
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(Constants.Did_User_Input_PassWord, Constants.Did_User_Input_PassWord)
+                        editor.apply()
+                    }
+
+                    alertDialog.dismiss()
+
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+
+
+            textAppAdmin.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+                    hideKeyBoard(editTextText2)
+
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
+                        editor.apply()
+                    }
+
+                    val editor333 = sharedBiometric.edit()
+                    editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
+                    editor333.apply()
+
+
+                    val myactivity = Intent(this@SettingsActivityKT, AdditionalSettingsActivity::class.java)
+                    startActivity(myactivity)
+                    finish()
+
+
+                    alertDialog.dismiss()
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+            btnMobilAppAdmin.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+                    hideKeyBoard(editTextText2)
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
+                        editor.apply()
+                    }
+
+
+                    val editor333 = sharedBiometric.edit()
+                    editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
+                    editor333.apply()
+
+
+                    val myactivity = Intent(this@SettingsActivityKT, AdditionalSettingsActivity::class.java)
+                    startActivity(myactivity)
+                    finish()
+
+
+                    alertDialog.dismiss()
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+
+
+
+
+            imgMaintainace.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+                    hideKeyBoard(editTextText2)
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
+                        editor.apply()
+                    }
+
+                    val editor333 = sharedBiometric.edit()
+                    editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
+                    editor333.apply()
+
+                    val myactivity = Intent(this@SettingsActivityKT, MaintenanceActivity::class.java)
+                    startActivity(myactivity)
+                    finish()
+
+                    alertDialog.dismiss();
+
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+
+
+            textExit.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+
+                hideKeyBoard(editTextText2)
+
+                val getPasswordPrefilled = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword = simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+
+                    val lockDown = sharedBiometric.getString(Constants.imgEnableLockScreen, "").toString()
+
+                    if (lockDown == Constants.imgEnableLockScreen){
+
+                        showToastMessage("Kindly Remove App from Lock down mode")
+
+                    }else{
+
+                        val editor = myDownloadMangerClass.edit()
+                        editor.remove(Constants.SynC_Status)
+                        editor.apply()
+                        second_cancel_download()
+
+                        val editor22 = simpleSavedPassword.edit()
+                        editor22.remove(Constants.Did_User_Input_PassWord)
+                        editor22.apply()
+
+
+                        alertDialog.dismiss()
+
+                        handler.postDelayed(Runnable {
+                            finishAndRemoveTask()
+                            Process.killProcess(Process.myTid())
+                        }, 200)
+
+                    }
+
+                } else {
+
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+
+                }
+
+
+            }
+
+
+
+            textForgetPassword.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                val isSavedEmail = simpleSavedPassword.getString(Constants.isSavedEmail, "").toString()
+                hideKeyBoard(editTextText2)
+                if (isSavedEmail.isNotEmpty() && isValidEmail(isSavedEmail)) {
+
+                    showPopChangePassowrdDialog()
+                    alertDialog.dismiss()
+
+                } else {
+                    showPopRedirectuser()
+                    alertDialog.dismiss()
+                }
+            }
+
+
+
+
+
+            textLogoutButton.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+
+                    val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+                    val editor_sharedBiometric = sharedBiometric.edit()
+                    editor_sharedBiometric.remove(Constants.MY_TV_OR_APP_MODE)
+                    editor_sharedBiometric.remove(Constants.FIRST_TIME_APP_START)
+                    editor_sharedBiometric.remove(Constants.Did_User_Input_PassWord)
+                    editor_sharedBiometric.apply()
+
+                    second_cancel_download()
+                    hideKeyBoard(editTextText2)
+
+                    alertDialog.dismiss()
+
+                    val handler1 = Handler(Looper.getMainLooper())
+                    handler1.postDelayed({
+                        val myactivity = Intent(this@SettingsActivityKT, TvActivityOrAppMode::class.java)
+                        startActivity(myactivity)
+                        finish()
+                    }, 200)
+
+
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+
+
+            }
+
+
+
+
+
+
+            textLaunchOnline.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                hideKeyBoard(editTextText2)
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+
+                val getTvMode = sharedBiometric.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+                    if (getTvMode == Constants.TV_Mode) {
+                        if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                            editor.putString(
+                                Constants.Did_User_Input_PassWord,
+                                Constants.Did_User_Input_PassWord
+                            )
+                        }
+                        editor.putString(Constants.imgAllowLunchFromOnline, "imgAllowLunchFromOnline")
+                        editor.apply()
+
+                        val imagSwtichEnableManualOrNot =
+                            sharedBiometric.getString(Constants.imagSwtichEnableManualOrNot, "")
+                                .toString()
+                        if (imagSwtichEnableManualOrNot.equals(Constants.imagSwtichEnableManualOrNot)) {
+                            val editText88 = sharedBiometric.edit()
+                            editText88.putString(
+                                Constants.get_Launching_State_Of_WebView,
+                                Constants.launch_WebView_Online_Manual_Index
+                            )
+                            editText88.apply()
+                        } else {
+                            val editText88 = sharedBiometric.edit()
+                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Online)
+                            editText88.apply()
+                        }
+
+
+                        val intent = Intent(applicationContext, WebViewPage::class.java)
+                        startActivity(intent)
+                        finish()
+
+
+                        alertDialog.dismiss()
+
+                    } else {
+
+                        if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                            editor.putString(
+                                Constants.Did_User_Input_PassWord,
+                                Constants.Did_User_Input_PassWord
+                            )
+                        }
+                        editor.remove(Constants.imgAllowLunchFromOnline)
+                        editor.apply()
+
+
+                        val editText88 = sharedBiometric.edit()
+                        editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
+                        editText88.apply()
+
+
+                        val intent = Intent(applicationContext, SplashKT::class.java)
+                        startActivity(intent)
+                        finish()
+
+
+                        alertDialog.dismiss()
+
+
+                    }
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+
+            textLaunchOffline.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                hideKeyBoard(editTextText2)
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
+                    }
+
+                    editor.remove(Constants.imgAllowLunchFromOnline)
+                    editor.apply()
+
+
+                    val imagSwtichEnableManualOrNot =
+                        sharedBiometric.getString(Constants.imagSwtichEnableManualOrNot, "").toString()
+                    if (imagSwtichEnableManualOrNot.equals(Constants.imagSwtichEnableManualOrNot)) {
+                        val editText88 = sharedBiometric.edit()
+                        editText88.putString(
+                            Constants.get_Launching_State_Of_WebView,
+                            Constants.launch_WebView_Offline_Manual_Index
+                        )
+                        editText88.apply()
+                    } else {
+                        val editText88 = sharedBiometric.edit()
+                        editText88.putString(
+                            Constants.get_Launching_State_Of_WebView,
+                            Constants.launch_WebView_Offline
+                        )
+                        editText88.apply()
+                    }
+
+
+                    val intent = Intent(applicationContext, WebViewPage::class.java)
+                    startActivity(intent)
+                    finish()
+
+
+                    alertDialog.dismiss()
+
+
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+
+
+            textHome.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+
+                    hideKeyBoard(editTextText2)
+                    moveTaskToBack(true)
+
+
+                } else {
+                    hideKeyBoard(editTextText2)
+                    // showToastMessage("Wrong password")
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+
+            }
+
+
+
+            textContinueLogin.setOnClickListener {
+                if (handlerMoveToWebviewPage != null){
+                    handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
+                }
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val editor = simpleSavedPassword.edit()
+
+                val editTextText = editTextText2.text.toString().trim { it <= ' ' }
+
+                if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
+                    hideKeyBoard(editTextText2)
+                    if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
+                        editor.apply()
+                    }
+
+
+                    alertDialog.dismiss()
+
+                } else {
+                    hideKeyBoard(editTextText2)
+                    showPop_For_wrong_Password("Wrong password")
+                    editTextText2.error = "Wrong password"
+                    editTextText2.setTextColor(resources.getColor(R.color.red))
+                    editTextText2.setHintTextColor(resources.getColor(R.color.red))
+                    editTextText2.startAnimation(shakeAnimation)
+                    divider2.startAnimation(shakeAnimation)
+                    divider2.setBackgroundColor(resources.getColor(R.color.red))
+                }
+            }
+
+            alertDialog.show()
+        }catch (e:Exception){
+            Log.d(TAG, "showExitConfirmationDialog: Erro ${e.message}")
+        }
     }
 
     private fun textDetctor(smPassowrd: String, editTextText2: EditText, divider2: View) {
@@ -2809,7 +2809,6 @@ class SettingsActivityKT : AppCompatActivity() {
     }
 
 
-    @SuppressLint("MissingSuperCall")
     override fun onBackPressed() {
         val getInfoPageState = sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
         if(getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED){

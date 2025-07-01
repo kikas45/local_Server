@@ -398,7 +398,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
                 val editText88 = sharedBiometric.edit()
                 editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
                 editText88.putString(Constants.imgStartAppRestartOnTvMode, Constants.imgStartAppRestartOnTvMode)
-                editText88.putString(Constants.MY_TV_OR_APP_MODE, Constants.App_Mode)
+              //  editText88.putString(Constants.MY_TV_OR_APP_MODE, Constants.App_Mode)
                 editText88.remove(Constants.imgEnableAutoBoot)
                 editText88.apply()
 
@@ -445,7 +445,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
                 editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
                 editText88.putString(Constants.imgEnableAutoBoot, Constants.imgEnableAutoBoot)
                 editText88.putString(Constants.imgStartAppRestartOnTvMode, Constants.imgStartAppRestartOnTvMode)
-                editText88.putString(Constants.MY_TV_OR_APP_MODE, Constants.TV_Mode)
+               /// editText88.putString(Constants.MY_TV_OR_APP_MODE, Constants.TV_Mode)
                 editText88.putString(Constants.PROTECT_PASSWORD, Constants.PROTECT_PASSWORD)
                 editText88.apply()
 
@@ -498,10 +498,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
                 // Save Launch State
                 val editText88 = sharedBiometric.edit()
-                editText88.putString(
-                    Constants.imgStartAppRestartOnTvMode,
-                    Constants.imgStartAppRestartOnTvMode
-                )
+                editText88.putString(Constants.imgStartAppRestartOnTvMode, Constants.imgStartAppRestartOnTvMode)
                 editText88.apply()
 
                 handleFormVerification()

@@ -2037,51 +2037,32 @@ class WebViewPage : AppCompatActivity() {
             val showFloating_Button_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Floating_Button_APP, false)
 
 
-//            if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
-//                if (!showFloating_Button_APP) {
-//                    web_button!!.visibility = View.VISIBLE
-//                } else {
-//                    web_button!!.visibility = View.GONE
-//                }
-//            }
+            if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
+                if (!showFloating_Button_APP) {
+                    web_button!!.visibility = View.VISIBLE
+                } else {
+                    web_button!!.visibility = View.GONE
+                }
+            }
 
 
-            if (!showFloating_Button_APP) {
+
+            /// continue with previous JSon
+            /// continue with previous JSon
+
+
+            if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
+
+                val get_floating_bar_to_show = preferences.getBoolean(Constants.shwoFloatingButton, false)
+                if (ShowWebButton || get_floating_bar_to_show == false) {
                     web_button!!.visibility = View.VISIBLE
                 } else {
                     web_button!!.visibility = View.GONE
                 }
 
 
-
-            /// continue with previous JSon
-            /// continue with previous JSon
-
-
-
-            val get_floating_bar_to_show = preferences.getBoolean(Constants.shwoFloatingButton, false)
-            if (get_floating_bar_to_show == false) {
-                web_button!!.visibility = View.VISIBLE
-            } else {
-                web_button!!.visibility = View.GONE
             }
 
-
-
-
-
-//            if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
-//
-//                val get_floating_bar_to_show = preferences.getBoolean(Constants.shwoFloatingButton, false)
-//                if (ShowWebButton || get_floating_bar_to_show == false) {
-//                    web_button!!.visibility = View.VISIBLE
-//                } else {
-//                    web_button!!.visibility = View.GONE
-//                }
-//
-//
-//            }
-//
 
             /// end of part continue with previous JSon
             /// end part of continue with previous JSon
@@ -2325,6 +2306,7 @@ class WebViewPage : AppCompatActivity() {
             val show_BottomBar_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_BottomBar_APP, false)
             val fullScreen_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_BottomBar_APP, false)
             val immersive_Mode_APP = sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
+
 
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
 
