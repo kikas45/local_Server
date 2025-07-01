@@ -2031,6 +2031,8 @@ class WebViewPage : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun InitiateComponents() {
         try {
+
+            /// this place
             val preferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
             val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
