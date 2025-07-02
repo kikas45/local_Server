@@ -35,12 +35,7 @@ class BrandingActivity : AppCompatActivity() {
         )
     }
 
-    private val myDownloadClass: SharedPreferences by lazy {
-        applicationContext.getSharedPreferences(
-            Constants.MY_DOWNLOADER_CLASS,
-            Context.MODE_PRIVATE
-        )
-    }
+
 
     private val preferences: SharedPreferences by lazy {
         PreferenceManager.getDefaultSharedPreferences(applicationContext)

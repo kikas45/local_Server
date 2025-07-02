@@ -97,9 +97,15 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
     private val fileNameOne = "app_background.png"
     private val fileNameTwo = "Splash.mp4"
     private val fileNameThree = "app_logo.png"
+    private val fileNameFour = "PortraitSplash.png"
+    private val fileNameFive =  "LandscapeSplash.png"
+
     private var file1 = false
     private var file2 = false
     private var file3 = false
+    private var file4 = false
+    private var file5 = false
+
     private var isCalledToast = false
     private var isBrandindImagesFound = false
 
@@ -1577,6 +1583,8 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
         file1 = false
         file2 = false
         file3 = false
+        file4 = false
+        file5 = false
         isCalledToast = false
 
         val fileTypes = "app_background.png"
@@ -1737,7 +1745,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
                     val get_UserID = binding.editTextUserID.text.toString().trim()
                     val get_LicenseKey = binding.editTextLicenseKey.text.toString().trim()
 
-                    if (file1 && !file2 && !file3) {
+                    if (file1 && !file2 && !file3 && !file4 && !file5) {
                         file1 = true
                         file2 = true
 
@@ -1745,13 +1753,13 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
                             val ServerUrl =
                                 "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameTwo"
                             startDownload(get_UserID, get_LicenseKey, ServerUrl, fileNameTwo)
-                            showToastMessage("Almost three")
+                            showToastMessage("Almost there")
 
                         }, 1200)
 
                     }
 
-                    if (file1 && file2 && !file3) {
+                    if (file1 && file2 && !file3 && !file4 && !file5) {
                         file1 = true
                         file2 = true
                         file3 = true
@@ -1760,9 +1768,40 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
                                 "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameThree"
                             startDownload(get_UserID, get_LicenseKey, ServerUrl, fileNameThree)
 
+                            showToastMessage("Getting View Settings")
+                        }, 1200)
+                    }
+
+                    if (file1 && file2 && file3 && !file4 && !file5) {
+                        file1 = true
+                        file2 = true
+                        file3 = true
+                        file4 = true
+                        handler.postDelayed(Runnable {
+                            val ServerUrl =
+                                "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameFour"
+                            startDownload(get_UserID, get_LicenseKey, ServerUrl, fileNameFour)
+
+                            showToastMessage("Optimizing settings")
+                        }, 1200)
+                    }
+
+
+                    if (file1 && file2 && file3 && file4 && !file5) {
+                        file1 = true
+                        file2 = true
+                        file3 = true
+                        file4 = true
+                        file5 = true
+                        handler.postDelayed(Runnable {
+                            val ServerUrl =
+                                "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameFive"
+                            startDownload(get_UserID, get_LicenseKey, ServerUrl, fileNameFive)
+
                             showToastMessage("Finalizing settings")
                         }, 1200)
                     }
+
 
                     if (!isCalledToast) {
                         isCalledToast = true
