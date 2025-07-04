@@ -83,7 +83,7 @@
             android:name=".SplashKT"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
 
         <service
             android:name=".RemotexNotifierKT"
@@ -94,14 +94,14 @@
             android:name=".WelcomeSliderKT"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".WebViewPage"
             android:allowEmbedded="true"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:enabled="true"
             android:exported="false"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize"
             tools:ignore="AppLinkUrlError">
             <intent-filter>
@@ -118,32 +118,32 @@
             android:name=".additionalSettings.DownloadApisFilesActivityParsing"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.RetryApiDownloadActivityParsing"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".SettingsActivityKT"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.UsbCamConfigActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.InformationActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.RetryApiDownloadActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.cloudAppsync.schedules.ScheduleMediaActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
@@ -152,67 +152,69 @@
             android:name=".additionalSettings.cloudAppsync.schedules.AddNewSchedule"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.cloudAppsync.schedules.ScheduleList"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.BrandingActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.DownloadApisFilesActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".QrPages.PhoneActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".QrPages.EmailActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".QrPages.SMSActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".QrPages.WiFiActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.FileExplorerActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.MaintenanceActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.DownlodZipActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.RequiredBioActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.SystemInfoActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" /> <!-- android:launchMode="singleTop"  do not enable it  for this activity because of the kiosk Mode -->
+            android:launchMode="singleTask" />
+
+        <!-- android:launchMode="singleTop"  do not enable it  for this activity because of the kiosk Mode -->
         <activity
             android:name=".additionalSettings.AdditionalSettingsActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
@@ -221,16 +223,16 @@
             android:name=".additionalSettings.ReSyncActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.PasswordActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".additionalSettings.savedDownloadHistory.scanutil.CaptureAct"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:screenOrientation="fullSensor"
             android:stateNotNeeded="true"
             android:theme="@style/zxing_CaptureTheme" />
@@ -238,20 +240,20 @@
             android:name=".QrPages.QRSanActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="false"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             tools:targetApi="29" />
         <activity
             android:name=".additionalSettings.TvActivityOrAppMode"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="true"
-            android:launchMode="singleTop"/>
+            android:launchMode="singleTask"/>
 
 
         <activity
             android:name=".additionalSettings.DE_MO_202100"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="true"
-            android:launchMode="singleTop"/>
+            android:launchMode="singleTask"/>
 
 
 
@@ -259,7 +261,7 @@
             android:name=".additionalSettings.SplashVideoActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

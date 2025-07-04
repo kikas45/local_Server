@@ -1263,7 +1263,8 @@ class SplashKT : AppCompatActivity() {
         val myFile = File(destinationFolder, filename)
 
         return if (myFile.exists()) {
-            myFile.toURI().toString()  // Use proper file URI (e.g. file:///...)
+           /// myFile.toURI().toString()  // Use proper file URI (e.g. file:///...)
+            myFile.toURI().toURL().toString()
         } else {
             null
         }

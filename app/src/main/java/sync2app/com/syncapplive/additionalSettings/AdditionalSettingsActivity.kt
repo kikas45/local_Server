@@ -127,7 +127,14 @@ class AdditionalSettingsActivity : AppCompatActivity() {
 
 
         binding.textTitle.setOnClickListener {
-            funUnZipFile()
+            finishAffinity()
+            val intent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                addCategory(Intent.CATEGORY_DEFAULT)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(intent)
+
         }
 
 

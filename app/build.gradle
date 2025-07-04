@@ -64,7 +64,7 @@ dependencies {
 
     /// one signal
     implementation ("com.onesignal:OneSignal:[4.0.0, 4.99.99]")
-    
+
     //multi index
     implementation ("androidx.multidex:multidex:2.0.1")
 
@@ -180,7 +180,10 @@ dependencies {
     implementation 'androidx.browser:browser:1.4.0'
     implementation 'androidx.webkit:webkit:1.4.0'
 
+    
 }
+
+
 
 kapt {
     correctErrorTypes = true

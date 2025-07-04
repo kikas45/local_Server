@@ -241,7 +241,7 @@ class SplashVideoActivity : AppCompatActivity() {
     private fun delayedSkipToHome() {
         handler.postDelayed(Runnable {
             skipToHome()
-        }, 2000)
+        }, 1*20*1000)
     }
 
 }

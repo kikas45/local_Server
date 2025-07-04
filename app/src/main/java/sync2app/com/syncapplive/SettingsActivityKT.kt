@@ -246,8 +246,10 @@ class SettingsActivityKT : AppCompatActivity() {
         val builder = AlertDialog.Builder(this@SettingsActivityKT)
         builder.setMessage("Are you sure want to clear cache?")
         builder.setPositiveButton("Yes") { dialog, which ->
-            FileUtils.deleteQuietly(cacheDir)
-            FileUtils.deleteQuietly(externalCacheDir)
+
+           // FileUtils.deleteQuietly(cacheDir)
+           // FileUtils.deleteQuietly(externalCacheDir)
+
             binding.textEnableCacheMode.text = "Free up" + " 0 Bytes " + "of space"
             Snackbar.make(findViewById(android.R.id.content),
                 "cache has been cleared",

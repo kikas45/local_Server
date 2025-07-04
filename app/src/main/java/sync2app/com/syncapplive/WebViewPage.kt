@@ -1391,7 +1391,8 @@ class WebViewPage : AppCompatActivity() {
         val myFile = File(destinationFolder, filename)
 
         return if (myFile.exists()) {
-            myFile.toURI().toString()  // Use proper file URI (e.g. file:///...)
+           // myFile.toURI().toString()  // Use proper file URI (e.g. file:///...)
+            myFile.toURI().toURL().toString()
         } else {
             null
         }
@@ -8074,6 +8075,8 @@ class WebViewPage : AppCompatActivity() {
 
         try {
 
+            resumeAllVideosInWebView()
+
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
             isSystemRunning = true
@@ -8421,13 +8424,11 @@ class WebViewPage : AppCompatActivity() {
 //        }
 
 
-
         val handlerRestart = Handler(Looper.getMainLooper())
-        handlerRestart.postDelayed(Runnable {
+        handlerRestart.postDelayed({
             finishAffinity()
             val intent = Intent(applicationContext, SplashVideoActivity::class.java)
             startActivity(intent)
-
         }, 3000)
 
     }
@@ -8504,9 +8505,20 @@ class WebViewPage : AppCompatActivity() {
             TRIM_MEMORY_RUNNING_CRITICAL -> {
                 showWarning("Device is running low on memory. Please close unused apps.")
              //   lifecycleScope.launch(Dispatchers.IO) { FileUtils.deleteQuietly(cacheDir)FileUtils.deleteQuietly(externalCacheDir) }
+
+                resumeAllVideosInWebView()
             }
         }
     }
+
+
+    private fun resumeAllVideosInWebView() {
+        webView!!.evaluateJavascript(
+            "document.querySelectorAll('video').forEach(v => { if(v.paused) v.play(); });",
+            null
+        )
+    }
+
 
     private fun showWarning(message: String) {
         try {

@@ -374,7 +374,7 @@ class DownlodZipActivity : AppCompatActivity() {
 
                     }, 250)
                 } else {
-                   // showToastMessage("Something went wrong")
+                    // showToastMessage("Something went wrong")
 
                 }
 
@@ -506,7 +506,7 @@ class DownlodZipActivity : AppCompatActivity() {
 
             val get_value_if_Api_is_required = sharedBiometric.getString(Constants.imagSwtichEnableSyncFromAPI, "")
             if (get_value_if_Api_is_required.equals(Constants.imagSwtichEnableSyncFromAPI)){
-              //  second_cancel_download()
+                //  second_cancel_download()
             }
 
             if (wakeLock != null && wakeLock!!.isHeld) {
