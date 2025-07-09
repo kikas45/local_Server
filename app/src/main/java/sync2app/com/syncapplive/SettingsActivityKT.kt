@@ -2068,10 +2068,15 @@ class SettingsActivityKT : AppCompatActivity() {
 
                         alertDialog.dismiss()
 
+                        showToastMessage("Please wait...")
                         handler.postDelayed({
                             finishAndRemoveTask()
                             Process.killProcess(Process.myPid())
-                        }, 200)
+
+                          //  finishAffinity()
+                          // System.exit(0)
+
+                        }, 700)
 
                     }
 

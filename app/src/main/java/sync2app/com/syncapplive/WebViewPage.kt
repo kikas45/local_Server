@@ -8554,25 +8554,14 @@ class WebViewPage : AppCompatActivity() {
 
 
 
-
     private fun restartApp() {
-
-//        lifecycleScope.launch(Dispatchers.IO) {
-//            FileUtils.deleteQuietly(cacheDir)
-//            FileUtils.deleteQuietly(externalCacheDir)
-//        }
-
-
-        val handlerRestart = Handler(Looper.getMainLooper())
-        handlerRestart.postDelayed({
-            val intent = Intent(this@WebViewPage, SplashVideoActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            startActivity(intent)
-            finishAffinity()
-        }, 3000)
-
+        val intent = Intent(this, SplashVideoActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        startActivity(intent)
 
     }
+
 
 
     private fun start_App_Refresh_Time(hours: Long) {

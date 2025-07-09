@@ -2,6 +2,7 @@ package sync2app.com.syncapplive.additionalSettings
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlarmManager
 import android.app.PendingIntent
 import android.app.admin.DevicePolicyManager
 import android.app.admin.SystemUpdatePolicy
@@ -145,6 +146,11 @@ class AdditionalSettingsActivity : AppCompatActivity() {
         setUpFullScreenWindows()
 
     }
+
+
+
+
+
 
     private fun setUpFullScreenWindows() {
         val get_INSTALL_TV_JSON_USER_CLICKED =
