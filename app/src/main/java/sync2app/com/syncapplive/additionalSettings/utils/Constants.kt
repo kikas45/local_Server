@@ -219,6 +219,7 @@ class Constants {
         const val PR_Retry_Failed = "PR: Retrying.."
         const val PR_Failed_Files_Number = "PR:Failed Files Number"
         const val RE_START_PARSING = "RE_START_PARSING"
+        const val LastUpdatedTime = "LastUpdatedTime"
 
 
 

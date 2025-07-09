@@ -11,6 +11,7 @@ import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.os.Process
 import android.util.Log
 import android.util.Patterns
 import android.view.View
@@ -24,19 +25,18 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import sync2app.com.syncapplive.myService.ParsingSyncService
 import sync2app.com.syncapplive.myService.RetryParsingSyncService
-import java.net.InetSocketAddress
-import java.net.Socket
-import java.net.SocketTimeoutException
 import java.net.URI
 import java.net.URISyntaxException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.regex.Pattern
 
 object Utility {
@@ -51,7 +51,6 @@ object Utility {
     }
 
 
-
     fun isNetworkAvailable(context: Context): Boolean {
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -59,7 +58,7 @@ object Utility {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected
     }
 
-     fun isValidEmail(email: String?): Boolean {
+    fun isValidEmail(email: String?): Boolean {
         val emailPattern = "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}(\\.[a-zA-Z]{2,})?"
         val pattern = Pattern.compile(emailPattern)
         val matcher = pattern.matcher(email)
@@ -69,8 +68,6 @@ object Utility {
     fun showToastMessage(applicationContext: Context, messages: String) {
         Toast.makeText(applicationContext, messages, Toast.LENGTH_SHORT).show()
     }
-
-
 
 
     // Fetch and clean URLs from HTML
@@ -102,8 +99,6 @@ object Utility {
     }
 
 
-
-
     // Clean URL by stripping fragments and queries
     private fun cleanUrl(dirtyUrl: String): String? {
         return try {
@@ -122,8 +117,6 @@ object Utility {
     }
 
 
-
-
     // Validate URL format
     private fun isValidUrl(url: String): Boolean {
         return url.isNotBlank() &&
@@ -132,12 +125,10 @@ object Utility {
     }
 
 
-
     // Check if URL ends with a supported file type
     private fun hasSupportedFileType(url: String, fileTypes: List<String>): Boolean {
         return fileTypes.any { url.endsWith(it, ignoreCase = true) }
     }
-
 
 
     // Define supported file extensions
@@ -146,7 +137,7 @@ object Utility {
             // Fonts
             ".ttf", ".otf", ".woff", ".woff2",
             // Images
-            ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico",".ico",".svg", ".webp",
+            ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".ico", ".svg", ".webp",
             // Videos
             ".mp4", ".avi", ".mov", ".wmv", ".mkv", ".webm",
             // Audio
@@ -202,6 +193,9 @@ object Utility {
         }
         return false
     }
+
+
+
 
 
 
@@ -262,30 +256,45 @@ object Utility {
     }
 
 
-        fun hideSystemBars(window: Window) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                window.setDecorFitsSystemWindows(false)
-                window.insetsController?.let { controller ->
-                    controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                    controller.systemBarsBehavior =
-                        WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                }
-            } else {
-                @Suppress("DEPRECATION")
-                window.decorView.systemUiVisibility = (
-                        View.SYSTEM_UI_FLAG_FULLSCREEN or
-                                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        )
+    fun hideSystemBars(window: Window) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+            window.insetsController?.let { controller ->
+                controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                controller.systemBarsBehavior =
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             }
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    )
         }
+    }
 
 
+    fun saveStateHeathChecker(CLO: String, DEMO: String) {
+        val database = FirebaseDatabase.getInstance()
+        val myRef = database.reference.child("sync2app").child(CLO).child(DEMO)
 
+        // Get current date and time as a string
+        val currentTime =
+            SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+
+        // Use a HashMap<String, Any> for Firebase updateChildren
+        val hashMap = HashMap<String, Any>()
+        hashMap["LastUpdatedTime"] = currentTime
+        hashMap["App"] = "Running"
+
+        myRef.updateChildren(hashMap)
+    }
 
 
     fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         val network = connectivityManager.activeNetwork
         val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
@@ -302,64 +311,62 @@ object Utility {
     }
 
 
-
-
-/*
-    fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val result = try {
-                Socket().use { socket ->
-                    socket.connect(InetSocketAddress("8.8.8.8", 53), 1500)
-                    true
+    /*
+        fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val result = try {
+                    Socket().use { socket ->
+                        socket.connect(InetSocketAddress("8.8.8.8", 53), 1500)
+                        true
+                    }
+                } catch (e: SocketTimeoutException) {
+                    false
+                } catch (e: Exception) {
+                    false
                 }
-            } catch (e: SocketTimeoutException) {
-                false
-            } catch (e: Exception) {
-                false
+
+                withContext(Dispatchers.Main) {
+                    callback(result)
+                }
             }
 
-            withContext(Dispatchers.Main) {
-                callback(result)
-            }
         }
-
-    }
-*/
+    */
 
 
     // adding both andriod ad dns
 
- /*   fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = connectivityManager.activeNetwork
-        val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+    /*   fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
+           val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+           val network = connectivityManager.activeNetwork
+           val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
 
-        val isConnected = networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true &&
-                networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+           val isConnected = networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true &&
+                   networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 
-        if (!isConnected) {
-            callback(false)
-            return
-        }
+           if (!isConnected) {
+               callback(false)
+               return
+           }
 
-        // Double-check with actual ping
-        CoroutineScope(Dispatchers.IO).launch {
-            val result = try {
-                Socket().use { socket ->
-                    socket.connect(InetSocketAddress("8.8.8.8", 53), 1500)
-                    true
-                }
-            } catch (e: Exception) {
-                false
-            }
+           // Double-check with actual ping
+           CoroutineScope(Dispatchers.IO).launch {
+               val result = try {
+                   Socket().use { socket ->
+                       socket.connect(InetSocketAddress("8.8.8.8", 53), 1500)
+                       true
+                   }
+               } catch (e: Exception) {
+                   false
+               }
 
-            withContext(Dispatchers.Main) {
-                callback(result)
-            }
-        }
-    }
+               withContext(Dispatchers.Main) {
+                   callback(result)
+               }
+           }
+       }
 
-*/
+   */
 
 
 }

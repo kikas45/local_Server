@@ -95,6 +95,7 @@ class SettingsActivityKT : AppCompatActivity() {
             Constants.MY_DOWNLOADER_CLASS, Context.MODE_PRIVATE
         )
     }
+
     private val sharedTVAPPModePreferences: SharedPreferences by lazy {
         applicationContext.getSharedPreferences(
             Constants.SHARED_TV_APP_MODE, Context.MODE_PRIVATE
@@ -2067,9 +2068,9 @@ class SettingsActivityKT : AppCompatActivity() {
 
                         alertDialog.dismiss()
 
-                        handler.postDelayed(Runnable {
+                        handler.postDelayed({
                             finishAndRemoveTask()
-                            Process.killProcess(Process.myTid())
+                            Process.killProcess(Process.myPid())
                         }, 200)
 
                     }

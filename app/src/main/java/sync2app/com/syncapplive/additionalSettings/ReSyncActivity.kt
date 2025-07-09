@@ -44,6 +44,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -1237,6 +1238,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                             }
 
                             savePathServerUrl(CP_AP_MASTER_DOMAIN, getFolderClo, getFolderSubpath)
+                            Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                         } else {
                             showPopsForMyConnectionTest(
@@ -1277,6 +1279,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                                 customProgressDialog.dismiss()
                             }
                             savePathServerUrl(CP_AP_MASTER_DOMAIN, getFolderClo, getFolderSubpath)
+                            Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                         } else {
                             showPopsForMyConnectionTest(
@@ -1330,6 +1333,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                                 customProgressDialog.dismiss()
                             }
                             savePathServerUrl(CP_AP_MASTER_DOMAIN, getFolderClo, getFolderSubpath)
+                            Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                         } else {
                             showPopsForMyConnectionTest(
@@ -3028,8 +3032,8 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                                 EditUrlIndex = ""
                             )
                             mUserViewModel.addUser(user)
-
                             savePathServerUrl(CP_AP_MASTER_DOMAIN, getFolderClo, getFolderSubpath)
+                            Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                         } else {
                             showPopsForMyConnectionTest(getFolderClo, getFolderSubpath, "Failed!")
@@ -3078,6 +3082,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                             mUserViewModel.addUser(user)
 
                             savePathServerUrl(CP_AP_MASTER_DOMAIN, getFolderClo, getFolderSubpath)
+                            Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                         } else {
                             showPopsForMyConnectionTest(
@@ -3122,6 +3127,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                             mUserViewModel.addUser(user)
 
                             savePathServerUrl(CP_AP_MASTER_DOMAIN, getFolderClo, getFolderSubpath)
+                            Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                         } else {
                             showPopsForMyConnectionTest(getFolderClo, getFolderSubpath, "Failed!")
@@ -3170,6 +3176,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                                 EditUrlIndex = editInputAppIndex
                             )
                             mUserViewModel.addUser(user)
+
 
                         } else {
                             showPopsForMyConnectionTest("CLO", fileNameWithoutExtension, "Failed!")
@@ -3304,6 +3311,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                                 }
 
                                 savePathServerUrl(get_ModifiedUrl, getFolderClo, getFolderSubpath)
+                                Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                             } else {
                                 showPopsForMyConnectionTest(
@@ -3353,6 +3361,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                                 }
 
                                 savePathServerUrl(get_ModifiedUrl, getFolderClo, getFolderSubpath)
+                                Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                             } else {
                                 showPopsForMyConnectionTest(
@@ -3400,6 +3409,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                                 }
 
                                 savePathServerUrl(get_ModifiedUrl, getFolderClo, getFolderSubpath)
+                                Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                             } else {
                                 showPopsForMyConnectionTest(
@@ -3476,6 +3486,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                                 mUserViewModel.addUser(user)
 
                                 savePathServerUrl(get_ModifiedUrl, getFolderClo, getFolderSubpath)
+                                Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                             } else {
                                 showPopsForMyConnectionTest(getFolderClo, getFolderSubpath, "Failed!")
@@ -3527,6 +3538,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                                 mUserViewModel.addUser(user)
 
                                 savePathServerUrl(get_ModifiedUrl, getFolderClo, getFolderSubpath)
+                                Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                             } else {
                                 showPopsForMyConnectionTest(
@@ -3578,6 +3590,7 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                                 mUserViewModel.addUser(user)
 
                                 savePathServerUrl(get_ModifiedUrl, getFolderClo, getFolderSubpath)
+                                Utility.saveStateHeathChecker(CLO = getFolderClo, DEMO = getFolderSubpath)
 
                             } else {
                                 showPopsForMyConnectionTest(getFolderClo, getFolderSubpath, "Failed!")
@@ -3788,50 +3801,41 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
         parsingViewModel.deleteAllFiles()
 
 
+
         lifecycleScope.launch(Dispatchers.IO) {
-
             val Syn2AppLive = Constants.Syn2AppLive
-            val saveMyFileToStorage = "/$Syn2AppLive/$getFolderClo/$getFolderSubpath/App/"
 
-            // delete existing files first
-            val directoryPath = Environment.getExternalStorageDirectory().absolutePath + "/Download/" + saveMyFileToStorage
-            val myFile = File(directoryPath)
-            delete(myFile)
+            val baseStoragePath = "$Syn2AppLive/$getFolderClo/$getFolderSubpath"
 
+            // ✅ Delete existing App folder
+            val appDir = File(getExternalFilesDir(null), "$baseStoragePath/${Constants.App}")
+            delete(appDir)
 
-            val saveMyFileToStorage_second = "/$Syn2AppLive/$getFolderClo/$getFolderSubpath/"
-            val fileName = "/App/"
-            val dir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), saveMyFileToStorage_second)
-            val myFile_second = File(dir, fileName)
-            delete(myFile_second)
+            // ✅ Delete secondary App folder if needed
+            val secondaryDir = File(getExternalFilesDir(null), baseStoragePath)
+            val secondaryAppDir = File(secondaryDir, Constants.App)
+            delete(secondaryAppDir)
 
+            // ✅ Delete temporary parsing folder
+            val tempParseBase = "$Syn2AppLive/${Constants.TEMP_PARS_FOLDER}/$getFolderClo/$getFolderSubpath"
+            val tempAppDir = File(getExternalFilesDir(null), "$tempParseBase/${Constants.App}")
+            delete(tempAppDir)
 
-            // delete tempoaray parsing folder
+            val tempSecondaryDir = File(getExternalFilesDir(null), tempParseBase)
+            val tempAppFolder = File(tempSecondaryDir, Constants.App)
+            delete(tempAppFolder)
 
-            val Demo_Parsing_Folder = Constants.TEMP_PARS_FOLDER
-            val saveDemoStorage = "/$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/App/"
-            val directoryParsing = Environment.getExternalStorageDirectory().absolutePath + "/Download/" + saveDemoStorage
-            val myFileParsing = File(directoryParsing)
-            delete(myFileParsing)
-
-
-
-            val parsingStorage_second = "/$Syn2AppLive/$Demo_Parsing_Folder/$getFolderClo/$getFolderSubpath/"
-            val fileNameParsing = "/App/"
-            val dirParsing = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), parsingStorage_second)
-            val myFile_Parsing = File(dirParsing, fileNameParsing)
-            delete(myFile_Parsing)
-
-
-
-            withContext(Dispatchers.Main){
-                InitParsingScanForDownload(baseUrl = baseUrl, getFolderClo = getFolderClo, getFolderSubpath = getFolderSubpath)
+            // Switch back to Main thread for UI operations
+            withContext(Dispatchers.Main) {
+                InitParsingScanForDownload(
+                    baseUrl = baseUrl,
+                    getFolderClo = getFolderClo,
+                    getFolderSubpath = getFolderSubpath
+                )
             }
-
         }
 
     }
-
 
     private fun callApiClassActivity(
         baseUrl: String,
@@ -4448,110 +4452,6 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
     }
 
 
-
-
-//    @RequiresApi(Build.VERSION_CODES.Q)
-//    private fun download(
-//        url: String,
-//        getFolderClo: String,
-//        getFolderSubpath: String,
-//        Zip: String,
-//        fileNamy: String,
-//        Extracted: String,
-//        threeFolderPath: String,
-//    ) {
-//
-//
-//        //  val DeleteFolderPath = "/$getFolderClo/$getFolderSubpath/"
-//
-//        val DeleteFolderPath = "/$getFolderClo/$getFolderSubpath/$Zip/$fileNamy"
-//
-//        val directoryPath =
-//            Environment.getExternalStorageDirectory().absolutePath + "/Download/${Constants.Syn2AppLive}$DeleteFolderPath"
-//        val file = File(directoryPath)
-//        delete(file)
-//
-//
-//
-//        handler.postDelayed(Runnable {
-//
-//            val finalFolderPath = "/$getFolderClo/$getFolderSubpath/$Zip"
-//            val Syn2AppLive = "Syn2AppLive"
-//
-//            val editior = myDownloadClass.edit()
-//            editior.putString(Constants.getFolderClo, getFolderClo)
-//            editior.putString(Constants.getFolderSubpath, getFolderSubpath)
-//            editior.putString(Constants.Zip, Zip)
-//            editior.putString("fileNamy", fileNamy)
-//            editior.putString(Constants.Extracted, Extracted)
-//
-//            // used to control Sync Start from  set up page
-//            editior.remove(Constants.Manage_My_Sync_Start)
-//
-//
-//            val get_savedIntervals = myDownloadClass.getLong(Constants.getTimeDefined, 0)
-//
-//            if (get_savedIntervals != 0L) {
-//                editior.putLong(Constants.getTimeDefined, get_savedIntervals)
-//
-//            } else {
-//                editior.putLong(Constants.getTimeDefined, Constants.t_5min)
-//
-//            }
-//
-//            editior.apply()
-//
-//
-//            val managerDownload = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-//
-//            val folder = File(Environment.getExternalStorageDirectory()
-//                    .toString() + "/Download/$Syn2AppLive/$finalFolderPath"
-//            )
-//
-//            if (!folder.exists()) {
-//                folder.mkdirs()
-//            }
-//
-//            val request = DownloadManager.Request(Uri.parse(url))
-//            //  request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
-//            request.setTitle(fileNamy)
-//            request.allowScanningByMediaScanner()
-//            request.setDestinationInExternalPublicDir(
-//                Environment.DIRECTORY_DOWNLOADS, "/$Syn2AppLive/$finalFolderPath/$fileNamy"
-//            )
-//            val downloadReferenceMain = managerDownload.enqueue(request)
-//
-//            val editor = myDownloadClass.edit()
-//            editor.putLong(Constants.downloadKey, downloadReferenceMain)
-//            editor.apply()
-//
-//
-//            val intent = Intent(applicationContext, DownlodZipActivity::class.java)
-//            intent.putExtra(Constants.baseUrl, url)
-//            intent.putExtra(Constants.getFolderClo, getFolderClo)
-//            intent.putExtra(Constants.getFolderSubpath, getFolderSubpath)
-//            intent.putExtra(Constants.Zip, Zip)
-//            intent.putExtra(Constants.fileName, fileNamy)
-//            intent.putExtra(Constants.Extracted, Extracted)
-//
-//            intent.putExtra(Constants.threeFolderPath, threeFolderPath)
-//            intent.putExtra(Constants.baseUrl, url)
-//            startActivity(intent)
-//            finish()
-//
-//
-//            val editor222 = sharedBiometric.edit()
-//            //  editor222.putString(Constants.showDownloadSyncStatus, "showDownloadSyncStatus")
-//            editor222.apply()
-//
-//            if (customProgressDialog != null){
-//                customProgressDialog.dismiss()
-//            }
-//
-//        }, 3000)
-//
-//
-//    }
 
 
    private fun delete(file: File): Boolean {

@@ -1182,7 +1182,7 @@ class SplashKT : AppCompatActivity() {
                     try {
                         getFilePath(CLO, DEMO, fileName)
                     } catch (e: Exception) {
-                        showToastMessage("You need to Sync Files for Offline Usage")
+                       // showToastMessage("You need to Sync Files for Offline Usage")
                         null
                     }
                 }
@@ -1243,14 +1243,14 @@ class SplashKT : AppCompatActivity() {
                         Log.d("MAMMA", "Pull out: Splash Screen")
                     }
                 } else {
-                    showToastMessage("You need to Sync Files for Offline Usage")
+                  ///  showToastMessage("You need to Sync Files for Offline Usage")
 
                     Log.d("MAMMA", "No files: Splash Screen")
                 }
 
 
             } catch (e: Exception) {
-                showToastMessage("You need to Sync Files for Offline Usage")
+              //  showToastMessage("You need to Sync Files for Offline Usage")
             }
         }
     }
@@ -1258,7 +1258,7 @@ class SplashKT : AppCompatActivity() {
 
     private fun getFilePath(CLO: String, DEMO: String, filename: String): String? {
         val baseDir = getExternalFilesDir(null)  // ✅ App-private scoped external storage
-        val relativePath = "Syn2AppLive/$CLO/$DEMO/${Constants.App}"
+        val relativePath = "${Constants.Syn2AppLive}/$CLO/$DEMO/${Constants.App}"
         val destinationFolder = File(baseDir, relativePath)
         val myFile = File(destinationFolder, filename)
 

@@ -655,7 +655,9 @@ class WebViewPage : AppCompatActivity() {
 
         //add exception
         Methods.addExceptionHandler(this)
+
         myStateChecker()
+        myStateCheckerV2()
 
         mUserViewModel = ViewModelProvider(this).get(FilesViewModel::class.java)
         myHandler = Handler(Looper.getMainLooper())
@@ -1912,18 +1914,34 @@ class WebViewPage : AppCompatActivity() {
         }
     }
 
+
     private fun HideErrorPage(failingUrl: String, description: String) {
         try {
+            val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+            val launchingState = sharedBiometric.getString(Constants.get_Launching_State_Of_WebView, "") ?: ""
 
-            if (isSystemRunning) {
+            if (launchingState == Constants.launch_WebView_Offline ||
+                launchingState == Constants.launch_WebView_Offline_Manual_Index) {
+
+                try {
+                    val intent = Intent(applicationContext, SplashKT::class.java)
+                    startActivity(intent)
+                    finishAffinity()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error launching SplashKT: ${e.message}")
+                }
+
+            } else {
+                if (!isSystemRunning) return
+
                 errorlayout?.visibility = View.VISIBLE
                 errorCode?.text = description
 
-                errorReloadButton!!.setOnClickListener {
+                errorReloadButton?.setOnClickListener {
                     if (isSystemRunning) {
                         if (Utility.isNetworkAvailable(applicationContext)) {
-                            if (isSystemRunning) {
-                                webView!!.loadUrl(failingUrl)
+                            webView?.let {
+                                it.loadUrl(failingUrl)
                                 isErrorLayoutShown = true
                             }
                         } else {
@@ -1932,42 +1950,126 @@ class WebViewPage : AppCompatActivity() {
                     }
                 }
 
-                handler.postDelayed(Runnable {
-                    if (isSystemRunning) {
-                        handler.postDelayed(runnable!!, 4000)
-                        if (isSystemRunning) {
-                            if (errorautoConnect?.visibility == View.GONE) {
-                                errorautoConnect?.visibility = View.VISIBLE
-                            }
-                        }
-                        errorautoConnect?.text = "Auto Reconnect: Standby"
+                val reconnectRunnable = Runnable {
+                    if (!isSystemRunning) return@Runnable
+
+                    errorautoConnect?.let {
+                        it.visibility = View.VISIBLE
+                        it.text = "Auto Reconnect: Standby"
+
                         if (AdvancedControls.checkInternetConnection(applicationContext)) {
-                            if (isSystemRunning) {
-                                errorautoConnect!!.text = "Auto Reconnect: Trying to connect.."
+                            it.text = "Auto Reconnect: Trying to connect.."
+                        } else if (Utility.isNetworkAvailable(applicationContext)) {
+                            webView?.let { webView ->
+                                webView.loadUrl(failingUrl)
+                                errorlayout?.visibility = View.GONE
+                                webView.clearHistory()
+                                runnable?.let { it1 -> handler.removeCallbacks(it1) }
+                                isErrorLayoutShown = true
                             }
                         } else {
+                            showToastMessage("Connect to an internet")
+                        }
+                    }
+
+                    // Reschedule the runnable only if needed
+                    if (isSystemRunning) {
+                        runnable?.let { handler.postDelayed(it, 4000) }
+                    }
+                }
+
+                runnable = reconnectRunnable
+                handler.postDelayed(reconnectRunnable, 4000)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "HideErrorPage failed: ${e.message}")
+        }
+    }
+
+
+
+
+    /*
+        private fun HideErrorPage(failingUrl: String, description: String) {
+
+
+            val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+            val launchingState = sharedBiometric.getString(Constants.get_Launching_State_Of_WebView, "") ?: ""
+
+            if (launchingState == Constants.launch_WebView_Offline ||
+                launchingState == Constants.launch_WebView_Offline_Manual_Index) {
+                try {
+                    val intent = Intent(applicationContext, SplashKT::class.java)
+                    startActivity(intent)
+                    finishAffinity()
+                }catch (e: java.lang.Exception) {
+                    Log.d(TAG, "HideErrorPage: " + e.message.toString())
+                }
+
+            }else{
+
+                try {
+
+                    if (isSystemRunning) {
+                        errorlayout?.visibility = View.VISIBLE
+                        errorCode?.text = description
+
+                        errorReloadButton!!.setOnClickListener {
                             if (isSystemRunning) {
                                 if (Utility.isNetworkAvailable(applicationContext)) {
-                                    webView!!.loadUrl(failingUrl)
-                                    errorlayout!!.visibility = View.GONE
-                                    webView!!.clearHistory()
-                                    handler.removeCallbacks(runnable!!)
-
-                                    isErrorLayoutShown = true
-
+                                    if (isSystemRunning) {
+                                        webView!!.loadUrl(failingUrl)
+                                        isErrorLayoutShown = true
+                                    }
                                 } else {
                                     showToastMessage("Connect to an internet")
                                 }
-
                             }
                         }
-                    }
-                }.also { if (isSystemRunning) { runnable = it } }, 4000) }
 
-        } catch (e: java.lang.Exception) {
-            Log.d(TAG, "HideErrorPage: " + e.message.toString())
+                        handler.postDelayed(Runnable {
+                            if (isSystemRunning) {
+                                handler.postDelayed(runnable!!, 4000)
+                                if (isSystemRunning) {
+                                    if (errorautoConnect?.visibility == View.GONE) {
+                                        errorautoConnect?.visibility = View.VISIBLE
+                                    }
+                                }
+                                errorautoConnect?.text = "Auto Reconnect: Standby"
+                                if (AdvancedControls.checkInternetConnection(applicationContext)) {
+                                    if (isSystemRunning) {
+                                        errorautoConnect!!.text = "Auto Reconnect: Trying to connect.."
+                                    }
+                                } else {
+                                    if (isSystemRunning) {
+                                        if (Utility.isNetworkAvailable(applicationContext)) {
+                                            webView!!.loadUrl(failingUrl)
+                                            errorlayout!!.visibility = View.GONE
+                                            webView!!.clearHistory()
+                                            handler.removeCallbacks(runnable!!)
+
+                                            isErrorLayoutShown = true
+
+                                        } else {
+                                            showToastMessage("Connect to an internet")
+                                        }
+
+                                    }
+                                }
+                            }
+                        }.also { if (isSystemRunning) { runnable = it } }, 4000) }
+
+                } catch (e: java.lang.Exception) {
+                    Log.d(TAG, "HideErrorPage: " + e.message.toString())
+                }
+            }
+
+
+
         }
-    }
+
+    */
+
 
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -5327,8 +5429,6 @@ class WebViewPage : AppCompatActivity() {
 
 
     private fun funUnZipFile() {
-
-
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 Log.d("THIS ZIP", "funUnZipFile: Located zip file")
@@ -5363,6 +5463,7 @@ class WebViewPage : AppCompatActivity() {
                             isdDownloadApi = true
 
                             Log.d("THIS ZIP", "funUnZipFile: Unable to find the zip")
+
                         }
                     }
                 }
@@ -5379,6 +5480,14 @@ class WebViewPage : AppCompatActivity() {
                     isdDownloadApi = true
                     showToastMessage("An error occurred: ${e.localizedMessage}")
                     Log.d("THIS ZIP", "An error occurred: ${e.localizedMessage}")
+
+                    var isRetry = true
+                    if (isRetry){
+                        isRetry = false
+                        handler.postDelayed(kotlinx.coroutines.Runnable {
+                            init_Zip_Sync_Start()
+                        },1000)
+                    }
                 }
             }
         }
@@ -6676,8 +6785,36 @@ class WebViewPage : AppCompatActivity() {
     //schedule
     private fun myStateChecker() {
         val database = FirebaseDatabase.getInstance()
+        val get_Clo = simpleSavedPassword.getString(Constants.get_UserID, "").toString()
+        val get_DEmo = simpleSavedPassword.getString(Constants.get_LicenseKey, "").toString()
+
+        val appRef = database.reference
+            .child("sync2app")
+            .child(get_Clo)
+            .child(get_DEmo)
+            .child("App")
+
+        appRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val appValue = snapshot.getValue(String::class.java)
+                Log.e("DDDDDDDD", "App direct: $appValue")
+
+                if (appValue != null && appValue == Constants.GroundPath) {
+                    Process.killProcess(Process.myPid())
+                    System.exit(0)
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
+
+    }
+
+
+    private fun myStateCheckerV2() {
+        val database = FirebaseDatabase.getInstance()
         val myRef = database.reference.child("sync2app")
-        myRef.child("app").addValueEventListener(object : ValueEventListener {
+        myRef.child("AllValues").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     val get_value = snapshot.getValue(String::class.java)
@@ -6691,6 +6828,8 @@ class WebViewPage : AppCompatActivity() {
             override fun onCancelled(error: DatabaseError) {}
         })
     }
+
+
     //schedule
 
     private fun runScheduleCheck() {
@@ -8426,10 +8565,12 @@ class WebViewPage : AppCompatActivity() {
 
         val handlerRestart = Handler(Looper.getMainLooper())
         handlerRestart.postDelayed({
-            finishAffinity()
-            val intent = Intent(applicationContext, SplashVideoActivity::class.java)
+            val intent = Intent(this@WebViewPage, SplashVideoActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             startActivity(intent)
+            finishAffinity()
         }, 3000)
+
 
     }
 

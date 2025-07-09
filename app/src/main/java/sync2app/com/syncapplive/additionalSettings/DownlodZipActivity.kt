@@ -167,9 +167,9 @@ class DownlodZipActivity : AppCompatActivity() {
 
 
 
-            val getFolderClo = sharedP.getString("getFolderClo", "").toString()
-            val getFolderSubpath = sharedP.getString("getFolderSubpath", "").toString()
-            val Zip = sharedP.getString("Zip", "").toString()
+            val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
+            val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
+            val Zip = sharedP.getString(Constants.Zip, "").toString()
             val fileName = sharedP.getString("fileName", "").toString()
             val Extracted = sharedP.getString("Extracted", "").toString()
 
@@ -305,7 +305,7 @@ class DownlodZipActivity : AppCompatActivity() {
 
             textYesButton.setOnClickListener {
                 val editor = sharedP.edit()
-                editor.putString(Constants.imgAllowLunchFromOnline, "imgAllowLunchFromOnline")
+                editor.putString(Constants.imgAllowLunchFromOnline, Constants.imgAllowLunchFromOnline)
                 editor.apply()
                 stratLauncOnline()
                 alertDialog.dismiss()
@@ -362,7 +362,7 @@ class DownlodZipActivity : AppCompatActivity() {
 
                 if (isValid == true) {
                     isValid = false
-                    showCustomProgressDialog("Please wait! \n Download in Progress")
+                    showCustomProgressDialog("Unpacking Media ... ")
                     handler.postDelayed(Runnable {
                         if (get_value_if_Api_is_required.equals(Constants.USE_ZIP_SYNC)){
                             funUnZipFile()
@@ -504,7 +504,7 @@ class DownlodZipActivity : AppCompatActivity() {
             }
 
 
-            val get_value_if_Api_is_required = sharedBiometric.getString(Constants.imagSwtichEnableSyncFromAPI, "")
+            val get_value_if_Api_is_required = sharedBiometric.getString(Constants.imagSwtichEnableSyncFromAPI, "").toString()
             if (get_value_if_Api_is_required.equals(Constants.imagSwtichEnableSyncFromAPI)){
                 //  second_cancel_download()
             }

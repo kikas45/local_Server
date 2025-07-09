@@ -1019,6 +1019,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
                                 )
                                 mUserViewModel.addUser(user)
 
+                                Utility.saveStateHeathChecker(CLO = get_UserID, DEMO = get_LicenseKey)
 
                                 // use Paper Book to Save Use online CSv or Local CSv
                                 Paper.book().write(Common.set_schedule_key, Common.schedule_online)
