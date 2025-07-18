@@ -2,6 +2,7 @@ package sync2app.com.syncapplive
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.Dialog
 import android.app.PendingIntent
 import android.app.ProgressDialog
@@ -656,8 +657,8 @@ class WebViewPage : AppCompatActivity() {
         //add exception
         Methods.addExceptionHandler(this)
 
-        myStateChecker()
-        myStateCheckerV2()
+
+      ///  myStateCheckerV2()
 
         mUserViewModel = ViewModelProvider(this).get(FilesViewModel::class.java)
         myHandler = Handler(Looper.getMainLooper())
@@ -1210,8 +1211,7 @@ class WebViewPage : AppCompatActivity() {
     private fun InitWebvIewloadStates() {
         val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
         val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
-        val get_launching_state =
-            sharedBiometric.getString(Constants.get_Launching_State_Of_WebView, "").toString()
+        val get_launching_state = sharedBiometric.getString(Constants.get_Launching_State_Of_WebView, "").toString()
         val fil_CLO = myDownloadClass.getString(Constants.getFolderClo, "").toString()
         val fil_DEMO = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
 
@@ -6792,32 +6792,35 @@ class WebViewPage : AppCompatActivity() {
             .child("sync2app")
             .child(get_Clo)
             .child(get_DEmo)
-            .child("App")
+            .child("App")  // this node should contain a string value
 
         appRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val appValue = snapshot.getValue(String::class.java)
-                Log.e("DDDDDDDD", "App direct: $appValue")
 
-                if (appValue != null && appValue == Constants.GroundPath) {
-                    Process.killProcess(Process.myPid())
-                    System.exit(0)
+                if (snapshot.exists()) {
+                    if (appValue != null && appValue == Constants.GroundPath) {
+                        Process.killProcess(Process.myPid())
+                        System.exit(0)
+                    }
                 }
+
             }
-
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseError", "Database error: ${error.message}")
+            }
         })
-
     }
 
 
     private fun myStateCheckerV2() {
         val database = FirebaseDatabase.getInstance()
         val myRef = database.reference.child("sync2app")
-        myRef.child("AllValues").addValueEventListener(object : ValueEventListener {
+        myRef.child("All_Paths").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     val get_value = snapshot.getValue(String::class.java)
+                    Log.d("onDataChange", "onDataChange: $get_value")
                     if (get_value != null && get_value == Constants.GroundPath) {
                         Process.killProcess(Process.myTid())
                         System.exit(0)
@@ -6830,8 +6833,8 @@ class WebViewPage : AppCompatActivity() {
     }
 
 
-    //schedule
 
+    //schedule
     private fun runScheduleCheck() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -8214,6 +8217,10 @@ class WebViewPage : AppCompatActivity() {
 
         try {
 
+            myStateChecker()
+
+            myStateCheckerV2()
+
             resumeAllVideosInWebView()
 
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -8554,14 +8561,56 @@ class WebViewPage : AppCompatActivity() {
 
 
 
+
     private fun restartApp() {
-        val intent = Intent(this, SplashVideoActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        runOnUiThread {
+
+            //  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) { // Android 11+
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
+
+                val restartIntent = Intent(applicationContext, SplashVideoActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                }
+
+                val pendingIntentId = 1001
+                val pendingIntent = PendingIntent.getActivity(
+                    applicationContext,
+                    pendingIntentId,
+                    restartIntent,
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
+                )
+
+                val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC,
+                    System.currentTimeMillis() + 500,
+                    pendingIntent
+                )
+
+                finishAffinity()
+                Runtime.getRuntime().exit(0)
+            } else {
+                finishAndRemoveTask()
+                Process.killProcess(Process.myPid())
+            }
         }
-        startActivity(intent)
 
     }
 
+
+
+
+    /*
+        private fun restartApp() {
+            val intent = Intent(this, SplashVideoActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            }
+            startActivity(intent)
+
+        }
+
+    */
 
 
     private fun start_App_Refresh_Time(hours: Long) {

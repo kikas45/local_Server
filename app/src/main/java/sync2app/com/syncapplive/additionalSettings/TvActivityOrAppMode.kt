@@ -1288,8 +1288,7 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
 
     @SuppressLint("MissingInflatedId")
     private fun showPopAllowAppToWriteSystem() {
-        val bindingCM: CustomeAllowAppWriteSystemBinding =
-            CustomeAllowAppWriteSystemBinding.inflate(layoutInflater)
+        val bindingCM: CustomeAllowAppWriteSystemBinding = CustomeAllowAppWriteSystemBinding.inflate(layoutInflater)
         val builder = AlertDialog.Builder(this)
         builder.setView(bindingCM.root)
         val alertDialog = builder.create()

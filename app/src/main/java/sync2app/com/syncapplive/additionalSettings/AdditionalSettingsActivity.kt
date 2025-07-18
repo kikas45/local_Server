@@ -28,6 +28,7 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.os.Process
 import android.os.UserManager
 import android.provider.MediaStore
 import android.provider.Settings
@@ -136,6 +137,9 @@ class AdditionalSettingsActivity : AppCompatActivity() {
             }
             startActivity(intent)
 
+
+          //  restartApp()
+
         }
 
 
@@ -150,7 +154,41 @@ class AdditionalSettingsActivity : AppCompatActivity() {
 
 
 
+    private fun restartApp() {
+        runOnUiThread {
 
+            //  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) { // Android 11+
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
+
+                val restartIntent = Intent(applicationContext, SplashVideoActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                }
+
+                val pendingIntentId = 1001
+                val pendingIntent = PendingIntent.getActivity(
+                    applicationContext,
+                    pendingIntentId,
+                    restartIntent,
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
+                )
+
+                val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC,
+                    System.currentTimeMillis() + 500,
+                    pendingIntent
+                )
+
+                finishAffinity()
+                Runtime.getRuntime().exit(0)
+            } else {
+                finishAndRemoveTask()
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
+        }
+
+    }
 
     private fun setUpFullScreenWindows() {
         val get_INSTALL_TV_JSON_USER_CLICKED =

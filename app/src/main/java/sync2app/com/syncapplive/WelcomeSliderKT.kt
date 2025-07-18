@@ -112,7 +112,7 @@ class WelcomeSliderKT : AppCompatActivity() {
         d_time.let {itLong->
             if (itLong == 0L) {
                 val editor = myDownloadClass.edit()
-                editor.putLong(Constants.get_Refresh_Timer, Constants.T_5_HR)
+                editor.putLong(Constants.get_Refresh_Timer, Constants.T_4_HR)
                 editor.apply()
             }
         }
