@@ -10,12 +10,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.graphics.Color
-import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.preference.PreferenceManager
@@ -30,7 +28,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
@@ -51,6 +48,7 @@ import sync2app.com.syncapplive.additionalSettings.autostartAppOncrash.Methods
 import sync2app.com.syncapplive.additionalSettings.cloudAppsync.util.Common
 import sync2app.com.syncapplive.additionalSettings.utils.Constants
 import sync2app.com.syncapplive.additionalSettings.utils.Utility
+import sync2app.com.syncapplive.additionalSettings.utils.isInternetAvailableOnBing
 import sync2app.com.syncapplive.databinding.ActivitySplashBinding
 import sync2app.com.syncapplive.databinding.CustomHelperLayoutBinding
 import java.io.File
@@ -99,7 +97,7 @@ class SplashKT : AppCompatActivity() {
     private var isCallingStart = true
     private var isMyActivityRunning = false
 
-    private  var isRetryBTN = false
+    private var isRetryBTN = false
 
     private val sharedTVAPPModePreferences: SharedPreferences by lazy {
         applicationContext.getSharedPreferences(
@@ -245,26 +243,25 @@ class SplashKT : AppCompatActivity() {
 
 
         binding.retryntn.setOnClickListener {
-            if (Utility.isNetworkAvailable(applicationContext)) {
-                isRetryBTN = true
-                btnFunRetryAPiCall()
-                if (!isTvModeSettingsReady) {
-                    fetchApiSettings()
-                }
-            }else{
-
-                val handler2000 = Handler(Looper.getMainLooper())
-                handler2000.postDelayed(Runnable {
+            lifecycleScope.launch {
+                if (isInternetAvailableOnBing()) {
+                    binding.retryntn.isEnabled = false
+                    isRetryBTN = true
+                    btnFunRetryAPiCall()
+                    if (!isTvModeSettingsReady) {
+                        fetchApiSettings()
+                    }
+                } else {
+                    binding.retryntn.isEnabled = true
                     manageUIStateOnNetworkIssuesForRetry()
                     isRetryBTN = false
-                }, Constants.timeForConnection)
-
-
+                }
             }
+
         }
 
-    }
 
+    }
 
 
     private fun setUpInternetAmination() {
@@ -280,23 +277,22 @@ class SplashKT : AppCompatActivity() {
             isCallingStart = false
 
             Log.d("MAMMA", "No internet casll Screen")
-        }
-
-
-        val handler2000 = Handler(Looper.getMainLooper())
-        handler2000.postDelayed(Runnable {
-            binding.texttConnection.visibility = View.VISIBLE
-            InitWebviewIndexFileState()
-            isCallingStart = false
-        }, Constants.timeForConnection)
-
-
-        if (Utility.isNetworkAvailable(applicationContext)) {
-            binding.texttConnection?.visibility = View.GONE
         } else {
-            binding.texttConnection?.visibility = View.VISIBLE
+            lifecycleScope.launch {
+                if (isInternetAvailableOnBing()) {
+                    binding.texttConnection?.visibility = View.GONE
+                }else{
+                    binding.texttConnection?.visibility = View.VISIBLE
+                    binding.texttConnection.visibility = View.VISIBLE
+                    InitWebviewIndexFileState()
+                    isCallingStart = false
+
+                }
+            }
 
         }
+
+
 
         binding.texttConnection?.setOnClickListener {
             val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
@@ -312,16 +308,13 @@ class SplashKT : AppCompatActivity() {
         val deepBlue = resources.getColor(R.color.white)
         val deepRed = resources.getColor(R.color.red)
 
-        val colorAnimator =
-            ObjectAnimator.ofInt(binding.texttConnection, "textColor", deepBlue, deepRed)
+        val colorAnimator = ObjectAnimator.ofInt(binding.texttConnection, "textColor", deepBlue, deepRed)
         colorAnimator.setEvaluator(ArgbEvaluator())
         colorAnimator.repeatCount = ValueAnimator.INFINITE
         colorAnimator.repeatMode = ValueAnimator.REVERSE
         colorAnimator.duration = 900
         colorAnimator.start()
     }
-
-
 
 
     private fun loadImage() {
@@ -342,7 +335,6 @@ class SplashKT : AppCompatActivity() {
     }
 
 
-
     private fun loadBackGroundImage() {
         backgroundImage = findViewById(R.id.backgroundImage)
         val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
@@ -361,11 +353,7 @@ class SplashKT : AppCompatActivity() {
     }
 
 
-
-
-
-
-    fun ApiCall(context: Context?, url: String?) {
+   private fun ApiCall(context: Context?, url: String?) {
 
         if (isCallingStart) {
 
@@ -453,7 +441,7 @@ class SplashKT : AppCompatActivity() {
                         //FLOATING BUTTON
                         constants.Web_button_link = remoteJson.getString("webBtnUrl")
                         constants.Web_button_Img_link = remoteJson.getString("webBtnImgUrl")
-                       // constants.ShowWebBtn = remoteJson.getBoolean("ShowWebBtn")
+                        // constants.ShowWebBtn = remoteJson.getBoolean("ShowWebBtn")
 
 
                         //ADS
@@ -514,17 +502,28 @@ class SplashKT : AppCompatActivity() {
 
                         isJsonAPICallReady = true
 
-                        val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-                        val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
-                        val getFirstMode = sharedTVAPPModePreferences.getString(Constants.installTVModeForFirstTime, "").toString()
-                        val getTvMode = sharedBiometric.getString(Constants.CALL_RE_SYNC_MANGER, "").toString()
+                        val sharedBiometric =
+                            getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+                        val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(
+                            Constants.INSTALL_TV_JSON_USER_CLICKED,
+                            ""
+                        ).toString()
+                        val getFirstMode = sharedTVAPPModePreferences.getString(
+                            Constants.installTVModeForFirstTime,
+                            ""
+                        ).toString()
+                        val getTvMode =
+                            sharedBiometric.getString(Constants.CALL_RE_SYNC_MANGER, "").toString()
 
 
                         if (URLUtil.isValidUrl(homeurl)) {
                             constants.jsonUrl = homeurl
 
 
-                            Log.d("PETER", "InitWebvIewloadStates: Splash K  The JSON_MAIN_URl $homeurl")
+                            Log.d(
+                                "PETER",
+                                "InitWebvIewloadStates: Splash K  The JSON_MAIN_URl $homeurl"
+                            )
 
                             try {
                                 val uri = URI(homeurl)
@@ -542,7 +541,10 @@ class SplashKT : AppCompatActivity() {
                                         if (should_My_App_Use_TV_Mode) {
                                             // saving launch state
                                             val editText88 = sharedBiometric.edit()
-                                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
+                                            editText88.putString(
+                                                Constants.get_Launching_State_Of_WebView,
+                                                Constants.launch_WebView_Offline
+                                            )
                                             editText88.apply()
 
                                             val editor = preferences.edit()
@@ -552,7 +554,10 @@ class SplashKT : AppCompatActivity() {
                                         } else {
                                             // saving launch state
                                             val editText88 = sharedBiometric.edit()
-                                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
+                                            editText88.putString(
+                                                Constants.get_Launching_State_Of_WebView,
+                                                Constants.launch_Default_WebView_url
+                                            )
                                             editText88.apply()
 
                                             val editor = preferences.edit()
@@ -567,14 +572,20 @@ class SplashKT : AppCompatActivity() {
                                         ""
                                     ).toString()
                                     if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
-                                        val myactivity = Intent(applicationContext, WelcomeSliderKT::class.java)
+                                        val myactivity =
+                                            Intent(applicationContext, WelcomeSliderKT::class.java)
                                         startActivity(myactivity)
                                         finish()
 
                                     } else {
                                         /////
                                         finish()
-                                        startActivity(Intent(applicationContext, InformationActivity::class.java))
+                                        startActivity(
+                                            Intent(
+                                                applicationContext,
+                                                InformationActivity::class.java
+                                            )
+                                        )
 
                                     }
 
@@ -593,8 +604,14 @@ class SplashKT : AppCompatActivity() {
                                         if (should_My_App_Use_TV_Mode) {
                                             // saving launch state
                                             val editText88 = sharedBiometric.edit()
-                                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
-                                            editText88.putString(Constants.PROTECT_PASSWORD, Constants.PROTECT_PASSWORD)
+                                            editText88.putString(
+                                                Constants.get_Launching_State_Of_WebView,
+                                                Constants.launch_WebView_Offline
+                                            )
+                                            editText88.putString(
+                                                Constants.PROTECT_PASSWORD,
+                                                Constants.PROTECT_PASSWORD
+                                            )
                                             editText88.apply()
 
                                             Log.d(
@@ -602,11 +619,17 @@ class SplashKT : AppCompatActivity() {
                                                 "SplashScreen: launch_WebView_Offline"
                                             )
 
-                                            val getInfoPageState = sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
+                                            val getInfoPageState = sharedBiometric.getString(
+                                                Constants.FIRST_INFORMATION_PAGE_COMPLETED,
+                                                ""
+                                            ).toString()
                                             if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
 
                                                 if (!getFirstMode.equals(Constants.installTVModeForFirstTime)) {
-                                                    val myactivity = Intent(applicationContext, ReSyncActivity::class.java)
+                                                    val myactivity = Intent(
+                                                        applicationContext,
+                                                        ReSyncActivity::class.java
+                                                    )
                                                     myactivity.putExtra("url", constants.jsonUrl)
                                                     startActivity(myactivity)
                                                     finish()
@@ -765,24 +788,28 @@ class SplashKT : AppCompatActivity() {
                         e.printStackTrace()
                         infotext!!.text = e.message
                         manageUIStateOnNetworkIssuesForRetry()
+                        InitWebviewIndexFileState()
+                        isCallingStart = false
                     }
                 }) { error ->
                 infotext!!.text = "Error occurred! =$error"
                 manageUIStateOnNetworkIssuesForRetry()
                 isJsonAPICallReady = false
                 progressBar!!.visibility = View.GONE
+                InitWebviewIndexFileState()
+                isCallingStart = false
 
             }
 
 
-// Add the request to the RequestQueue.
             queue.add(stringRequest)
             queue.addRequestFinishedListener<Any> { queue.cache.clear() }
         } else {
             showToastMessage("Slow internet connection")
+            InitWebviewIndexFileState()
+            isCallingStart = false
         }
     }
-
 
 
     private fun btnFunRetryAPiCall() {
@@ -804,7 +831,7 @@ class SplashKT : AppCompatActivity() {
     }
 
 
-    private fun manageUIStateOnNetworkIssues(){
+    private fun manageUIStateOnNetworkIssues() {
         if (retryBtn!!.visibility == View.VISIBLE) {
             retryBtn!!.visibility = View.GONE
         }
@@ -835,7 +862,7 @@ class SplashKT : AppCompatActivity() {
 
     }
 
-    private fun manageUIStateOnNetworkIssuesForRetry(){
+    private fun manageUIStateOnNetworkIssuesForRetry() {
         if (retryBtn!!.visibility == View.GONE) {
             retryBtn!!.visibility = View.VISIBLE
         }
@@ -865,8 +892,6 @@ class SplashKT : AppCompatActivity() {
         }
 
     }
-
-
 
 
     @SuppressLint("MissingInflatedId", "UseCompatLoadingForDrawables")
@@ -921,6 +946,8 @@ class SplashKT : AppCompatActivity() {
         isMyActivityRunning = false
     }
 
+    private var isNetWorkCallingApi = true
+
     inner class ConnectivityReceiver : BroadcastReceiver() {
         @SuppressLint("SetTextI18n")
         override fun onReceive(context: Context, intent: Intent) {
@@ -929,56 +956,81 @@ class SplashKT : AppCompatActivity() {
                     context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
                 val activeNetworkInfo = connectivityManager.activeNetworkInfo
                 if (activeNetworkInfo != null && activeNetworkInfo.isConnected) {
-                    try {
-                        isCallingStart = true
 
-                        val SPLASH_TIME_OUT = 1300
-                        Handler().postDelayed({
-                            try {
-
-
-                                fetchApiSettings()
-
-                                progressBar?.setVisibility(View.VISIBLE)
-                                retryBtn?.setVisibility(View.GONE)
-                                go_settings_Btn?.setVisibility(View.GONE)
-                                gotWifisettings?.setVisibility(View.GONE)
-                                goConnection?.setVisibility(View.GONE)
-                                img_swipe_reload?.setVisibility(View.GONE)
-                                imagwifi?.setVisibility(View.GONE)
-                                img_settings?.setVisibility(View.GONE)
-                                imagwifi2?.setVisibility(View.GONE)
-                                splash_image?.setVisibility(View.VISIBLE)
-                                imageHelper?.setVisibility(View.GONE)
-                            } catch (e: java.lang.Exception) {
+                    if (isNetWorkCallingApi) {
+                        isNetWorkCallingApi = false
+                        lifecycleScope.launch {
+                            if (isInternetAvailableOnBing()) {
+                                loadUiOnNetWorksReturn()
+                                isNetWorkCallingApi = true
+                            } else {
+                                // No internet Connection
+                                loadUiWhenNetWorkIsDown()
+                                isNetWorkCallingApi = true
                             }
-                        }, SPLASH_TIME_OUT.toLong())
-                    } catch (ignored: java.lang.Exception) {
+                        }
+
                     }
+
                 } else {
-
-                    isCallingStart = false
-
                     // No internet Connection
-                    try {
-                        infotext?.setText("No Internet Connection")
-                        progressBar?.setVisibility(View.GONE)
-                        retryBtn?.setVisibility(View.VISIBLE)
-                        go_settings_Btn?.setVisibility(View.VISIBLE)
-                        gotWifisettings?.setVisibility(View.VISIBLE)
-                        goConnection?.setVisibility(View.VISIBLE)
-                        img_swipe_reload?.setVisibility(View.VISIBLE)
-                        imagwifi?.setVisibility(View.VISIBLE)
-                        img_settings?.setVisibility(View.VISIBLE)
-                        imagwifi2?.setVisibility(View.VISIBLE)
-                        splash_image?.setVisibility(View.VISIBLE)
-                        imageHelper?.setVisibility(View.VISIBLE)
-                    } catch (e: java.lang.Exception) {
-                    }
+                    loadUiWhenNetWorkIsDown()
                 }
-
                 // No internet Connection
             } catch (ignored: java.lang.Exception) {
+            }
+        }
+    }
+
+    private fun loadUiOnNetWorksReturn() {
+        binding.apply {
+            try {
+                isCallingStart = true
+
+                val SPLASH_TIME_OUT = 1300
+                Handler().postDelayed({
+                    try {
+
+
+                        fetchApiSettings()
+
+                        progressBar?.setVisibility(View.VISIBLE)
+                        retryBtn?.setVisibility(View.GONE)
+                        go_settings_Btn?.setVisibility(View.GONE)
+                        gotWifisettings?.setVisibility(View.GONE)
+                        goConnection?.setVisibility(View.GONE)
+                        img_swipe_reload?.setVisibility(View.GONE)
+                        imagwifi?.setVisibility(View.GONE)
+                        img_settings?.setVisibility(View.GONE)
+                        imagwifi2?.setVisibility(View.GONE)
+                        splash_image?.setVisibility(View.VISIBLE)
+                        imageHelper?.setVisibility(View.GONE)
+                    } catch (e: java.lang.Exception) {
+                    }
+                }, SPLASH_TIME_OUT.toLong())
+            } catch (ignored: java.lang.Exception) {
+            }
+        }
+    }
+
+    private fun loadUiWhenNetWorkIsDown() {
+        binding.apply {
+            try {
+                isCallingStart = false
+
+                infotext?.setText("No Internet Connection")
+                progressBar?.setVisibility(View.GONE)
+                retryBtn?.setVisibility(View.VISIBLE)
+                go_settings_Btn?.setVisibility(View.VISIBLE)
+                gotWifisettings?.setVisibility(View.VISIBLE)
+                goConnection?.setVisibility(View.VISIBLE)
+                img_swipe_reload?.setVisibility(View.VISIBLE)
+                imagwifi?.setVisibility(View.VISIBLE)
+                img_settings?.setVisibility(View.VISIBLE)
+                imagwifi2?.setVisibility(View.VISIBLE)
+                splash_image?.setVisibility(View.VISIBLE)
+                imageHelper?.setVisibility(View.VISIBLE)
+            } catch (e: java.lang.Exception) {
             }
         }
     }
@@ -991,8 +1043,7 @@ class SplashKT : AppCompatActivity() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
 
-                    val simpleSavedPassword =
-                        getSharedPreferences(Constants.SIMPLE_SAVED_PASSWORD, MODE_PRIVATE)
+                    val simpleSavedPassword = getSharedPreferences(Constants.SIMPLE_SAVED_PASSWORD, MODE_PRIVATE)
 
                     val get_tMaster =
                         simpleSavedPassword.getString(Constants.get_editTextMaster, "").toString()
@@ -1039,26 +1090,56 @@ class SplashKT : AppCompatActivity() {
                                 editor.putBoolean(Constants.installTVMode, installTVMode)
                                 editor.putBoolean(Constants.hide_TV_Mode_Label, hideTvModeLabel)
                                 editor.putBoolean(Constants.fullScreen_APP, fullScreen)
-                                editor.putBoolean(Constants.hide_Full_ScreenLabel, hideFullScreenLabel)
+                                editor.putBoolean(
+                                    Constants.hide_Full_ScreenLabel,
+                                    hideFullScreenLabel
+                                )
                                 editor.putBoolean(Constants.immersive_Mode_APP, immersiveMode)
-                                editor.putBoolean(Constants.hide_Immersive_ModeLabel, hideImmersiveModeLabel)
+                                editor.putBoolean(
+                                    Constants.hide_Immersive_ModeLabel,
+                                    hideImmersiveModeLabel
+                                )
                                 editor.putBoolean(Constants.hide_BottomBar_APP, hideBottomBar)
-                                editor.putBoolean(Constants.hide_Bottom_Bar_Label_APP, hideBottomBarLabel)
-                                editor.putBoolean(Constants.hideBottom_MenuIcon_APP, hideBottomMenuIcon)
-                                editor.putBoolean(Constants.hide_Bottom_MenuIconLabel_APP, hideBottomMenuIconLabel)
-                                editor.putBoolean(Constants.hide_Floating_Button_APP, hideFloatingButton)
-                                editor.putBoolean(Constants.hide_Floating_ButtonLabel_APP, hideFloatingButtonLabel)
+                                editor.putBoolean(
+                                    Constants.hide_Bottom_Bar_Label_APP,
+                                    hideBottomBarLabel
+                                )
+                                editor.putBoolean(
+                                    Constants.hideBottom_MenuIcon_APP,
+                                    hideBottomMenuIcon
+                                )
+                                editor.putBoolean(
+                                    Constants.hide_Bottom_MenuIconLabel_APP,
+                                    hideBottomMenuIconLabel
+                                )
+                                editor.putBoolean(
+                                    Constants.hide_Floating_Button_APP,
+                                    hideFloatingButton
+                                )
+                                editor.putBoolean(
+                                    Constants.hide_Floating_ButtonLabel_APP,
+                                    hideFloatingButtonLabel
+                                )
 
                                 // newly added
-                                editor.putBoolean(Constants.use_local_schedule_APP, use_local_schedule)
-                                editor.putBoolean(Constants.show_local_schedule_label, show_local_schedule_label)
+                                editor.putBoolean(
+                                    Constants.use_local_schedule_APP,
+                                    use_local_schedule
+                                )
+                                editor.putBoolean(
+                                    Constants.show_local_schedule_label,
+                                    show_local_schedule_label
+                                )
                                 editor.apply()
 
 
                                 if (installTVMode) {
                                     should_My_App_Use_TV_Mode = true
                                     val editorrr = sharedBiometric.edit()
-                                    editorrr.putString(Constants.MY_TV_OR_APP_MODE, Constants.TV_Mode)
+                                    editorrr.putString(
+                                        Constants.MY_TV_OR_APP_MODE,
+                                        Constants.TV_Mode
+                                    )
                                     editorrr.apply()
                                 } else {
                                     val editorrr = sharedBiometric.edit()
@@ -1091,12 +1172,12 @@ class SplashKT : AppCompatActivity() {
                             Log.e("ApiResponse", "Error: ${response.message()}")
                             isTvModeSettingsReady = false
                             infotext?.text = "Error: Unable to fetch TV or App Mode Settings"
-                            Toast.makeText(
-                                applicationContext,
-                                "Error: Unable to fetch TV or App Mode Settings",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(applicationContext, "Error: Unable to fetch TV or App Mode Settings", Toast.LENGTH_SHORT).show()
                             manageUIStateOnNetworkIssuesForRetry()
+
+                            InitWebviewIndexFileState()
+                            isCallingStart = false
+
                         }
                     }
                 } catch (e: HttpException) {
@@ -1105,6 +1186,9 @@ class SplashKT : AppCompatActivity() {
                         Log.e("ApiResponse", "HTTP Exception: ${e.message}")
                         isTvModeSettingsReady = false
                         manageUIStateOnNetworkIssuesForRetry()
+
+                        InitWebviewIndexFileState()
+                        isCallingStart = false
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
@@ -1114,11 +1198,16 @@ class SplashKT : AppCompatActivity() {
                         infotext?.text = "Error: ${e.message}"
                         manageUIStateOnNetworkIssuesForRetry()
 
+                        InitWebviewIndexFileState()
+                        isCallingStart = false
+
                     }
                 }
             }
         } else {
             showToastMessage("Slow internet connection")
+            InitWebviewIndexFileState()
+            isCallingStart = false
         }
     }
 
@@ -1182,7 +1271,7 @@ class SplashKT : AppCompatActivity() {
                     try {
                         getFilePath(CLO, DEMO, fileName)
                     } catch (e: Exception) {
-                       // showToastMessage("You need to Sync Files for Offline Usage")
+                        // showToastMessage("You need to Sync Files for Offline Usage")
                         null
                     }
                 }
@@ -1195,19 +1284,31 @@ class SplashKT : AppCompatActivity() {
 
                         Log.d("MAMMA", "My activoitu is runing")
 
-                        val sharedBiometric: SharedPreferences = applicationContext.getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-                        val get_TV_or_App_Mode = sharedBiometric.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
-                        val JSON_MAIN_URL = sharedBiometric.getString(Constants.JSON_MAIN_URL, "").toString()
+                        val sharedBiometric: SharedPreferences =
+                            applicationContext.getSharedPreferences(
+                                Constants.SHARED_BIOMETRIC,
+                                MODE_PRIVATE
+                            )
+                        val get_TV_or_App_Mode =
+                            sharedBiometric.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
+                        val JSON_MAIN_URL =
+                            sharedBiometric.getString(Constants.JSON_MAIN_URL, "").toString()
 
                         Log.d("MAMMA", "App_State  :::$get_TV_or_App_Mode")
 
                         if (get_TV_or_App_Mode == Constants.TV_Mode) {
                             val editText88 = sharedBiometric.edit()
-                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
+                            editText88.putString(
+                                Constants.get_Launching_State_Of_WebView,
+                                Constants.launch_WebView_Offline
+                            )
                             editText88.apply()
 
                             val myActivity = Intent(applicationContext, WebViewPage::class.java)
-                            myActivity.putExtra(Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE, Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE)
+                            myActivity.putExtra(
+                                Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE,
+                                Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE
+                            )
                             startActivity(myActivity)
                             finish()
                             Log.d("MAMMA", "TV: Splash Screen")
@@ -1217,13 +1318,20 @@ class SplashKT : AppCompatActivity() {
                             Log.d("MAMMA", "Appp: TV_MODE_")
 
                             val editText88 = sharedBiometric.edit()
-                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
+                            editText88.putString(
+                                Constants.get_Launching_State_Of_WebView,
+                                Constants.launch_Default_WebView_url
+                            )
                             editText88.apply()
 
                             val myActivity = Intent(applicationContext, WebViewPage::class.java)
-                            myActivity.putExtra(Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE, Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE)
+                            myActivity.putExtra(
+                                Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE,
+                                Constants.USE_TEMP_OFFLINE_WEB_VIEW_PAGE
+                            )
 
-                            val urlPath = "${Constants.CUSTOM_CP_SERVER_DOMAIN}/$CLO/$DEMO/App/$fileName"
+                            val urlPath =
+                                "${Constants.CUSTOM_CP_SERVER_DOMAIN}/$CLO/$DEMO/App/$fileName"
 
                             if (JSON_MAIN_URL != null) {
                                 myActivity.putExtra("url", JSON_MAIN_URL)
@@ -1243,14 +1351,14 @@ class SplashKT : AppCompatActivity() {
                         Log.d("MAMMA", "Pull out: Splash Screen")
                     }
                 } else {
-                  ///  showToastMessage("You need to Sync Files for Offline Usage")
+                    ///  showToastMessage("You need to Sync Files for Offline Usage")
 
                     Log.d("MAMMA", "No files: Splash Screen")
                 }
 
 
             } catch (e: Exception) {
-              //  showToastMessage("You need to Sync Files for Offline Usage")
+                //  showToastMessage("You need to Sync Files for Offline Usage")
             }
         }
     }
@@ -1263,13 +1371,12 @@ class SplashKT : AppCompatActivity() {
         val myFile = File(destinationFolder, filename)
 
         return if (myFile.exists()) {
-           /// myFile.toURI().toString()  // Use proper file URI (e.g. file:///...)
+            /// myFile.toURI().toString()  // Use proper file URI (e.g. file:///...)
             myFile.toURI().toURL().toString()
         } else {
             null
         }
     }
-
 
 
     private fun showToastMessage(message: String) {

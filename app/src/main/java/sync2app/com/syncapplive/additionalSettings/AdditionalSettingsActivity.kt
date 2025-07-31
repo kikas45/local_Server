@@ -225,8 +225,7 @@ class AdditionalSettingsActivity : AppCompatActivity() {
         binding.apply {
             // Hide Some Buttons for Mobile Mode
             val sharedBiometricPref = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-            val get_AppMode =
-                sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
+            val get_AppMode = sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
             if (get_AppMode != Constants.TV_Mode) {
 
                 imageView43.visibility = View.GONE

@@ -250,15 +250,14 @@
 
 
         <activity
-            android:name=".additionalSettings.DE_MO_202100"
+            android:name=".additionalSettings.SplashVideoActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="true"
             android:launchMode="singleTask"/>
 
 
-
         <activity
-            android:name=".additionalSettings.SplashVideoActivity"
+            android:name=".additionalSettings.DE_MO_202100"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="true"
             android:launchMode="singleTask">
