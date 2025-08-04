@@ -1,5 +1,4 @@
 package sync2app.com.syncapplive
-
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
@@ -25,13 +24,11 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.lifecycleScope
-import com.android.volley.Request
-import com.android.volley.toolbox.StringRequest
-import com.android.volley.toolbox.Volley
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.HttpException
 import io.paperdb.Paper
@@ -39,8 +36,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONException
-import org.json.JSONObject
+import sync2app.com.syncapplive.AppNetworkModule.RemoteConfig
+import sync2app.com.syncapplive.AppNetworkModule.RemoteConfigViewModel
 import sync2app.com.syncapplive.additionalSettings.ApITVorAppMode.RetrofitInstanceTVMode
 import sync2app.com.syncapplive.additionalSettings.InformationActivity
 import sync2app.com.syncapplive.additionalSettings.ReSyncActivity
@@ -57,11 +54,9 @@ import java.net.URISyntaxException
 
 class SplashKT : AppCompatActivity() {
 
+    private val viewModel by viewModels<RemoteConfigViewModel>()
 
     var ServerUrl: String? = null
-    //   String Jsonurl = ServerUrl;
-
-    //   String Jsonurl = ServerUrl;
     var infotext: TextView? = null
     var progressBar: ProgressBar? = null
     var retryBtn: TextView? = null
@@ -117,6 +112,10 @@ class SplashKT : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        observeViewModel()
+
+        //=====SETUP THE SEVER URL ==
+        setUpSeverUrl()
 
         applyOritenation()
 
@@ -127,24 +126,6 @@ class SplashKT : AppCompatActivity() {
             binding.splash.visibility = View.VISIBLE
         }, 1000)
 
-
-        val sharedLicenseKeys = getSharedPreferences(Constants.SIMPLE_SAVED_PASSWORD, MODE_PRIVATE)
-        ServerUrl = sharedLicenseKeys.getString(Constants.get_masterDomain, "").toString()
-
-        Log.d("ServerUrl", "onCreate: $ServerUrl")
-
-        var preferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val name = preferences.getString(Constants.surl, "").toString()
-
-        if (name == "") {
-        } else {
-            if (name!!.startsWith("http://") or (name.startsWith("https://") and name.endsWith("json"))) {
-                ServerUrl = name
-                Log.d("Remote Execution", "Using custom server address")
-            } else {
-                Log.d("Remote Execution", "Invalid server url$name")
-            }
-        }
 
         try {
             //add exception
@@ -263,6 +244,32 @@ class SplashKT : AppCompatActivity() {
 
     }
 
+    private fun setUpSeverUrl() {
+        val simpleSavedPassword = getSharedPreferences(Constants.SIMPLE_SAVED_PASSWORD, MODE_PRIVATE)
+        val get_UserID = simpleSavedPassword.getString(Constants.get_UserID, "").toString()
+        val get_LicenseKey = simpleSavedPassword.getString(Constants.get_LicenseKey, "").toString()
+        val get_editTextMaster = simpleSavedPassword.getString(Constants.get_editTextMaster, "").toString()
+
+        ServerUrl= "$get_editTextMaster/$get_UserID/$get_LicenseKey/${Constants.SEVER_APP_CONFIG_END_POINT}"
+
+        Log.d("GET_ServerUrl", "onCreate 111: $ServerUrl")
+
+        var preferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val name = preferences.getString(Constants.surl, "").toString()
+
+
+        if (name == "") {
+        } else {
+            if (name!!.startsWith("http://") or (name.startsWith("https://") and name.endsWith("json"))) {
+                ServerUrl = name
+                Log.d("GET_ServerUrl", "onCreate 222: $name")
+            } else {
+                Log.d("GET_ServerUrl", "onCreate 333: $name")
+
+            }
+        }
+    }
+
 
     private fun setUpInternetAmination() {
 
@@ -353,463 +360,448 @@ class SplashKT : AppCompatActivity() {
     }
 
 
-   private fun ApiCall(context: Context?, url: String?) {
+
+
+
+    private fun observeViewModel() {
+        viewModel.configLiveData.observe(this) { result ->
+            result
+                .onSuccess { response ->
+                    getRemoteValues(response.remoteConfig)
+                }
+                .onFailure { error ->
+                    showErrorUI(error.toString())
+                }
+        }
+    }
+
+
+    private fun getRemoteValues(config: RemoteConfig?) {
+        infotext?.setText(R.string.initializing)
+
+        if (config == null){
+            showErrorUI("Something went wrong, Invalid Remote data or Malformed AppConfig JSON")
+            return
+        }
+
+        // home remote data
+        val homeurl = config.homeUrl
+
+
+        // Bottom Bar
+        constants.ShowBottomBar = config.ShowBottomBar
+        constants.ChangeBottombarBgColor = config.ChangeBottomBarBgColor
+        constants.bottomBarBgColor = config.bottomBarBackgroundColor
+
+        // Bottom Menu URLs
+        constants.bottomUrl1 = config.bottom1
+        constants.bottomUrl2 = config.bottom2
+        constants.bottomUrl3 = config.bottom3
+        constants.bottomUrl4 = config.bottom4
+        constants.bottomUrl5 = config.bottom5
+        constants.bottomUrl6 = config.bottom6
+
+        // Bottom Menu Images
+        constants.bottomBtn1ImgUrl = config.bottom1_img_url
+        constants.bottomBtn2ImgUrl = config.bottom2_img_url
+        constants.bottomBtn3ImgUrl = config.bottom3_img_url
+        constants.bottomBtn4ImgUrl = config.bottom4_img_url
+        constants.bottomBtn5ImgUrl = config.bottom5_img_url
+        constants.bottomBtn6ImgUrl = config.bottom6_img_url
+
+        // Drawer Menu
+        constants.ChangeDrawerHeaderBgColor = config.ChangeDrawerHeaderColor
+        constants.ChangeHeaderTextColor = config.ChangeDrawerHeaderTextColor
+        constants.ShowDrawer = config.ShowDrawerMenu
+        constants.drawerMenuBtnUrl = config.DrawerMenuUrl
+        constants.drawerMenuImgUrl = config.DrawerMenuImgUrl
+        constants.drawerMenuItem1ImgUrl = config.DrawerMenuImg1Url
+        constants.drawerMenuItem2ImgUrl = config.DrawerMenuImg2Url
+        constants.drawerMenuItem3ImgUrl = config.DrawerMenuImg3Url
+        constants.drawerMenuItem4ImgUrl = config.DrawerMenuImg4Url
+        constants.drawerMenuItem5ImgUrl = config.DrawerMenuImg5Url
+        constants.drawerMenuItem6ImgUrl = config.DrawerMenuImg6Url
+        constants.drawerMenuItem1Url = config.DrawerMenuItem1Url
+        constants.drawerMenuItem2Url = config.DrawerMenuItem2Url
+        constants.drawerMenuItem3Url = config.DrawerMenuItem3Url
+        constants.drawerMenuItem4Url = config.DrawerMenuItem4Url
+        constants.drawerMenuItem5Url = config.DrawerMenuItem5Url
+        constants.drawerMenuItem6Url = config.DrawerMenuItem6Url
+        constants.drawerMenuItem1Text = config.DrawerMenuItem1Title
+        constants.drawerMenuItem2Text = config.DrawerMenuItem2Title
+        constants.drawerMenuItem3Text = config.DrawerMenuItem3Title
+        constants.drawerMenuItem4Text = config.DrawerMenuItem4Title
+        constants.drawerMenuItem5Text = config.DrawerMenuItem5Title
+        constants.drawerMenuItem6Text = config.DrawerMenuItem6Title
+        constants.drawerHeaderImgUrl = config.DrawerHeaderImgUrl
+        constants.drawerHeaderText = config.DrawerHeaderText
+        constants.drawerHeaderImgCommand = config.DrawerHeaderImgCommand
+        constants.drawerHeaderBgColor = config.DrawerHeaderBgColor
+        constants.drawerHeaderTextColor = config.DrawerHeaderTextColor
+
+        // Toolbar
+        constants.ShowToolbar = config.ShowToolbar
+        constants.ToolbarTitleText = config.ToolbarTitleText
+        constants.ToolbarTitleTextColor = config.ToolbarTitleTextColor
+        constants.ToolbarBgColor = config.ToolbarBgColor
+        constants.ChangeToolbarBgColor = config.ChangeToolbarBgColor
+        constants.ChangeTittleTextColor = config.ChangeToolbarTitleTextColor
+
+        // Floating Button
+        constants.Web_button_link = config.webBtnUrl
+        constants.Web_button_Img_link = config.webBtnImgUrl
+
+        // Ads
+        constants.ShowAdmobBanner = config.admobBanner
+        constants.ShowAdmobInterstitial = config.admobInter
+
+        // Notifications
+        constants.OnesigID = config.onesigID
+        constants.splashUrl = config.splashUrl
+        constants.Notifx_service = config.NotifXService
+
+        // Server URL Setup
+        constants.ShowServerUrlSetUp = config.AllowChangingServerUrl
+        constants.AllowOnlyHostUrlInApp = config.allowOnlyHostUrl
+
+        // Update
+        constants.UpdateAvailable = config.UpdateAvailable
+        constants.ForceUpdate = config.ForceUpdate
+        constants.UpdateTitle = config.Updatetitle
+        constants.UpdateMessage = config.UpdateMsg
+        constants.UpdateUrl = config.UpdateUrl
+        constants.NewVersion = config.NewVersion
+
+        // Welcome Screen
+        constants.EnableWelcomeSlider = config.AllowWelcomeSlider
+
+        // Welcome Screen Titles
+        constants.screen1TitleText = config.Screen1Title
+        constants.screen2TitleText = config.Screen2Title
+        constants.screen3TitleText = config.Screen3Title
+        constants.screen4TitleText = config.Screen4Title
+
+        // Welcome Screen Descriptions
+        constants.screen1Desc = config.screen1Desc
+        constants.screen2Desc = config.screen2Desc
+        constants.screen3Desc = config.screen3Desc
+        constants.screen4Desc = config.screen4Desc
+
+        // Welcome Screen Background Colors
+        constants.screen1BgColor = config.Screen1bgColor
+        constants.screen2BgColor = config.Screen2bgColor
+        constants.screen3BgColor = config.Screen3bgColor
+        constants.screen4BgColor = config.Screen4bgColor
+
+        // Welcome Screen Text Colors
+        constants.screen1TextColor = config.Screen1TxtColor
+        constants.screen2TextColor = config.Screen2TxtColor
+        constants.screen3TextColor = config.Screen3TxtColor
+        constants.screen4TextColor = config.Screen4TxtColor
+
+        // Welcome Screen Images
+        constants.screen1Img = config.Screen1ImgUrl
+        constants.screen2Img = config.Screen2ImgUrl
+        constants.screen3Img = config.Screen3ImgUrl
+        constants.screen4Img = config.Screen4ImgUrl
+
+
+        setUpNavigationMethod(homeurl)
+
+    }
+
+
+
+    private fun showErrorUI(error: String) {
+        infotext!!.text = "Error occurred! =$error"
+        manageUIStateOnNetworkIssuesForRetry()
+        isJsonAPICallReady = false
+        progressBar!!.visibility = View.GONE
+        InitWebviewIndexFileState()
+        isCallingStart = false
+    }
+
+
+
+
+    private fun ApiCall(url: String?) {
 
         if (isCallingStart) {
-
             infotext!!.setText(R.string.connecting)
             progressBar!!.visibility = View.VISIBLE
-            val queue = Volley.newRequestQueue(context)
-            val stringRequest = StringRequest(
-                Request.Method.GET, url, { response ->
-                    infotext!!.setText(R.string.initializing)
-                    try {
-                        val jsonObject = JSONObject(response)
-                        val remoteJson = jsonObject.getJSONObject("remoteConfig")
-                        val homeurl = remoteJson.getString("homeUrl")
 
-                        //BOTTOM BAR
-                        constants.ShowBottomBar = remoteJson.getBoolean("ShowBottomBar")
-                        constants.ChangeBottombarBgColor =
-                            remoteJson.getBoolean("ChangeBottomBarBgColor")
-                        constants.bottomBarBgColor =
-                            remoteJson.getString("bottomBarBackgroundColor")
+            url?.let { viewModel.getRemoteConfig(it) }
 
-                        //Bottom Menu Actions
-                        constants.bottomUrl1 = remoteJson.getString("bottom1")
-                        constants.bottomUrl2 = remoteJson.getString("bottom2")
-                        constants.bottomUrl3 = remoteJson.getString("bottom3")
-                        constants.bottomUrl4 = remoteJson.getString("bottom4")
-                        constants.bottomUrl5 = remoteJson.getString("bottom5")
-                        constants.bottomUrl6 = remoteJson.getString("bottom6")
-
-                        //Bottom Menu icons
-                        constants.bottomBtn1ImgUrl = remoteJson.getString("bottom1_img_url")
-                        constants.bottomBtn2ImgUrl = remoteJson.getString("bottom2_img_url")
-                        constants.bottomBtn3ImgUrl = remoteJson.getString("bottom3_img_url")
-                        constants.bottomBtn4ImgUrl = remoteJson.getString("bottom4_img_url")
-                        constants.bottomBtn5ImgUrl = remoteJson.getString("bottom5_img_url")
-                        constants.bottomBtn6ImgUrl = remoteJson.getString("bottom6_img_url")
-
-                        //DRAWER MENU
-                        constants.ChangeDrawerHeaderBgColor =
-                            remoteJson.getBoolean("ChangeDrawerHeaderColor")
-                        constants.ChangeHeaderTextColor =
-                            remoteJson.getBoolean("ChangeDrawerHeaderTextColor")
-                        constants.ShowDrawer = remoteJson.getBoolean("ShowDrawerMenu")
-                        constants.drawerMenuBtnUrl = remoteJson.getString("DrawerMenuUrl")
-                        constants.drawerMenuImgUrl = remoteJson.getString("DrawerMenuImgUrl")
-                        constants.drawerMenuItem1ImgUrl = remoteJson.getString("DrawerMenuImg1Url")
-                        constants.drawerMenuItem2ImgUrl = remoteJson.getString("DrawerMenuImg2Url")
-                        constants.drawerMenuItem3ImgUrl = remoteJson.getString("DrawerMenuImg3Url")
-                        constants.drawerMenuItem4ImgUrl = remoteJson.getString("DrawerMenuImg4Url")
-                        constants.drawerMenuItem5ImgUrl = remoteJson.getString("DrawerMenuImg5Url")
-                        constants.drawerMenuItem6ImgUrl = remoteJson.getString("DrawerMenuImg6Url")
-                        constants.drawerMenuItem1Url = remoteJson.getString("DrawerMenuItem1Url")
-                        constants.drawerMenuItem2Url = remoteJson.getString("DrawerMenuItem2Url")
-                        constants.drawerMenuItem3Url = remoteJson.getString("DrawerMenuItem3Url")
-                        constants.drawerMenuItem4Url = remoteJson.getString("DrawerMenuItem4Url")
-                        constants.drawerMenuItem5Url = remoteJson.getString("DrawerMenuItem5Url")
-                        constants.drawerMenuItem6Url = remoteJson.getString("DrawerMenuItem6Url")
-                        constants.drawerMenuItem1Text = remoteJson.getString("DrawerMenuItem1Title")
-                        constants.drawerMenuItem2Text = remoteJson.getString("DrawerMenuItem2Title")
-                        constants.drawerMenuItem3Text = remoteJson.getString("DrawerMenuItem3Title")
-                        constants.drawerMenuItem4Text = remoteJson.getString("DrawerMenuItem4Title")
-                        constants.drawerMenuItem5Text = remoteJson.getString("DrawerMenuItem5Title")
-                        constants.drawerMenuItem6Text = remoteJson.getString("DrawerMenuItem6Title")
-                        constants.drawerHeaderImgUrl = remoteJson.getString("DrawerHeaderImgUrl")
-                        constants.drawerHeaderText = remoteJson.getString("DrawerHeaderText")
-                        constants.drawerHeaderImgCommand =
-                            remoteJson.getString("DrawerHeaderImgCommand")
-                        constants.drawerHeaderBgColor = remoteJson.getString("DrawerHeaderBgColor")
-                        constants.drawerHeaderTextColor =
-                            remoteJson.getString("DrawerHeaderTextColor")
-
-
-                        //TOOLBAR
-                        constants.ShowToolbar = remoteJson.getBoolean("ShowToolbar")
-                        constants.ToolbarTitleText = remoteJson.getString("ToolbarTitleText")
-                        constants.ToolbarTitleTextColor =
-                            remoteJson.getString("ToolbarTitleTextColor")
-                        constants.ToolbarBgColor = remoteJson.getString("ToolbarBgColor")
-                        constants.ChangeToolbarBgColor =
-                            remoteJson.getBoolean("ChangeToolbarBgColor")
-                        constants.ChangeTittleTextColor =
-                            remoteJson.getBoolean("ChangeToolbarTitleTextColor")
-
-
-                        //FLOATING BUTTON
-                        constants.Web_button_link = remoteJson.getString("webBtnUrl")
-                        constants.Web_button_Img_link = remoteJson.getString("webBtnImgUrl")
-                        // constants.ShowWebBtn = remoteJson.getBoolean("ShowWebBtn")
-
-
-                        //ADS
-                        constants.ShowAdmobBanner = remoteJson.getBoolean("admobBanner")
-                        constants.ShowAdmobInterstitial = remoteJson.getBoolean("admobInter")
-
-                        //Notifications
-                        constants.OnesigID = remoteJson.getString("onesigID")
-                        constants.splashUrl = remoteJson.getString("splashUrl")
-                        constants.Notifx_service = remoteJson.getBoolean("NotifXService")
-
-                        //MORE
-                        constants.ShowServerUrlSetUp =
-                            remoteJson.getBoolean("AllowChangingServerUrl")
-                        constants.AllowOnlyHostUrlInApp = remoteJson.getBoolean("allowOnlyHostUrl")
-
-
-                        //App Update
-                        constants.UpdateAvailable = remoteJson.getBoolean("UpdateAvailable")
-                        constants.ForceUpdate = remoteJson.getBoolean("ForceUpdate")
-                        constants.UpdateTitle = remoteJson.getString("Updatetitle")
-                        constants.UpdateMessage = remoteJson.getString("UpdateMsg")
-                        constants.UpdateUrl = remoteJson.getString("UpdateUrl")
-                        constants.NewVersion = remoteJson.getString("NewVersion")
-
-                        //                            WELCOME SCREEN
-                        constants.EnableWelcomeSlider = remoteJson.getBoolean("AllowWelcomeSlider")
-
-                        //screen title texts
-                        constants.screen1TitleText = remoteJson.getString("Screen1Title")
-                        constants.screen2TitleText = remoteJson.getString("Screen2Title")
-                        constants.screen3TitleText = remoteJson.getString("Screen3Title")
-                        constants.screen4TitleText = remoteJson.getString("Screen4Title")
-
-                        //screen desc texts
-                        constants.screen1Desc = remoteJson.getString("screen1Desc")
-                        constants.screen2Desc = remoteJson.getString("screen2Desc")
-                        constants.screen3Desc = remoteJson.getString("screen3Desc")
-                        constants.screen4Desc = remoteJson.getString("screen4Desc")
-
-                        //screen BG colors
-                        constants.screen1BgColor = remoteJson.getString("Screen1bgColor")
-                        constants.screen2BgColor = remoteJson.getString("Screen2bgColor")
-                        constants.screen3BgColor = remoteJson.getString("Screen3bgColor")
-                        constants.screen4BgColor = remoteJson.getString("Screen4bgColor")
-
-                        //screen Text colors
-                        constants.screen1TextColor = remoteJson.getString("Screen1TxtColor")
-                        constants.screen2TextColor = remoteJson.getString("Screen2TxtColor")
-                        constants.screen3TextColor = remoteJson.getString("Screen3TxtColor")
-                        constants.screen4TextColor = remoteJson.getString("Screen4TxtColor")
-
-                        //screen Text colors
-                        constants.screen1Img = remoteJson.getString("Screen1ImgUrl")
-                        constants.screen2Img = remoteJson.getString("Screen2ImgUrl")
-                        constants.screen3Img = remoteJson.getString("Screen3ImgUrl")
-                        constants.screen4Img = remoteJson.getString("Screen4ImgUrl")
-
-                        isJsonAPICallReady = true
-
-                        val sharedBiometric =
-                            getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-                        val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(
-                            Constants.INSTALL_TV_JSON_USER_CLICKED,
-                            ""
-                        ).toString()
-                        val getFirstMode = sharedTVAPPModePreferences.getString(
-                            Constants.installTVModeForFirstTime,
-                            ""
-                        ).toString()
-                        val getTvMode =
-                            sharedBiometric.getString(Constants.CALL_RE_SYNC_MANGER, "").toString()
-
-
-                        if (URLUtil.isValidUrl(homeurl)) {
-                            constants.jsonUrl = homeurl
-
-
-                            Log.d(
-                                "PETER",
-                                "InitWebvIewloadStates: Splash K  The JSON_MAIN_URl $homeurl"
-                            )
-
-                            try {
-                                val uri = URI(homeurl)
-                                val domain = uri.host
-                                constants.filterdomain = domain
-                            } catch (e: URISyntaxException) {
-                                e.printStackTrace()
-                            }
-                            if (constants.EnableWelcomeSlider) {
-                                Log.d("InitWebvIewloadStates", "Slidder is enabled")
-                                //  Toast.makeText(applicationContext, "Slidder is enabled", Toast.LENGTH_SHORT).show()
-                                handler?.postDelayed(Runnable {
-
-                                    if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
-                                        if (should_My_App_Use_TV_Mode) {
-                                            // saving launch state
-                                            val editText88 = sharedBiometric.edit()
-                                            editText88.putString(
-                                                Constants.get_Launching_State_Of_WebView,
-                                                Constants.launch_WebView_Offline
-                                            )
-                                            editText88.apply()
-
-                                            val editor = preferences.edit()
-                                            editor.putBoolean(Constants.swiperefresh, false)
-                                            editor.apply()
-
-                                        } else {
-                                            // saving launch state
-                                            val editText88 = sharedBiometric.edit()
-                                            editText88.putString(
-                                                Constants.get_Launching_State_Of_WebView,
-                                                Constants.launch_Default_WebView_url
-                                            )
-                                            editText88.apply()
-
-                                            val editor = preferences.edit()
-                                            editor.putBoolean(Constants.swiperefresh, true)
-                                            editor.apply()
-
-                                        }
-                                    }
-
-                                    val getInfoPageState = sharedBiometric.getString(
-                                        Constants.FIRST_INFORMATION_PAGE_COMPLETED,
-                                        ""
-                                    ).toString()
-                                    if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
-                                        val myactivity =
-                                            Intent(applicationContext, WelcomeSliderKT::class.java)
-                                        startActivity(myactivity)
-                                        finish()
-
-                                    } else {
-                                        /////
-                                        finish()
-                                        startActivity(
-                                            Intent(
-                                                applicationContext,
-                                                InformationActivity::class.java
-                                            )
-                                        )
-
-                                    }
-
-
-                                }, 1500)
-
-                            } else {
-                                handler?.postDelayed(Runnable {
-                                    Log.d(
-                                        "InitWebvIewloadStates",
-                                        "SplashScreen: Slidder Not Not enabled "
-                                    )
-                                    ///  if (should_My_App_Use_TV_Mode && !getFirstMode.equals(Constants.installTVModeForFirstTime)){
-                                    //  Toast.makeText(applicationContext, "Slidder Not Not enabled", Toast.LENGTH_SHORT).show()
-                                    if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
-                                        if (should_My_App_Use_TV_Mode) {
-                                            // saving launch state
-                                            val editText88 = sharedBiometric.edit()
-                                            editText88.putString(
-                                                Constants.get_Launching_State_Of_WebView,
-                                                Constants.launch_WebView_Offline
-                                            )
-                                            editText88.putString(
-                                                Constants.PROTECT_PASSWORD,
-                                                Constants.PROTECT_PASSWORD
-                                            )
-                                            editText88.apply()
-
-                                            Log.d(
-                                                "InitWebvIewloadStates",
-                                                "SplashScreen: launch_WebView_Offline"
-                                            )
-
-                                            val getInfoPageState = sharedBiometric.getString(
-                                                Constants.FIRST_INFORMATION_PAGE_COMPLETED,
-                                                ""
-                                            ).toString()
-                                            if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
-
-                                                if (!getFirstMode.equals(Constants.installTVModeForFirstTime)) {
-                                                    val myactivity = Intent(
-                                                        applicationContext,
-                                                        ReSyncActivity::class.java
-                                                    )
-                                                    myactivity.putExtra("url", constants.jsonUrl)
-                                                    startActivity(myactivity)
-                                                    finish()
-                                                } else {
-                                                    val myactivity = Intent(
-                                                        applicationContext,
-                                                        WebViewPage::class.java
-                                                    )
-                                                    myactivity.putExtra("url", constants.jsonUrl)
-                                                    startActivity(myactivity)
-                                                    finish()
-
-                                                }
-
-                                            } else {
-
-                                                /////
-                                                startActivity(
-                                                    Intent(
-                                                        applicationContext,
-                                                        InformationActivity::class.java
-                                                    )
-                                                )
-                                                finish()
-
-                                            }
-
-
-                                        } else {
-
-                                            // saving launch state
-                                            val editText88 = sharedBiometric.edit()
-                                            editText88.putString(
-                                                Constants.get_Launching_State_Of_WebView,
-                                                Constants.launch_Default_WebView_url
-                                            )
-                                            editText88.remove(Constants.PROTECT_PASSWORD)
-                                            editText88.apply()
-
-                                            Log.d(
-                                                "InitWebvIewloadStates",
-                                                "SplashScreen: launch_Default_WebView_url"
-                                            )
-
-
-                                            val getInfoPageState = sharedBiometric.getString(
-                                                Constants.FIRST_INFORMATION_PAGE_COMPLETED,
-                                                ""
-                                            ).toString()
-                                            if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
-
-                                                val myactivity = Intent(
-                                                    applicationContext,
-                                                    WebViewPage::class.java
-                                                )
-                                                myactivity.putExtra("url", constants.jsonUrl)
-                                                startActivity(myactivity)
-                                                finish()
-
-
-                                            } else {
-
-                                                /////
-                                                startActivity(
-                                                    Intent(
-                                                        applicationContext,
-                                                        InformationActivity::class.java
-                                                    )
-                                                )
-                                                finish()
-
-                                            }
-
-
-                                        }
-
-                                    } else {
-
-                                        val getInfoPageState = sharedBiometric.getString(
-                                            Constants.FIRST_INFORMATION_PAGE_COMPLETED,
-                                            ""
-                                        ).toString()
-                                        if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
-
-                                            if (getTvMode == Constants.CALL_RE_SYNC_MANGER) {
-                                                val myactivity = Intent(
-                                                    applicationContext,
-                                                    ReSyncActivity::class.java
-                                                )
-                                                myactivity.putExtra("url", constants.jsonUrl)
-                                                startActivity(myactivity)
-                                                finish()
-
-                                            } else {
-                                                // Intent myactivity = new Intent(Splash.this, WebActivity.class);
-                                                val myactivity = Intent(
-                                                    applicationContext,
-                                                    WebViewPage::class.java
-                                                )
-                                                myactivity.putExtra("url", constants.jsonUrl)
-                                                startActivity(myactivity)
-                                                finish()
-
-                                            }
-
-                                        } else {
-
-                                            /////
-                                            startActivity(
-                                                Intent(
-                                                    applicationContext,
-                                                    InformationActivity::class.java
-                                                )
-                                            )
-                                            finish()
-
-                                        }
-
-                                    }
-
-                                }, 1500)
-                            }
-
-                        } else {
-                            infotext!!.setText(R.string.invalide_remote_data)
-                            progressBar!!.visibility = View.GONE
-                            if (retryBtn!!.visibility == View.GONE) {
-                                retryBtn!!.visibility = View.VISIBLE
-                            }
-                            if (go_settings_Btn!!.visibility == View.GONE) {
-                                go_settings_Btn!!.visibility = View.VISIBLE
-                            }
-                            if (gotWifisettings!!.visibility == View.GONE) {
-                                gotWifisettings!!.visibility = View.VISIBLE
-                            }
-                            if (goConnection!!.visibility == View.GONE) {
-                                goConnection!!.visibility = View.VISIBLE
-                            }
-                            if (img_swipe_reload!!.visibility == View.GONE) {
-                                img_swipe_reload!!.visibility = View.VISIBLE
-                            }
-                            if (imagwifi!!.visibility == View.GONE) {
-                                imagwifi!!.visibility = View.VISIBLE
-                            }
-                            if (img_settings!!.visibility == View.GONE) {
-                                img_settings!!.visibility = View.VISIBLE
-                            }
-                            if (imagwifi2!!.visibility == View.GONE) {
-                                imagwifi2!!.visibility = View.VISIBLE
-                            }
-                            if (imageHelper!!.visibility == View.GONE) {
-                                imageHelper!!.visibility = View.VISIBLE
-                            }
-                        }
-                    } catch (e: JSONException) {
-                        e.printStackTrace()
-                        infotext!!.text = e.message
-                        manageUIStateOnNetworkIssuesForRetry()
-                        InitWebviewIndexFileState()
-                        isCallingStart = false
-                    }
-                }) { error ->
-                infotext!!.text = "Error occurred! =$error"
-                manageUIStateOnNetworkIssuesForRetry()
-                isJsonAPICallReady = false
-                progressBar!!.visibility = View.GONE
-                InitWebviewIndexFileState()
-                isCallingStart = false
-
-            }
-
-
-            queue.add(stringRequest)
-            queue.addRequestFinishedListener<Any> { queue.cache.clear() }
         } else {
             showToastMessage("Slow internet connection")
             InitWebviewIndexFileState()
             isCallingStart = false
         }
     }
+
+
+
+
+    private fun setUpNavigationMethod(homeurl: String) {
+
+        isJsonAPICallReady = true
+
+        val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+        val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+        val getFirstMode = sharedTVAPPModePreferences.getString(Constants.installTVModeForFirstTime, "").toString()
+        val getTvMode = sharedBiometric.getString(Constants.CALL_RE_SYNC_MANGER, "").toString()
+
+        if (URLUtil.isValidUrl(homeurl)) {
+            constants.jsonUrl = homeurl
+            Log.d("PETER", "InitWebvIewloadStates: Splash K  The JSON_MAIN_URl $homeurl")
+
+            try {
+                val uri = URI(homeurl)
+                val domain = uri.host
+                constants.filterdomain = domain
+            } catch (e: URISyntaxException) {
+                e.printStackTrace()
+            }
+            if (constants.EnableWelcomeSlider) {
+
+                handler?.postDelayed(Runnable {
+
+                    if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
+                        if (should_My_App_Use_TV_Mode) {
+                            // saving launch state
+                            val editText88 = sharedBiometric.edit()
+                            editText88.putString(
+                                Constants.get_Launching_State_Of_WebView,
+                                Constants.launch_WebView_Offline
+                            )
+                            editText88.apply()
+
+                            val editor = preferences.edit()
+                            editor.putBoolean(Constants.swiperefresh, false)
+                            editor.apply()
+
+                        } else {
+                            // saving launch state
+                            val editText88 = sharedBiometric.edit()
+                            editText88.putString(
+                                Constants.get_Launching_State_Of_WebView,
+                                Constants.launch_Default_WebView_url
+                            )
+                            editText88.apply()
+
+                            val editor = preferences.edit()
+                            editor.putBoolean(Constants.swiperefresh, true)
+                            editor.apply()
+
+                        }
+                    }
+
+                    val getInfoPageState = sharedBiometric.getString(
+                        Constants.FIRST_INFORMATION_PAGE_COMPLETED,
+                        ""
+                    ).toString()
+                    if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
+                        val myactivity =
+                            Intent(applicationContext, WelcomeSliderKT::class.java)
+                        startActivity(myactivity)
+                        finish()
+
+                    } else {
+                        /////
+                        finish()
+                        startActivity(
+                            Intent(
+                                applicationContext,
+                                InformationActivity::class.java
+                            )
+                        )
+
+                    }
+
+
+                }, 1500)
+
+            } else {
+                handler?.postDelayed(Runnable {
+
+                    if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
+                        if (should_My_App_Use_TV_Mode) {
+                            // saving launch state
+                            val editText88 = sharedBiometric.edit()
+                            editText88.putString(
+                                Constants.get_Launching_State_Of_WebView,
+                                Constants.launch_WebView_Offline
+                            )
+                            editText88.putString(
+                                Constants.PROTECT_PASSWORD,
+                                Constants.PROTECT_PASSWORD
+                            )
+                            editText88.apply()
+
+                            val getInfoPageState = sharedBiometric.getString(
+                                Constants.FIRST_INFORMATION_PAGE_COMPLETED,
+                                ""
+                            ).toString()
+                            if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
+
+                                if (!getFirstMode.equals(Constants.installTVModeForFirstTime)) {
+                                    val myactivity = Intent(
+                                        applicationContext,
+                                        ReSyncActivity::class.java
+                                    )
+                                    myactivity.putExtra("url", constants.jsonUrl)
+                                    startActivity(myactivity)
+                                    finish()
+                                } else {
+                                    val myactivity = Intent(
+                                        applicationContext,
+                                        WebViewPage::class.java
+                                    )
+                                    myactivity.putExtra("url", constants.jsonUrl)
+                                    startActivity(myactivity)
+                                    finish()
+
+                                }
+
+                            } else {
+
+                                /////
+                                startActivity(
+                                    Intent(
+                                        applicationContext,
+                                        InformationActivity::class.java
+                                    )
+                                )
+                                finish()
+
+                            }
+
+
+                        } else {
+
+                            // saving launch state
+                            val editText88 = sharedBiometric.edit()
+                            editText88.putString(
+                                Constants.get_Launching_State_Of_WebView,
+                                Constants.launch_Default_WebView_url
+                            )
+                            editText88.remove(Constants.PROTECT_PASSWORD)
+                            editText88.apply()
+
+
+                            val getInfoPageState = sharedBiometric.getString(
+                                Constants.FIRST_INFORMATION_PAGE_COMPLETED,
+                                ""
+                            ).toString()
+                            if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
+
+                                val myactivity = Intent(
+                                    applicationContext,
+                                    WebViewPage::class.java
+                                )
+                                myactivity.putExtra("url", constants.jsonUrl)
+                                startActivity(myactivity)
+                                finish()
+
+
+                            } else {
+
+                                /////
+                                startActivity(
+                                    Intent(
+                                        applicationContext,
+                                        InformationActivity::class.java
+                                    )
+                                )
+                                finish()
+
+                            }
+
+
+                        }
+
+                    } else {
+
+                        val getInfoPageState = sharedBiometric.getString(
+                            Constants.FIRST_INFORMATION_PAGE_COMPLETED,
+                            ""
+                        ).toString()
+                        if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
+
+                            if (getTvMode == Constants.CALL_RE_SYNC_MANGER) {
+                                val myactivity = Intent(
+                                    applicationContext,
+                                    ReSyncActivity::class.java
+                                )
+                                myactivity.putExtra("url", constants.jsonUrl)
+                                startActivity(myactivity)
+                                finish()
+
+                            } else {
+                                // Intent myactivity = new Intent(Splash.this, WebActivity.class);
+                                val myactivity = Intent(
+                                    applicationContext,
+                                    WebViewPage::class.java
+                                )
+                                myactivity.putExtra("url", constants.jsonUrl)
+                                startActivity(myactivity)
+                                finish()
+
+                            }
+
+                        } else {
+
+                            /////
+                            startActivity(
+                                Intent(
+                                    applicationContext,
+                                    InformationActivity::class.java
+                                )
+                            )
+                            finish()
+
+                        }
+
+                    }
+
+                }, 1500)
+            }
+
+        } else {
+            infotext!!.setText(R.string.invalide_remote_data)
+            progressBar!!.visibility = View.GONE
+            if (retryBtn!!.visibility == View.GONE) {
+                retryBtn!!.visibility = View.VISIBLE
+            }
+            if (go_settings_Btn!!.visibility == View.GONE) {
+                go_settings_Btn!!.visibility = View.VISIBLE
+            }
+            if (gotWifisettings!!.visibility == View.GONE) {
+                gotWifisettings!!.visibility = View.VISIBLE
+            }
+            if (goConnection!!.visibility == View.GONE) {
+                goConnection!!.visibility = View.VISIBLE
+            }
+            if (img_swipe_reload!!.visibility == View.GONE) {
+                img_swipe_reload!!.visibility = View.VISIBLE
+            }
+            if (imagwifi!!.visibility == View.GONE) {
+                imagwifi!!.visibility = View.VISIBLE
+            }
+            if (img_settings!!.visibility == View.GONE) {
+                img_settings!!.visibility = View.VISIBLE
+            }
+            if (imagwifi2!!.visibility == View.GONE) {
+                imagwifi2!!.visibility = View.VISIBLE
+            }
+            if (imageHelper!!.visibility == View.GONE) {
+                imageHelper!!.visibility = View.VISIBLE
+            }
+        }
+    }
+
+
+
 
 
     private fun btnFunRetryAPiCall() {
@@ -824,7 +816,7 @@ class SplashKT : AppCompatActivity() {
         } else {
 
             if (!isJsonAPICallReady) {
-                ApiCall(applicationContext, ServerUrl)
+                ApiCall(ServerUrl)
             }
             manageUIStateOnNetworkIssues()
         }
@@ -906,19 +898,12 @@ class SplashKT : AppCompatActivity() {
             alertDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         }
 
-
-        // TextView textDescription = binding.textDescription;
-
-        //  textDescription.setText(message);
         alertDialog.show()
     }
 
 
     override fun onResume() {
         super.onResume()
-        //  connectivityReceiver = ConnectivityReceiver()
-        //  val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-        //  registerReceiver(connectivityReceiver, intentFilter)
 
         connectivityReceiver = ConnectivityReceiver()
         val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
@@ -991,9 +976,8 @@ class SplashKT : AppCompatActivity() {
                 Handler().postDelayed({
                     try {
 
-
                         fetchApiSettings()
-
+                        binding.texttConnection?.visibility = View.GONE
                         progressBar?.setVisibility(View.VISIBLE)
                         retryBtn?.setVisibility(View.GONE)
                         go_settings_Btn?.setVisibility(View.GONE)
@@ -1018,6 +1002,7 @@ class SplashKT : AppCompatActivity() {
             try {
                 isCallingStart = false
 
+                binding.texttConnection?.visibility = View.VISIBLE
                 infotext?.setText("No Internet Connection")
                 progressBar?.setVisibility(View.GONE)
                 retryBtn?.setVisibility(View.VISIBLE)
@@ -1040,20 +1025,16 @@ class SplashKT : AppCompatActivity() {
 
         if (isCallingStart) {
 
-            CoroutineScope(Dispatchers.IO).launch {
+            val simpleSavedPassword = getSharedPreferences(Constants.SIMPLE_SAVED_PASSWORD, MODE_PRIVATE)
+
+            val get_tMaster = simpleSavedPassword.getString(Constants.get_editTextMaster, "").toString()
+            val get_UserID = simpleSavedPassword.getString(Constants.get_UserID, "").toString()
+            val get_LicenseKey = simpleSavedPassword.getString(Constants.get_LicenseKey, "").toString()
+
+            lifecycleScope.launch(Dispatchers.IO) {
                 try {
 
-                    val simpleSavedPassword = getSharedPreferences(Constants.SIMPLE_SAVED_PASSWORD, MODE_PRIVATE)
-
-                    val get_tMaster =
-                        simpleSavedPassword.getString(Constants.get_editTextMaster, "").toString()
-                    val get_UserID =
-                        simpleSavedPassword.getString(Constants.get_UserID, "").toString()
-                    val get_LicenseKey =
-                        simpleSavedPassword.getString(Constants.get_LicenseKey, "").toString()
-
                     val path = "$get_UserID/$get_LicenseKey/${Constants.END_PATH_OF_TV_MODE_URL}"
-
                     val apiService = RetrofitInstanceTVMode.createApiService(get_tMaster)
                     val response = apiService.getAppConfig(path)
 
@@ -1162,7 +1143,7 @@ class SplashKT : AppCompatActivity() {
                                 isTvModeSettingsReady = true
 
                                 if (!isJsonAPICallReady) {
-                                    ApiCall(applicationContext, ServerUrl)
+                                    ApiCall(ServerUrl)
                                 }
                             }
                         }

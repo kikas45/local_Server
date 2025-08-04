@@ -207,10 +207,6 @@ class TvActivityOrAppMode : AppCompatActivity(), SavedApiAdapter.OnItemClickList
         binding = ActivityTvOrAppModePageBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // only works on 13
-        // Register the broadcast receiver dynamically
-        // registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
-
         val filter = IntentFilter().apply {
             addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
         }
@@ -1135,8 +1131,7 @@ private fun checkMyConnection(
 ) {
     if (get_UserID.isNotEmpty() && get_LicenseKey.isNotEmpty() && get_editTextMaster.isNotEmpty()) {
 
-        val baseUrl =
-            "$get_editTextMaster/$get_UserID/$get_LicenseKey/App/Config/appConfig.json"
+        val AppConfigSeverUrl = "$get_editTextMaster/$get_UserID/$get_LicenseKey/${Constants.SEVER_APP_CONFIG_END_POINT}"
 
         if (get_editTextMaster.startsWith("https://") || get_editTextMaster.startsWith("http://")) {
             showCustomProgressDialog()
@@ -1169,19 +1164,18 @@ private fun checkMyConnection(
             lifecycleScope.launch {
                 try {
 
-                    val result = checkUrlExistence(baseUrl)
+                    val result = checkUrlExistence(AppConfigSeverUrl)
                     if (result) {
                         if (isCallingStart) {
                             prefs.edit { putBoolean("button_clicked", true) }
                             startPermissionProcess()
 
                             val editorValue = simpleSavedPassword.edit()
-                            editorValue.putString(Constants.get_masterDomain, baseUrl)
+                            editorValue.putString(Constants.get_masterDomain, AppConfigSeverUrl)
+                            editorValue.putString(Constants.get_APP_CONFIG_JSON_SEVER_URL, AppConfigSeverUrl)
                             editorValue.putString(Constants.get_UserID, get_UserID)
                             editorValue.putString(Constants.get_LicenseKey, get_LicenseKey)
-                            editorValue.putString(
-                                Constants.get_editTextMaster, get_editTextMaster
-                            )
+                            editorValue.putString(Constants.get_editTextMaster, get_editTextMaster)
                             editorValue.apply()
 
 
@@ -1665,7 +1659,7 @@ private fun cleanUpFolder() {
             var isCleaned = false
 
             val baseDir = getExternalFilesDir(null)
-            val directoryPath = File(baseDir, "Syn2AppLive") // app-private folder
+            val directoryPath = File(baseDir, Constants.Syn2AppLive) // app-private folder
             delete(directoryPath) // custom delete function that recursively deletes
 
             sharedBiometric.edit()
@@ -1704,7 +1698,7 @@ private fun loadImage() {
 
     // Use app-private external directory
     val baseDir = getExternalFilesDir(null)
-    val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+    val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App_Config_End_Point}"
     val folder = File(baseDir, relativePath)
 
     val fileTypes = "app_logo.png"
@@ -1722,7 +1716,7 @@ private fun loadBackGroundImage() {
     val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
 
     val baseDir = getExternalFilesDir(null) // App-private external storage
-    val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+    val relativePath = "${Constants.Syn2AppLive}/$getFolderClo/$getFolderSubpath/${Constants.App_Config_End_Point}"
     val folder = File(baseDir, relativePath)
     val fileTypes = "app_background.png"
     val file = File(folder, fileTypes)
@@ -1767,7 +1761,7 @@ private fun loadBackGroundImageIfExist() {
     val get_LicenseKey = binding.editTextLicenseKey.text.toString().trim()
 
     val relativePath =
-        "${Constants.Syn2AppLive}/$get_UserID/$get_LicenseKey/${Constants.App}/Config"
+        "${Constants.Syn2AppLive}/$get_UserID/$get_LicenseKey/${Constants.App_Config_End_Point}"
     val folder = File(getExternalFilesDir(null), relativePath)
     val file = File(folder, fileTypes)
 
@@ -1785,16 +1779,15 @@ private fun checkForValidConfileurl() {
     val get_UserID = binding.editTextUserID.text.toString().trim()
     val get_LicenseKey = binding.editTextLicenseKey.text.toString().trim()
 
-    val serverUrl = "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameOne"
+    val serverUrl = "$get_tMaster/$get_UserID/$get_LicenseKey/${Constants.App_Config_End_Point}/$fileNameOne"
     var isCalled = false
 
     lifecycleScope.launch(Dispatchers.IO) {
         val syn2AppLive = Constants.Syn2AppLive
-        val relativePath = "$syn2AppLive/$get_UserID/$get_LicenseKey/App/Config"
-        val targetFolder =
-            File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), relativePath)
+        val relativePath = "$syn2AppLive/$get_UserID/$get_LicenseKey/${Constants.App_Config_End_Point}"
+        val targetFolder = File(getExternalFilesDir(null), relativePath)
 
-        delete(targetFolder) // Scoped-storage friendly deletion
+        delete(targetFolder)
 
         withContext(Dispatchers.Main) {
             if (!isCalled) {
@@ -1924,8 +1917,7 @@ private val downloadReceiver = object : BroadcastReceiver() {
                     file2 = true
 
                     handler.postDelayed(Runnable {
-                        val ServerUrl =
-                            "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameTwo"
+                        val ServerUrl = "$get_tMaster/$get_UserID/$get_LicenseKey/${Constants.App_Config_End_Point}/$fileNameTwo"
                         startDownload(get_UserID, get_LicenseKey, ServerUrl, fileNameTwo)
                         showToastMessage("Almost there")
 
@@ -1939,7 +1931,7 @@ private val downloadReceiver = object : BroadcastReceiver() {
                     file3 = true
                     handler.postDelayed(Runnable {
                         val ServerUrl =
-                            "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameThree"
+                            "$get_tMaster/$get_UserID/$get_LicenseKey/${Constants.App_Config_End_Point}/$fileNameThree"
                         startDownload(get_UserID, get_LicenseKey, ServerUrl, fileNameThree)
 
                         showToastMessage("Getting View Settings")
@@ -1953,7 +1945,7 @@ private val downloadReceiver = object : BroadcastReceiver() {
                     file4 = true
                     handler.postDelayed(Runnable {
                         val ServerUrl =
-                            "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameFour"
+                            "$get_tMaster/$get_UserID/$get_LicenseKey/${Constants.App_Config_End_Point}/$fileNameFour"
                         startDownload(get_UserID, get_LicenseKey, ServerUrl, fileNameFour)
 
                         showToastMessage("Optimizing settings")
@@ -1969,7 +1961,7 @@ private val downloadReceiver = object : BroadcastReceiver() {
                     file5 = true
                     handler.postDelayed(Runnable {
                         val ServerUrl =
-                            "$get_tMaster/$get_UserID/$get_LicenseKey/App/Config/$fileNameFive"
+                            "$get_tMaster/$get_UserID/$get_LicenseKey/${Constants.App_Config_End_Point}/$fileNameFive"
                         startDownload(get_UserID, get_LicenseKey, ServerUrl, fileNameFive)
 
                         showToastMessage("Finalizing settings")

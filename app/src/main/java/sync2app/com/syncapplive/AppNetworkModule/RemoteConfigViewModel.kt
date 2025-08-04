@@ -12,10 +12,13 @@ class RemoteConfigViewModel : ViewModel() {
     private val _configLiveData = MutableLiveData<Result<RemoteConfigResponse>>()
     val configLiveData: LiveData<Result<RemoteConfigResponse>> = _configLiveData
 
-    fun getRemoteConfig(baseUrl: String, endpoint: String) {
+    fun getRemoteConfig(fullUrl: String) {
         viewModelScope.launch {
-            val api = repository.createApi(baseUrl)
-            val result = repository.fetchRemoteConfig(api, endpoint)
+            // Extract a valid base URL from the full URL
+            val dummyBaseUrl = fullUrl.substringBeforeLast("/") + "/"
+
+            val api = repository.createApi(dummyBaseUrl)
+            val result = repository.fetchRemoteConfig(api, fullUrl)
             _configLiveData.value = result
         }
     }
@@ -23,27 +26,19 @@ class RemoteConfigViewModel : ViewModel() {
 
 
 
+
 /*
-package sync2app.com.syncapplive.AppNetworkModule
-
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
-
 class RemoteConfigViewModel : ViewModel() {
+    private val repository = RemoteConfigRepository()
+
     private val _configLiveData = MutableLiveData<Result<RemoteConfigResponse>>()
     val configLiveData: LiveData<Result<RemoteConfigResponse>> = _configLiveData
 
-    fun getRemoteConfig(url: String) {
+    fun getRemoteConfig(baseUrl: String, endpoint: String) {
         viewModelScope.launch {
-            try {
-                val response = AppRetrofitInstance.api.getRemoteConfig(url)
-                _configLiveData.value = Result.success(response)
-            } catch (e: Exception) {
-                _configLiveData.value = Result.failure(e)
-            }
+            val api = repository.createApi(baseUrl)
+            val result = repository.fetchRemoteConfig(api, endpoint)
+            _configLiveData.value = result
         }
     }
 }

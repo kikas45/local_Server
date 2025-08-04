@@ -21,6 +21,8 @@ data class RemoteConfig(
     val bottom4_img_url: String,
     val bottom5_img_url: String,
     val bottom6_img_url: String,
+
+    // Drawer
     val ChangeDrawerHeaderColor: Boolean,
     val ChangeDrawerHeaderTextColor: Boolean,
     val ShowDrawerMenu: Boolean,
@@ -49,28 +51,44 @@ data class RemoteConfig(
     val DrawerHeaderImgCommand: String,
     val DrawerHeaderBgColor: String,
     val DrawerHeaderTextColor: String,
+
+    // Toolbar
     val ShowToolbar: Boolean,
     val ToolbarTitleText: String,
     val ToolbarTitleTextColor: String,
     val ToolbarBgColor: String,
     val ChangeToolbarBgColor: Boolean,
     val ChangeToolbarTitleTextColor: Boolean,
+
+    // Floating Button
     val webBtnUrl: String,
     val webBtnImgUrl: String,
+
+    // Ads
     val admobBanner: Boolean,
     val admobInter: Boolean,
+
+    // Notifications
     val onesigID: String,
     val splashUrl: String,
     val NotifXService: Boolean,
+
+    // Server and App Logic
     val AllowChangingServerUrl: Boolean,
     val allowOnlyHostUrl: Boolean,
+
+    // App Update
     val UpdateAvailable: Boolean,
     val ForceUpdate: Boolean,
     val Updatetitle: String,
     val UpdateMsg: String,
     val UpdateUrl: String,
     val NewVersion: String,
+
+    // Welcome Slider
     val AllowWelcomeSlider: Boolean,
+
+    // Welcome Screen Titles and Descriptions
     val Screen1Title: String,
     val Screen2Title: String,
     val Screen3Title: String,
@@ -79,14 +97,20 @@ data class RemoteConfig(
     val screen2Desc: String,
     val screen3Desc: String,
     val screen4Desc: String,
+
+    // Background Colors
     val Screen1bgColor: String,
     val Screen2bgColor: String,
     val Screen3bgColor: String,
     val Screen4bgColor: String,
+
+    // Text Colors
     val Screen1TxtColor: String,
     val Screen2TxtColor: String,
     val Screen3TxtColor: String,
     val Screen4TxtColor: String,
+
+    // Images
     val Screen1ImgUrl: String,
     val Screen2ImgUrl: String,
     val Screen3ImgUrl: String,

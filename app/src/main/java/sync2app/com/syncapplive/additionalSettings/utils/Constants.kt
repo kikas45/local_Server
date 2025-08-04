@@ -18,13 +18,13 @@ class Constants {
 
 
 
-
         //Custom Server Domain
         const val CP_OR_AP_MASTER_DOMAIN = "CP_AP_MASTER_DOMAIN"
         const val CUSTOM_CP_SERVER_DOMAIN = "https://cp.cloudappserver.co.uk/app_base/public/"
         const val CUSTOM_API_SERVER_DOMAIN = "https://cloudapp.web-adm.in/public/"
 
-
+        const val SEVER_APP_CONFIG_END_POINT = "/App/Config/appConfig.json"
+        const val App_Config_End_Point = "/App/Config"
 
 
         // for Tv or App Mode Json settings,  the BASE ( master Url )  + this  END Path makes a full url
@@ -51,6 +51,7 @@ class Constants {
         const val get_editTextMaster = "get_editTextMaster"
         const val baseUrl = "baseUrl"
         const val get_masterDomain = "get_masterDomain"
+        const val get_APP_CONFIG_JSON_SEVER_URL = "get_APP_CONFIG_JSON_SEVER_URL"
 
 
         const val SHARED_BIOMETRIC = "SHARED_BIOMETRIC"
