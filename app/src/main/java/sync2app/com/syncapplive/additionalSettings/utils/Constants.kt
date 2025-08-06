@@ -76,6 +76,7 @@ class Constants {
         const val launch_WebView_Online_Manual_Index = "launch_WebView_Online_Manual_Index"
         const val launch_WebView_Offline_Manual_Index = "launch_WebView_Offline_Manual_Index"
         const val launch_Default_WebView_url = "launch_Default_WebView_url"
+        const val ALlow_App_to_DOwnload_Config_JSON = "ALlow_App_to_DOwnload_Config_JSON"
 
         const val JSON_MAIN_URL = "JSON_MAIN_URL"
 

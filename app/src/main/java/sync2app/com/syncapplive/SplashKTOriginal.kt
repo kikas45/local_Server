@@ -1,5 +1,4 @@
 package sync2app.com.syncapplive
-
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
@@ -32,6 +31,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.HttpException
 import io.paperdb.Paper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -39,7 +39,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import sync2app.com.syncapplive.AppNetworkModule.RemoteConfig
 import sync2app.com.syncapplive.AppNetworkModule.RemoteConfigViewModel
-import sync2app.com.syncapplive.additionalSettings.ApITVorAppMode.DomainTVModeSettings
 import sync2app.com.syncapplive.additionalSettings.ApITVorAppMode.RetrofitInstanceTVMode
 import sync2app.com.syncapplive.additionalSettings.InformationActivity
 import sync2app.com.syncapplive.additionalSettings.ReSyncActivity
@@ -54,7 +53,7 @@ import java.io.File
 import java.net.URI
 import java.net.URISyntaxException
 
-class SplashKT : AppCompatActivity() {
+class SplashKTOriginal : AppCompatActivity() {
 
     private val viewModel by viewModels<RemoteConfigViewModel>()
 
@@ -237,21 +236,20 @@ class SplashKT : AppCompatActivity() {
                 } else {
                     binding.retryntn.isEnabled = true
                     isRetryBTN = false
-                    Log.d("ADDDDDMMMDD", "1111")
 
-                    val cachedSettings = load_TV_OR_APP_ModeSettingsFromPrefs(applicationContext)
-                    if (cachedSettings != null) {
-                        infotext?.text = "Loaded from offline mode settings"
-                        applyAppModeSettings(cachedSettings)
+                    val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
+                    if (cachedConfig != null) {
+                        getRemoteValuesOffline(cachedConfig)
                     } else {
                         manageUIStateOnNetworkIssuesForRetry()
-                    }
 
+                    }
 
                 }
             }
 
         }
+
 
     }
 
@@ -262,7 +260,7 @@ class SplashKT : AppCompatActivity() {
         val get_LicenseKey = simpleSavedPassword.getString(Constants.get_LicenseKey, "").toString()
         val get_editTextMaster = simpleSavedPassword.getString(Constants.get_editTextMaster, "").toString()
 
-        ServerUrl = "$get_editTextMaster/$get_UserID/$get_LicenseKey/${Constants.SEVER_APP_CONFIG_END_POINT}"
+        ServerUrl= "$get_editTextMaster/$get_UserID/$get_LicenseKey/${Constants.SEVER_APP_CONFIG_END_POINT}"
 
         Log.d("GET_ServerUrl", "onCreate 111: $ServerUrl")
 
@@ -282,6 +280,7 @@ class SplashKT : AppCompatActivity() {
         }
     }
 
+
     private fun setUpInternetAmination() {
 
         binding.splashImage.setOnClickListener {
@@ -291,36 +290,32 @@ class SplashKT : AppCompatActivity() {
 
 
         if (!Utility.isNetworkAvailable(applicationContext)) {
+
             isCallingStart = false
 
-            Log.d("ADDDDDMMMDD", "22222")
-            val cachedSettings = load_TV_OR_APP_ModeSettingsFromPrefs(applicationContext)
-            if (cachedSettings != null) {
-                infotext?.text = "Loaded from offline mode settings"
-                applyAppModeSettings(cachedSettings)
+            val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
+            if (cachedConfig != null) {
+                getRemoteValuesOffline(cachedConfig)
             } else {
                 InitWebviewIndexFileState()
             }
 
-
+            Log.d("MAMMA", "No internet casll Screen")
         } else {
             lifecycleScope.launch {
                 if (isInternetAvailableOnBing()) {
                     binding.texttConnection?.visibility = View.GONE
-                } else {
+                }else{
                     binding.texttConnection?.visibility = View.VISIBLE
                     binding.texttConnection.visibility = View.VISIBLE
 
-                    Log.d("ADDDDDMMMDD", "3333")
-
-                    val cachedSettings = load_TV_OR_APP_ModeSettingsFromPrefs(applicationContext)
-                    if (cachedSettings != null) {
-                        infotext?.text = "Loaded from offline mode settings"
-                        applyAppModeSettings(cachedSettings)
+                    val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
+                    if (cachedConfig != null) {
+                        getRemoteValuesOffline(cachedConfig)
                     } else {
                         InitWebviewIndexFileState()
-                    }
 
+                    }
                     isCallingStart = false
 
                 }
@@ -344,8 +339,7 @@ class SplashKT : AppCompatActivity() {
         val deepBlue = resources.getColor(R.color.white)
         val deepRed = resources.getColor(R.color.red)
 
-        val colorAnimator =
-            ObjectAnimator.ofInt(binding.texttConnection, "textColor", deepBlue, deepRed)
+        val colorAnimator = ObjectAnimator.ofInt(binding.texttConnection, "textColor", deepBlue, deepRed)
         colorAnimator.setEvaluator(ArgbEvaluator())
         colorAnimator.repeatCount = ValueAnimator.INFINITE
         colorAnimator.repeatMode = ValueAnimator.REVERSE
@@ -367,22 +361,19 @@ class SplashKT : AppCompatActivity() {
     }
 
 
+
     @SuppressLint("SetTextI18n")
     private fun getRemoteValuesOffline(config: RemoteConfig?) {
-        showToastMessage("Loading from offline database")
         infotext?.setText("Loading from offline database")
 
-        Log.d("ADDDDDMMMDD", "5555")
-
-        if (config == null) {
-            val cachedSettings = load_TV_OR_APP_ModeSettingsFromPrefs(applicationContext)
-            if (cachedSettings != null) {
-                infotext?.text = "Loaded from offline mode settings"
-                applyAppModeSettings(cachedSettings)
+        if (config == null){
+            val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
+            if (cachedConfig != null) {
+                getRemoteValuesOffline(cachedConfig)
             } else {
-                InitWebviewIndexFileState()
+                isCallingStart = false
+               InitWebviewIndexFileState()
             }
-
 
             return
         }
@@ -549,15 +540,16 @@ class SplashKT : AppCompatActivity() {
     }
 
 
+
+
+
     private fun observeViewModel() {
         viewModel.configLiveData.observe(this) { result ->
             result
                 .onSuccess { response ->
-                    Log.d("ADDDDDMMMDD", "4444")
                     getRemoteValues(response.remoteConfig)
                 }
                 .onFailure { error ->
-                    Log.d("ADDDDDMMMDD", "3333")
                     val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
                     if (cachedConfig != null) {
                         getRemoteValuesOffline(cachedConfig)
@@ -569,15 +561,12 @@ class SplashKT : AppCompatActivity() {
     }
 
 
-    private fun getRemoteValues(config: RemoteConfig?) {
+
+   private fun getRemoteValues(config: RemoteConfig?) {
         infotext?.setText(R.string.initializing)
-        if (config == null) {
-            val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
-            if (cachedConfig != null) {
-                getRemoteValuesOffline(cachedConfig)
-            } else {
-                showErrorUI("Something went wrong, Invalid Remote data or Malformed AppConfig JSON")
-            }
+
+        if (config == null){
+            showErrorUI("Something went wrong, Invalid Remote data or Malformed AppConfig JSON")
             return
         }
 
@@ -709,11 +698,12 @@ class SplashKT : AppCompatActivity() {
     }
 
 
-    private fun saveRemoteConfigToPrefs(context: Context, config: RemoteConfig) {
+  private  fun saveRemoteConfigToPrefs(context: Context, config: RemoteConfig) {
         val prefs = context.getSharedPreferences("AppConfigPrefs", Context.MODE_PRIVATE)
         val json = Gson().toJson(config)
         prefs.edit().putString("remote_config", json).apply()
     }
+
 
 
     private fun showErrorUI(error: String) {
@@ -724,6 +714,8 @@ class SplashKT : AppCompatActivity() {
         InitWebviewIndexFileState()
         isCallingStart = false
     }
+
+
 
 
     private fun ApiCall(url: String?) {
@@ -738,10 +730,9 @@ class SplashKT : AppCompatActivity() {
             showToastMessage("Slow internet connection")
             isCallingStart = false
 
-            val cachedSettings = load_TV_OR_APP_ModeSettingsFromPrefs(applicationContext)
-            if (cachedSettings != null) {
-                infotext?.text = "Loaded from offline mode settings"
-                applyAppModeSettings(cachedSettings)
+            val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
+            if (cachedConfig != null) {
+                getRemoteValuesOffline(cachedConfig)
             } else {
                 InitWebviewIndexFileState()
             }
@@ -751,15 +742,13 @@ class SplashKT : AppCompatActivity() {
     }
 
 
+
     private fun setUpNavigationMethod(homeurl: String) {
         isJsonAPICallReady = true
 
         val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-        val get_INSTALL_TV_JSON_USER_CLICKED =
-            sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
-                .orEmpty()
-        val getFirstMode =
-            sharedTVAPPModePreferences.getString(Constants.installTVModeForFirstTime, "").orEmpty()
+        val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").orEmpty()
+        val getFirstMode = sharedTVAPPModePreferences.getString(Constants.installTVModeForFirstTime, "").orEmpty()
         val getTvMode = sharedBiometric.getString(Constants.CALL_RE_SYNC_MANGER, "").orEmpty()
 
         if (!URLUtil.isValidUrl(homeurl)) {
@@ -779,108 +768,66 @@ class SplashKT : AppCompatActivity() {
 
         lifecycleScope.launch {
             delay(1500L)
+
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
                 if (should_My_App_Use_TV_Mode) {
-                    Log.d("ADDDDDMMMDD", "---11122222error")
                     sharedBiometric.edit().apply {
-                        putString(
-                            Constants.get_Launching_State_Of_WebView,
-                            Constants.launch_WebView_Offline
-                        )
+                        putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
                         putString(Constants.PROTECT_PASSWORD, Constants.PROTECT_PASSWORD)
                         apply()
                     }
                     preferences.edit().putBoolean(Constants.swiperefresh, false).apply()
 
-                    when (sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "")
-                        .orEmpty()) {
+                    when (sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").orEmpty()) {
                         Constants.FIRST_INFORMATION_PAGE_COMPLETED -> {
                             if (getFirstMode != Constants.installTVModeForFirstTime) {
-                                startActivity(
-                                    Intent(
-                                        applicationContext,
-                                        ReSyncActivity::class.java
-                                    ).apply {
-                                        putExtra("url", constants.jsonUrl)
-                                    })
+                                startActivity(Intent(applicationContext, ReSyncActivity::class.java).apply {
+                                    putExtra("url", constants.jsonUrl)
+                                })
                             } else {
-                                startActivity(
-                                    Intent(
-                                        applicationContext,
-                                        WebViewPage::class.java
-                                    ).apply {
-                                        putExtra("url", constants.jsonUrl)
-                                    })
+                                startActivity(Intent(applicationContext, WebViewPage::class.java).apply {
+                                    putExtra("url", constants.jsonUrl)
+                                })
                             }
                         }
-
                         else -> {
-                            startActivity(
-                                Intent(
-                                    applicationContext,
-                                    InformationActivity::class.java
-                                )
-                            )
+                            startActivity(Intent(applicationContext, InformationActivity::class.java))
                         }
                     }
 
                 } else {
                     sharedBiometric.edit().apply {
-                        putString(
-                            Constants.get_Launching_State_Of_WebView,
-                            Constants.launch_Default_WebView_url
-                        )
+                        putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
                         remove(Constants.PROTECT_PASSWORD)
                         apply()
                     }
                     preferences.edit().putBoolean(Constants.swiperefresh, true).apply()
 
-                    when (sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "")
-                        .orEmpty()) {
+                    when (sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").orEmpty()) {
                         Constants.FIRST_INFORMATION_PAGE_COMPLETED -> {
-                            startActivity(
-                                Intent(
-                                    applicationContext,
-                                    WebViewPage::class.java
-                                ).apply {
-                                    putExtra("url", constants.jsonUrl)
-                                })
+                            startActivity(Intent(applicationContext, WebViewPage::class.java).apply {
+                                putExtra("url", constants.jsonUrl)
+                            })
                         }
-
                         else -> {
-                            startActivity(
-                                Intent(
-                                    applicationContext,
-                                    InformationActivity::class.java
-                                )
-                            )
+                            startActivity(Intent(applicationContext, InformationActivity::class.java))
                         }
                     }
                 }
 
             } else {
-                when (sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "")
-                    .orEmpty()) {
+                when (sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").orEmpty()) {
                     Constants.FIRST_INFORMATION_PAGE_COMPLETED -> {
                         if (getTvMode == Constants.CALL_RE_SYNC_MANGER) {
-                            startActivity(
-                                Intent(
-                                    applicationContext,
-                                    ReSyncActivity::class.java
-                                ).apply {
-                                    putExtra("url", constants.jsonUrl)
-                                })
+                            startActivity(Intent(applicationContext, ReSyncActivity::class.java).apply {
+                                putExtra("url", constants.jsonUrl)
+                            })
                         } else {
-                            startActivity(
-                                Intent(
-                                    applicationContext,
-                                    WebViewPage::class.java
-                                ).apply {
-                                    putExtra("url", constants.jsonUrl)
-                                })
+                            startActivity(Intent(applicationContext, WebViewPage::class.java).apply {
+                                putExtra("url", constants.jsonUrl)
+                            })
                         }
                     }
-
                     else -> {
                         startActivity(Intent(applicationContext, InformationActivity::class.java))
                     }
@@ -890,7 +837,6 @@ class SplashKT : AppCompatActivity() {
             finish()
         }
     }
-
     private fun showOfflineErrorUI() {
         infotext?.setText(R.string.invalide_remote_data)
         progressBar?.visibility = View.GONE
@@ -907,6 +853,7 @@ class SplashKT : AppCompatActivity() {
             imageHelper
         ).forEach { it?.visibility = View.VISIBLE }
     }
+
 
 
     private fun btnFunRetryAPiCall() {
@@ -1125,169 +1072,168 @@ class SplashKT : AppCompatActivity() {
         }
     }
 
-
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "CommitPrefEdits")
     private fun fetchApiSettings() {
-        if (!isCallingStart) {
-            showToastMessage("Slow internet connection")
-            loadOfflineOrInitWebview()
-            return
-        }
 
-        val prefs = getSharedPreferences(Constants.SIMPLE_SAVED_PASSWORD, MODE_PRIVATE)
-        val get_tMaster = prefs.getString(Constants.get_editTextMaster, "") ?: ""
-        val get_UserID = prefs.getString(Constants.get_UserID, "") ?: ""
-        val get_LicenseKey = prefs.getString(Constants.get_LicenseKey, "") ?: ""
-        val path = "$get_UserID/$get_LicenseKey/${Constants.END_PATH_OF_TV_MODE_URL}"
+        if (isCallingStart) {
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val apiService = RetrofitInstanceTVMode.createApiService(get_tMaster)
-                val response = apiService.getAppConfig(path)
+            val simpleSavedPassword = getSharedPreferences(Constants.SIMPLE_SAVED_PASSWORD, MODE_PRIVATE)
 
-                withContext(Dispatchers.Main) {
+            val get_tMaster = simpleSavedPassword.getString(Constants.get_editTextMaster, "").toString()
+            val get_UserID = simpleSavedPassword.getString(Constants.get_UserID, "").toString()
+            val get_LicenseKey = simpleSavedPassword.getString(Constants.get_LicenseKey, "").toString()
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+
+                    val path = "$get_UserID/$get_LicenseKey/${Constants.END_PATH_OF_TV_MODE_URL}"
+                    val apiService = RetrofitInstanceTVMode.createApiService(get_tMaster)
+                    val response = apiService.getAppConfig(path)
+
                     if (response.isSuccessful) {
-                        response.body()?.InstallAppSettings?.let {
-                            applyAppModeSettings(it)
+                        val settings = response.body()?.InstallAppSettings
+                        withContext(Dispatchers.Main) {
+                            settings?.let {
+                                // Extracting individual values
+                                val installTVMode = it.install_TV_mode
+                                val hideTvModeLabel = it.hide_TV_mode_label
+                                val fullScreen = it.full_Screen
+                                val hideFullScreenLabel = it.hide_Full_Screen_Label
+                                val immersiveMode = it.immersive_Mode
+                                val hideImmersiveModeLabel = it.hide_Immersive_Mode_Label
+                                val hideBottomBar = it.hide_Bottom_Bar
+                                val hideBottomBarLabel = it.hide_Bottom_Bar_Label
+                                val hideBottomMenuIcon = it.hide_Bottom_Menu_Icon
+                                val hideBottomMenuIconLabel = it.hide_Bottom_Menu_Icon_Label
+                                val hideFloatingButton = it.hide_Floating_Button
+                                val hideFloatingButtonLabel = it.hide_Floating_Button_Label
 
-                            // ✅ Save locally for offline use
-                            saveAppModeSettingsToPrefs(applicationContext, it)
+                                val use_local_schedule = it.use_local_schedule
 
-                            isTvModeSettingsReady = true
+                                val show_local_schedule_label = it.show_local_schedule_label
 
-                            if (!isJsonAPICallReady) {
-                                ApiCall(ServerUrl)
+
+                                Log.d("USE_DAVID", "fetchApiSettings: $use_local_schedule")
+
+
+                                // Logging the values
+                                //Log.d("ApiResponse", "Install TV Mode: $installTVMode")
+
+                                val editor = sharedTVAPPModePreferences.edit()
+                                editor.putBoolean(Constants.installTVMode, installTVMode)
+                                editor.putBoolean(Constants.hide_TV_Mode_Label, hideTvModeLabel)
+                                editor.putBoolean(Constants.fullScreen_APP, fullScreen)
+                                editor.putBoolean(Constants.hide_Full_ScreenLabel, hideFullScreenLabel)
+                                editor.putBoolean(Constants.immersive_Mode_APP, immersiveMode)
+                                editor.putBoolean(Constants.hide_Immersive_ModeLabel, hideImmersiveModeLabel)
+                                editor.putBoolean(Constants.hide_BottomBar_APP, hideBottomBar)
+                                editor.putBoolean(Constants.hide_Bottom_Bar_Label_APP, hideBottomBarLabel)
+                                editor.putBoolean(Constants.hideBottom_MenuIcon_APP, hideBottomMenuIcon)
+                                editor.putBoolean(Constants.hide_Bottom_MenuIconLabel_APP, hideBottomMenuIconLabel)
+                                editor.putBoolean(Constants.hide_Floating_Button_APP, hideFloatingButton)
+                                editor.putBoolean(Constants.hide_Floating_ButtonLabel_APP, hideFloatingButtonLabel)
+
+                                // newly added
+                                editor.putBoolean(Constants.use_local_schedule_APP, use_local_schedule)
+                                editor.putBoolean(Constants.show_local_schedule_label, show_local_schedule_label)
+                                editor.apply()
+
+
+                                if (installTVMode) {
+                                    should_My_App_Use_TV_Mode = true
+                                    val editorrr = sharedBiometric.edit()
+                                    editorrr.putString(Constants.MY_TV_OR_APP_MODE, Constants.TV_Mode)
+                                    editorrr.apply()
+                                } else {
+                                    val editorrr = sharedBiometric.edit()
+                                    editorrr.putString(Constants.MY_TV_OR_APP_MODE, Constants.App)
+                                    editorrr.apply()
+                                }
+
+                                // use Paper Book to Save Use online CSv or Local CSv
+                                if (use_local_schedule) {
+                                    // se to use local schedule if true
+                                    Paper.book().write(Common.set_schedule_key, Common.schedule_offline)
+                                } else {
+                                    // se to use online  schedule if false
+                                    Paper.book().write(Common.set_schedule_key, Common.schedule_online)
+                                }
+
+
+                                isTvModeSettingsReady = true
+
+                                if (!isJsonAPICallReady) {
+                                    ApiCall(ServerUrl)
+                                }
                             }
-                        } ?: run {
-                            handleFailedApiCall("Malformed AppConfig JSON or Empty Response")
                         }
                     } else {
-                        handleFailedApiCall("API Response Error: ${response.message()}")
+                        withContext(Dispatchers.Main) {
+                            // Handle error (e.g., show a toast)
+                            Log.e("ApiResponse", "Error: ${response.message()}")
+                            isTvModeSettingsReady = false
+                            infotext?.text = "Error: Unable to fetch TV or App Mode Settings"
+                            Toast.makeText(applicationContext, "Error: Unable to fetch TV or App Mode Settings", Toast.LENGTH_SHORT).show()
+                            isCallingStart = false
+
+                            val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
+                            if (cachedConfig != null) {
+                                getRemoteValuesOffline(cachedConfig)
+                            } else {
+                                manageUIStateOnNetworkIssuesForRetry()
+                                InitWebviewIndexFileState()
+                            }
+
+                        }
+                    }
+                } catch (e: HttpException) {
+                    withContext(Dispatchers.Main) {
+                        // Handle HTTP exception (e.g., show a toast)
+                        Log.e("ApiResponse", "HTTP Exception: ${e.message}")
+                        isTvModeSettingsReady = false
+                        isCallingStart = false
+
+                        val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
+                        if (cachedConfig != null) {
+                            getRemoteValuesOffline(cachedConfig)
+                        } else {
+                            manageUIStateOnNetworkIssuesForRetry()
+                            InitWebviewIndexFileState()
+                        }
+
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        // Handle general exception (e.g., show a toast)
+                        Log.e("ApiResponse", "Error: ${e.message}")
+                        isTvModeSettingsReady = false
+                        infotext?.text = "Error: ${e.message}"
+                        isCallingStart = false
+
+                        val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
+                        if (cachedConfig != null) {
+                            getRemoteValuesOffline(cachedConfig)
+                        } else {
+                            manageUIStateOnNetworkIssuesForRetry()
+                            InitWebviewIndexFileState()
+                        }
+
                     }
                 }
-
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    handleFailedApiCall("Exception: ${e.localizedMessage}")
-                }
             }
-        }
-    }
-
-
-    private fun applyAppModeSettings(settings: DomainTVModeSettings) {
-        sharedTVAPPModePreferences.edit().apply {
-            putBoolean(Constants.installTVMode, settings.install_TV_mode)
-            putBoolean(Constants.hide_TV_Mode_Label, settings.hide_TV_mode_label)
-            putBoolean(Constants.fullScreen_APP, settings.full_Screen)
-            putBoolean(Constants.hide_Full_ScreenLabel, settings.hide_Full_Screen_Label)
-            putBoolean(Constants.immersive_Mode_APP, settings.immersive_Mode)
-            putBoolean(Constants.hide_Immersive_ModeLabel, settings.hide_Immersive_Mode_Label)
-            putBoolean(Constants.hide_BottomBar_APP, settings.hide_Bottom_Bar)
-            putBoolean(Constants.hide_Bottom_Bar_Label_APP, settings.hide_Bottom_Bar_Label)
-            putBoolean(Constants.hideBottom_MenuIcon_APP, settings.hide_Bottom_Menu_Icon)
-            putBoolean(Constants.hide_Bottom_MenuIconLabel_APP, settings.hide_Bottom_Menu_Icon_Label)
-            putBoolean(Constants.hide_Floating_Button_APP, settings.hide_Floating_Button)
-            putBoolean(Constants.hide_Floating_ButtonLabel_APP, settings.hide_Floating_Button_Label)
-            putBoolean(Constants.use_local_schedule_APP, settings.use_local_schedule)
-            putBoolean(Constants.show_local_schedule_label, settings.show_local_schedule_label)
-            apply()
-
-
-            Log.d("ADDDDDMMMDD", "applyAppModeSettings: ${settings.install_TV_mode}")
-            Log.d("ADDDDDMMMDD", "applyAppModeSettings: ${settings.hide_TV_mode_label}")
-            Log.d("ADDDDDMMMDD", "applyAppModeSettings: ${settings.hide_Full_Screen_Label}")
-
-        }
-
-
-        // Extracting individual values
-        val installTVMode = settings.install_TV_mode
-
-        val use_local_schedule = settings.use_local_schedule
-
-        Log.d("USE_DAVID", "fetchApiSettings: $use_local_schedule")
-
-
-        if (installTVMode) {
-            should_My_App_Use_TV_Mode = true
-            val editorrr = sharedBiometric.edit()
-            editorrr.putString(Constants.MY_TV_OR_APP_MODE, Constants.TV_Mode)
-            editorrr.apply()
         } else {
-            val editorrr = sharedBiometric.edit()
-            editorrr.putString(Constants.MY_TV_OR_APP_MODE, Constants.App)
-            editorrr.apply()
-        }
+            showToastMessage("Slow internet connection")
+            isCallingStart = false
 
-        // use Paper Book to Save Use online CSv or Local CSv
-        if (use_local_schedule) {
-            // se to use local schedule if true
-            Paper.book().write(Common.set_schedule_key, Common.schedule_offline)
-        } else {
-            // se to use online  schedule if false
-            Paper.book().write(Common.set_schedule_key, Common.schedule_online)
-        }
+            val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
+            if (cachedConfig != null) {
+                getRemoteValuesOffline(cachedConfig)
+            } else {
+                InitWebviewIndexFileState()
+            }
 
-
-        val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
-        if (cachedConfig != null) {
-            getRemoteValuesOffline(cachedConfig)
-        } else {
-            manageUIStateOnNetworkIssuesForRetry()
-            InitWebviewIndexFileState()
         }
     }
-
-
-    private fun handleFailedApiCall(message: String) {
-        Log.e("API_FAIL", message)
-        isTvModeSettingsReady = false
-        isCallingStart = false
-        infotext?.text = "Error: $message"
-        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
-
-        val cachedSettings = load_TV_OR_APP_ModeSettingsFromPrefs(applicationContext)
-        if (cachedSettings != null) {
-            infotext?.text = "Loaded from offline mode settings"
-            applyAppModeSettings(cachedSettings)
-        } else {
-            manageUIStateOnNetworkIssuesForRetry()
-            InitWebviewIndexFileState()
-        }
-    }
-
-
-    private fun loadOfflineOrInitWebview() {
-        isCallingStart = false
-        val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
-        if (cachedConfig != null) {
-            getRemoteValuesOffline(cachedConfig)
-        } else {
-            InitWebviewIndexFileState()
-        }
-    }
-
-
-    // ====  save them in offline mode for Tv or App Mode
-    // ====  save them in offline mode for Tv or App Mode
-
-    private fun saveAppModeSettingsToPrefs(context: Context, settings: DomainTVModeSettings) {
-        val prefs = context.getSharedPreferences("AppModePrefs", Context.MODE_PRIVATE)
-        val json = Gson().toJson(settings)
-        prefs.edit().putString("tv_app_mode_settings", json).apply()
-    }
-
-    private fun load_TV_OR_APP_ModeSettingsFromPrefs(context: Context): DomainTVModeSettings? {
-        val prefs = context.getSharedPreferences("AppModePrefs", Context.MODE_PRIVATE)
-        val json = prefs.getString("tv_app_mode_settings", null)
-        return json?.let {
-            Gson().fromJson(it, DomainTVModeSettings::class.java)
-        }
-    }
-
-    // ====  save them in offline mode for Tv or App Mode
-    // ====  save them in offline mode for Tv or App Mode
 
 
     @SuppressLint("SourceLockedOrientationActivity")
@@ -1301,8 +1247,7 @@ class SplashKT : AppCompatActivity() {
         Utility.hideSystemBars(window)
 
 
-        val getState =
-            sharedBiometric.getString(Constants.IMG_TOGGLE_FOR_ORIENTATION, "").toString()
+        val getState = sharedBiometric.getString(Constants.IMG_TOGGLE_FOR_ORIENTATION, "").toString()
 
         if (getState == Constants.USE_POTRAIT) {
             requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
@@ -1330,7 +1275,7 @@ class SplashKT : AppCompatActivity() {
         lifecycleScope.launch {
             loadIndexFileIfExist(fil_CLO, fil_DEMO, filename)
 
-            Log.d("MAMMA", "No internet casll Screen JOOO")
+            Log.d("MAMMA", "No internet casll Screen CLO: $fil_CLO   DEMO: $fil_DEMO")
         }
 
     }

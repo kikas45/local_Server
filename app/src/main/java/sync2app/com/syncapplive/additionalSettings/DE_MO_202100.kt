@@ -156,6 +156,8 @@ class DE_MO_202100 : AppCompatActivity() {
                 }
             }
         }
+
+
     }
 
 
@@ -200,7 +202,7 @@ class DE_MO_202100 : AppCompatActivity() {
                             }
 
 
-                        }, 1200)
+                        }, 500)
 
                     }
 
@@ -209,7 +211,7 @@ class DE_MO_202100 : AppCompatActivity() {
                         handler.postDelayed(Runnable {
                             showToastMessage("Dowmload completed")
                             loadLocalConfigFromInternalStorage()
-                        }, 1200)
+                        }, 500)
 
                     }
 
