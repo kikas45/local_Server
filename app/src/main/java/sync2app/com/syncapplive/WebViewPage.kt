@@ -1456,7 +1456,7 @@ class WebViewPage : AppCompatActivity() {
     ) {
         lifecycleScope.launch {
 
-            if (isActive) {
+            if (isSystemRunning) {
 
                 try {
                     // Offload file I/O operation to a background thread
@@ -1470,15 +1470,14 @@ class WebViewPage : AppCompatActivity() {
                     }
 
                     // Now back on the main thread to update the UI
-                    handler.postDelayed(Runnable {
 
+
+                    lifecycleScope.launch {
+                        delay(1500)
                         if (filePath != null) {
                             if (isSystemRunning) {
                                 webView?.apply {
-                                    Log.d(
-                                        "PETER",
-                                        "Yes The  FILES ARE BEEN CHECK after The user click from pop up for a states"
-                                    )
+                                    Log.d("PETER", "Yes The  FILES ARE BEEN CHECK after The user click from pop up for a states")
                                     clearHistory()
                                     loadUrl(filePath.toString())
                                     setupWebViewClients()
@@ -1497,11 +1496,11 @@ class WebViewPage : AppCompatActivity() {
                                 }
                             }
                         }
-
-                    }, 1500)
+                    }
 
                 } catch (e: Exception) {
-                    handler.postDelayed(Runnable {
+                    lifecycleScope.launch {
+                        delay(1500)
                         if (isSystemRunning) {
                             if (Utility.isNetworkAvailable(applicationContext)) {
                                 loadOnlineUrl()
@@ -1512,8 +1511,7 @@ class WebViewPage : AppCompatActivity() {
 
                             }
                         }
-                    }, 1500)
-
+                    }
 
                 }
             }
@@ -1918,7 +1916,11 @@ class WebViewPage : AppCompatActivity() {
     }
 
 
+
+
     private fun HideErrorPage(failingUrl: String, description: String) {
+
+        Log.e("MACC", "Error :: $failingUrl")
         try {
             val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
             val launchingState =
@@ -1990,6 +1992,90 @@ class WebViewPage : AppCompatActivity() {
             Log.e(TAG, "HideErrorPage failed: ${e.message}")
         }
     }
+
+
+
+
+    /*
+
+    // performas well AS WELL
+        private fun HideErrorPage(failingUrl: String, description: String) {
+            try {
+                val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+                val launchingState = sharedBiometric.getString(Constants.get_Launching_State_Of_WebView, "") ?: ""
+
+
+                Log.e("MACC", "load from :;  $launchingState")
+
+                if (launchingState == Constants.launch_WebView_Offline || launchingState == Constants.launch_WebView_Offline_Manual_Index) {
+
+                    try {
+                        val intent = Intent(applicationContext, SplashKT::class.java)
+                        startActivity(intent)
+                        finishAffinity()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error launching SplashKT: ${e.message}")
+                    }
+
+                } else {
+                    if (!isSystemRunning) return
+
+                    errorlayout?.visibility = View.VISIBLE
+                    errorCode?.text = description
+
+                    errorReloadButton?.setOnClickListener {
+                        if (isSystemRunning) {
+                            if (Utility.isNetworkAvailable(applicationContext)) {
+                                webView?.let {
+                                    it.loadUrl(failingUrl)
+                                    isErrorLayoutShown = true
+                                }
+                            } else {
+                                showToastMessage("Connect to an internet")
+                            }
+                        }
+                    }
+
+                    // Launch coroutine instead of handler
+                    lifecycleScope.launch {
+                        delay(4000)
+
+                        if (!isSystemRunning) return@launch
+
+                        errorautoConnect?.let {
+                            it.visibility = View.VISIBLE
+                            it.text = "Auto Reconnect: Standby"
+
+                            if (AdvancedControls.checkInternetConnection(applicationContext)) {
+                                it.text = "Auto Reconnect: Trying to connect.."
+                            } else if (Utility.isNetworkAvailable(applicationContext)) {
+                                webView?.let { webView ->
+                                    webView.loadUrl(failingUrl)
+                                    errorlayout?.visibility = View.GONE
+                                    webView.clearHistory()
+                                    isErrorLayoutShown = true
+                                }
+                            } else {
+                                showToastMessage("Connect to an internet")
+                            }
+                        }
+
+                        // Optionally loop again with delay
+                        if (isSystemRunning) {
+                            this.launch {
+                                delay(4000)
+                                // Repeat logic or call same block again
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("HideErrorPage", "HideErrorPage failed: ${e.message}")
+            }
+        }
+
+    */
+
 
 
     /*
@@ -4108,6 +4194,8 @@ class WebViewPage : AppCompatActivity() {
                         "PETER",
                         "InitWebvIewloadStates:: The user click from pop up for a states"
                     )
+
+                    Log.d("ADDDDDMMMDD", "error = WEbview Page - textContinue 222")
                     dailaogShowPopCallingWebview()
                     alertDialog!!.dismiss()
                 }
@@ -4271,19 +4359,20 @@ class WebViewPage : AppCompatActivity() {
 
     private fun dailaogShowPopCallingWebview() {
 
-        handler.postDelayed(Runnable {
+        lifecycleScope.launch {
+            delay(2000L)
             if (isSystemRunning) {
                 Log.d("PETER", "FILES ARE BEEN CHECK after The user click from pop up for a states")
 
+                Log.d("ADDDDDMMMDD", "error = WEbview Page - dailaogShowPopCallingWebview 222")
                 // get input paths to device storage
                 val fil_CLO = myDownloadClass.getString(Constants.getFolderClo, "").toString()
                 val fil_DEMO = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
                 val filename = "/index.html"
                 loadOffline_Saved_Path_Offline_Webview_For_Pop_Layout(fil_CLO, fil_DEMO, filename)
             }
-        }, 2000)
 
-
+        }
     }
 
     //////// The API SYNC
@@ -8325,6 +8414,9 @@ class WebViewPage : AppCompatActivity() {
                         val intent = Intent(applicationContext, SplashKT::class.java)
                         startActivity(intent)
                         finish()
+
+                        Log.d("ADDDDDMMMDD", "error = WEbview Page - Connected 222")
+
                     } else {
                         val editText88 = sharedBiometric.edit()
                         editText88.putString(Constants.JSON_MAIN_URL, jsonUrl)
@@ -8394,9 +8486,6 @@ class WebViewPage : AppCompatActivity() {
 
 
             // initialize connection broadCast listener
-            // connectivityReceiver = ConnectivityReceiver()
-            // val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-            // registerReceiver(connectivityReceiver, intentFilter)
             connectivityReceiver = ConnectivityReceiver()
             val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
 

@@ -293,7 +293,7 @@ class SplashKT : AppCompatActivity() {
         if (!Utility.isNetworkAvailable(applicationContext)) {
             isCallingStart = false
 
-            Log.d("ADDDDDMMMDD", "22222")
+            Log.d("ADDDDDMMMDD", "No internet call 1011")
             val cachedSettings = load_TV_OR_APP_ModeSettingsFromPrefs(applicationContext)
             if (cachedSettings != null) {
                 infotext?.text = "Loaded from offline mode settings"
@@ -369,15 +369,16 @@ class SplashKT : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun getRemoteValuesOffline(config: RemoteConfig?) {
-        showToastMessage("Loading from offline database")
+      //  showToastMessage("Loading from offline database")
         infotext?.setText("Loading from offline database")
 
-        Log.d("ADDDDDMMMDD", "5555")
+        Log.d("ADDDDDMMMDD", "getRemoteValuesOffline  == No internet call 1011")
 
         if (config == null) {
             val cachedSettings = load_TV_OR_APP_ModeSettingsFromPrefs(applicationContext)
             if (cachedSettings != null) {
                 infotext?.text = "Loaded from offline mode settings"
+                Log.d("ADDDDDMMMDD", "getRemoteValuesOffline  == No internet call 222011")
                 applyAppModeSettings(cachedSettings)
             } else {
                 InitWebviewIndexFileState()
@@ -553,7 +554,7 @@ class SplashKT : AppCompatActivity() {
         viewModel.configLiveData.observe(this) { result ->
             result
                 .onSuccess { response ->
-                    Log.d("ADDDDDMMMDD", "4444")
+                    Log.d("ADDDDDMMMDD", "Connected 111")
                     getRemoteValues(response.remoteConfig)
                 }
                 .onFailure { error ->
@@ -572,6 +573,7 @@ class SplashKT : AppCompatActivity() {
     private fun getRemoteValues(config: RemoteConfig?) {
         infotext?.setText(R.string.initializing)
         if (config == null) {
+            Log.d("ADDDDDMMMDD", "error Connected 111")
             val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
             if (cachedConfig != null) {
                 getRemoteValuesOffline(cachedConfig)
@@ -783,10 +785,7 @@ class SplashKT : AppCompatActivity() {
                 if (should_My_App_Use_TV_Mode) {
                     Log.d("ADDDDDMMMDD", "---11122222error")
                     sharedBiometric.edit().apply {
-                        putString(
-                            Constants.get_Launching_State_Of_WebView,
-                            Constants.launch_WebView_Offline
-                        )
+                        putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
                         putString(Constants.PROTECT_PASSWORD, Constants.PROTECT_PASSWORD)
                         apply()
                     }
@@ -797,12 +796,7 @@ class SplashKT : AppCompatActivity() {
                         Constants.FIRST_INFORMATION_PAGE_COMPLETED -> {
                             if (getFirstMode != Constants.installTVModeForFirstTime) {
                                 startActivity(
-                                    Intent(
-                                        applicationContext,
-                                        ReSyncActivity::class.java
-                                    ).apply {
-                                        putExtra("url", constants.jsonUrl)
-                                    })
+                                    Intent(applicationContext, ReSyncActivity::class.java).apply { putExtra("url", constants.jsonUrl) })
                             } else {
                                 startActivity(
                                     Intent(
@@ -1176,69 +1170,82 @@ class SplashKT : AppCompatActivity() {
 
 
     private fun applyAppModeSettings(settings: DomainTVModeSettings) {
-        sharedTVAPPModePreferences.edit().apply {
-            putBoolean(Constants.installTVMode, settings.install_TV_mode)
-            putBoolean(Constants.hide_TV_Mode_Label, settings.hide_TV_mode_label)
-            putBoolean(Constants.fullScreen_APP, settings.full_Screen)
-            putBoolean(Constants.hide_Full_ScreenLabel, settings.hide_Full_Screen_Label)
-            putBoolean(Constants.immersive_Mode_APP, settings.immersive_Mode)
-            putBoolean(Constants.hide_Immersive_ModeLabel, settings.hide_Immersive_Mode_Label)
-            putBoolean(Constants.hide_BottomBar_APP, settings.hide_Bottom_Bar)
-            putBoolean(Constants.hide_Bottom_Bar_Label_APP, settings.hide_Bottom_Bar_Label)
-            putBoolean(Constants.hideBottom_MenuIcon_APP, settings.hide_Bottom_Menu_Icon)
-            putBoolean(Constants.hide_Bottom_MenuIconLabel_APP, settings.hide_Bottom_Menu_Icon_Label)
-            putBoolean(Constants.hide_Floating_Button_APP, settings.hide_Floating_Button)
-            putBoolean(Constants.hide_Floating_ButtonLabel_APP, settings.hide_Floating_Button_Label)
-            putBoolean(Constants.use_local_schedule_APP, settings.use_local_schedule)
-            putBoolean(Constants.show_local_schedule_label, settings.show_local_schedule_label)
-            apply()
+
+        lifecycleScope.launch {
+
+            sharedTVAPPModePreferences.edit().apply {
+                putBoolean(Constants.installTVMode, settings.install_TV_mode)
+                putBoolean(Constants.hide_TV_Mode_Label, settings.hide_TV_mode_label)
+                putBoolean(Constants.fullScreen_APP, settings.full_Screen)
+                putBoolean(Constants.hide_Full_ScreenLabel, settings.hide_Full_Screen_Label)
+                putBoolean(Constants.immersive_Mode_APP, settings.immersive_Mode)
+                putBoolean(Constants.hide_Immersive_ModeLabel, settings.hide_Immersive_Mode_Label)
+                putBoolean(Constants.hide_BottomBar_APP, settings.hide_Bottom_Bar)
+                putBoolean(Constants.hide_Bottom_Bar_Label_APP, settings.hide_Bottom_Bar_Label)
+                putBoolean(Constants.hideBottom_MenuIcon_APP, settings.hide_Bottom_Menu_Icon)
+                putBoolean(
+                    Constants.hide_Bottom_MenuIconLabel_APP,
+                    settings.hide_Bottom_Menu_Icon_Label
+                )
+                putBoolean(Constants.hide_Floating_Button_APP, settings.hide_Floating_Button)
+                putBoolean(
+                    Constants.hide_Floating_ButtonLabel_APP,
+                    settings.hide_Floating_Button_Label
+                )
+                putBoolean(Constants.use_local_schedule_APP, settings.use_local_schedule)
+                putBoolean(Constants.show_local_schedule_label, settings.show_local_schedule_label)
+                apply()
 
 
-            Log.d("ADDDDDMMMDD", "applyAppModeSettings: ${settings.install_TV_mode}")
-            Log.d("ADDDDDMMMDD", "applyAppModeSettings: ${settings.hide_TV_mode_label}")
-            Log.d("ADDDDDMMMDD", "applyAppModeSettings: ${settings.hide_Full_Screen_Label}")
+                Log.d("ADDDDDMMMDD", "applyAppModeSettings: ${settings.install_TV_mode}")
+                Log.d("ADDDDDMMMDD", "applyAppModeSettings: ${settings.hide_TV_mode_label}")
+                Log.d("ADDDDDMMMDD", "applyAppModeSettings: ${settings.hide_Full_Screen_Label}")
 
-        }
-
-
-        // Extracting individual values
-        val installTVMode = settings.install_TV_mode
-
-        val use_local_schedule = settings.use_local_schedule
-
-        Log.d("USE_DAVID", "fetchApiSettings: $use_local_schedule")
+            }
 
 
-        if (installTVMode) {
-            should_My_App_Use_TV_Mode = true
-            val editorrr = sharedBiometric.edit()
-            editorrr.putString(Constants.MY_TV_OR_APP_MODE, Constants.TV_Mode)
-            editorrr.apply()
-        } else {
-            val editorrr = sharedBiometric.edit()
-            editorrr.putString(Constants.MY_TV_OR_APP_MODE, Constants.App)
-            editorrr.apply()
-        }
 
-        // use Paper Book to Save Use online CSv or Local CSv
-        if (use_local_schedule) {
-            // se to use local schedule if true
-            Paper.book().write(Common.set_schedule_key, Common.schedule_offline)
-        } else {
-            // se to use online  schedule if false
-            Paper.book().write(Common.set_schedule_key, Common.schedule_online)
-        }
+            // Extracting individual values
+            val installTVMode = settings.install_TV_mode
+
+            val use_local_schedule = settings.use_local_schedule
 
 
-        val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
-        if (cachedConfig != null) {
-            getRemoteValuesOffline(cachedConfig)
-        } else {
-            manageUIStateOnNetworkIssuesForRetry()
-            InitWebviewIndexFileState()
+            Log.d("ADDDDDMMMDD", "fetchApiSettings  == No internet call 1011")
+
+            delay(500L)
+
+
+            if (installTVMode) {
+                should_My_App_Use_TV_Mode = true
+                val editorrr = sharedBiometric.edit()
+                editorrr.putString(Constants.MY_TV_OR_APP_MODE, Constants.TV_Mode)
+                editorrr.apply()
+            } else {
+                val editorrr = sharedBiometric.edit()
+                editorrr.putString(Constants.MY_TV_OR_APP_MODE, Constants.App)
+                editorrr.apply()
+            }
+
+            // use Paper Book to Save Use online CSv or Local CSv
+            if (use_local_schedule) {
+                // se to use local schedule if true
+                Paper.book().write(Common.set_schedule_key, Common.schedule_offline)
+            } else {
+                // se to use online  schedule if false
+                Paper.book().write(Common.set_schedule_key, Common.schedule_online)
+            }
+
+
+            val cachedConfig = loadRemoteConfigFromPrefs(applicationContext)
+            if (cachedConfig != null) {
+                getRemoteValuesOffline(cachedConfig)
+            } else {
+                manageUIStateOnNetworkIssuesForRetry()
+                InitWebviewIndexFileState()
+            }
         }
     }
-
 
     private fun handleFailedApiCall(message: String) {
         Log.e("API_FAIL", message)
