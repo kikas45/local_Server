@@ -771,6 +771,7 @@ class SplashKT : AppCompatActivity() {
 
         constants.jsonUrl = homeurl
         Log.d("PETER", "InitWebvIewloadStates: Splash K  The JSON_MAIN_URl $homeurl")
+        Log.d("PETER", "InitWebvIewloadStates: Splash K  The JSON_MAIN_URl $homeurl")
 
         try {
             val uri = URI(homeurl)
