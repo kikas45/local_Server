@@ -1253,9 +1253,28 @@ class WebViewPage : AppCompatActivity() {
 //    }
 
 
+
+
     private fun InitWebvIewloadStates() {
+        val intentUrl = intent.getStringExtra("url_launch")
+
+        if (!intentUrl.isNullOrEmpty()) {
+            // ✅ Case 1: Launched via Intent with a URL
+            if (Utility.isNetworkAvailable(applicationContext)) {
+                Log.d("PETER", "Loading Intent URL: $intentUrl")
+                loadOnlineLiveUrl(intentUrl)
+                load_live_indicator()
+            } else {
+                Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
+                checkPathForFilesWhenOffline()
+            }
+            return
+        }
+
+        // ✅ Case 2: No Intent URL, fall back to saved state logic
         val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
         val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+
         val get_launching_state =
             sharedBiometric.getString(Constants.get_Launching_State_Of_WebView, "").toString()
         val fil_CLO = myDownloadClass.getString(Constants.getFolderClo, "").toString()
@@ -1263,51 +1282,75 @@ class WebViewPage : AppCompatActivity() {
 
         Log.d("PETER", "InitWebvIewloadStates: $get_launching_state")
 
-        if (get_launching_state.equals(Constants.launch_WebView_Online)) {
-
-            if (Utility.isNetworkAvailable(applicationContext)) {
-
-                load_live_Parther_url_Format()
-            } else {
-                checkPathForFilesWhenOffline()
+        when (get_launching_state) {
+            Constants.launch_WebView_Online -> {
+                if (Utility.isNetworkAvailable(applicationContext)) {
+                    load_live_Parther_url_Format()
+                } else {
+                    checkPathForFilesWhenOffline()
+                }
             }
 
-
-        } else {
-
-            if (get_launching_state.equals(Constants.launch_WebView_Offline)) {
+            Constants.launch_WebView_Offline,
+            Constants.launch_WebView_Offline_Manual_Index -> {
                 val filename = "/index.html"
                 lifecycleScope.launch {
                     loadOffline_Saved_Path_Offline_Webview(fil_CLO, fil_DEMO, filename)
                 }
+            }
 
-
-            } else if (get_launching_state.equals(Constants.launch_WebView_Offline_Manual_Index)) {
-
-                val filename = "/index.html"
-                lifecycleScope.launch {
-                    loadOffline_Saved_Path_Offline_Webview(fil_CLO, fil_DEMO, filename)
-                }
-
-            } else if (get_launching_state.equals(Constants.launch_WebView_Online_Manual_Index)) {
-
+            Constants.launch_WebView_Online_Manual_Index -> {
                 if (Utility.isNetworkAvailable(applicationContext)) {
-                    val getSaved_manaul_index_edit_url_Input = myDownloadClass.getString(
+                    val manualUrl = myDownloadClass.getString(
                         Constants.getSaved_manaul_index_edit_url_Input,
                         ""
                     ).toString()
-                    loadOnlineLiveUrl(getSaved_manaul_index_edit_url_Input)
+                    loadOnlineLiveUrl(manualUrl)
                     load_live_indicator()
-
                 } else {
                     checkPathForFilesWhenOffline()
                 }
+            }
 
-
-            } else if (get_launching_state.equals(Constants.launch_Default_WebView_url)) {
-
+            Constants.launch_Default_WebView_url -> {
                 if (Utility.isNetworkAvailable(applicationContext)) {
                     loadOnlineUrl()
+                } else {
+                    checkPathForFilesWhenOffline()
+                }
+            }
+
+            else -> {
+                if (Utility.isNetworkAvailable(applicationContext)) {
+                    loadOnlineUrl()
+                } else {
+                    checkPathForFilesWhenOffline()
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+    /*
+        private fun InitWebvIewloadStates() {
+            val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+            val myDownloadClass = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+            val get_launching_state =
+                sharedBiometric.getString(Constants.get_Launching_State_Of_WebView, "").toString()
+            val fil_CLO = myDownloadClass.getString(Constants.getFolderClo, "").toString()
+            val fil_DEMO = myDownloadClass.getString(Constants.getFolderSubpath, "").toString()
+
+            Log.d("PETER", "InitWebvIewloadStates: $get_launching_state")
+
+            if (get_launching_state.equals(Constants.launch_WebView_Online)) {
+
+                if (Utility.isNetworkAvailable(applicationContext)) {
+
+                    load_live_Parther_url_Format()
                 } else {
                     checkPathForFilesWhenOffline()
                 }
@@ -1315,19 +1358,60 @@ class WebViewPage : AppCompatActivity() {
 
             } else {
 
+                if (get_launching_state.equals(Constants.launch_WebView_Offline)) {
+                    val filename = "/index.html"
+                    lifecycleScope.launch {
+                        loadOffline_Saved_Path_Offline_Webview(fil_CLO, fil_DEMO, filename)
+                    }
 
-                if (Utility.isNetworkAvailable(applicationContext)) {
-                    loadOnlineUrl()
+
+                } else if (get_launching_state.equals(Constants.launch_WebView_Offline_Manual_Index)) {
+
+                    val filename = "/index.html"
+                    lifecycleScope.launch {
+                        loadOffline_Saved_Path_Offline_Webview(fil_CLO, fil_DEMO, filename)
+                    }
+
+                } else if (get_launching_state.equals(Constants.launch_WebView_Online_Manual_Index)) {
+
+                    if (Utility.isNetworkAvailable(applicationContext)) {
+                        val getSaved_manaul_index_edit_url_Input = myDownloadClass.getString(
+                            Constants.getSaved_manaul_index_edit_url_Input,
+                            ""
+                        ).toString()
+                        loadOnlineLiveUrl(getSaved_manaul_index_edit_url_Input)
+                        load_live_indicator()
+
+                    } else {
+                        checkPathForFilesWhenOffline()
+                    }
+
+
+                } else if (get_launching_state.equals(Constants.launch_Default_WebView_url)) {
+
+                    if (Utility.isNetworkAvailable(applicationContext)) {
+                        loadOnlineUrl()
+                    } else {
+                        checkPathForFilesWhenOffline()
+                    }
+
 
                 } else {
-                    checkPathForFilesWhenOffline()
-                }
 
+
+                    if (Utility.isNetworkAvailable(applicationContext)) {
+                        loadOnlineUrl()
+
+                    } else {
+                        checkPathForFilesWhenOffline()
+                    }
+
+                }
             }
+
         }
 
-    }
-
+    */
 
     private fun InitWebvIewloadStatesWhenPopUpIsOn() {
         val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)

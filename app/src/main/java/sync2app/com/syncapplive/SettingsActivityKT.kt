@@ -25,6 +25,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.text.method.PasswordTransformationMethod
 import android.util.Log
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -122,10 +123,14 @@ class SettingsActivityKT : AppCompatActivity() {
     }
 
 
-
     private var customProgressDialog: Dialog? = null
 
     private lateinit var binding: ActivitySettingsBinding
+
+    private val PREFS_NAME = "app_prefs"
+    private val LAST_URL_KEY = "last_url"
+
+
     @SuppressLint("SourceLockedOrientationActivity", "SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -139,16 +144,17 @@ class SettingsActivityKT : AppCompatActivity() {
         setUpFullScreenWindows()
 
         handlerMoveToWebviewPage.postDelayed(Runnable {
-            val getInfoPageState = sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
-            if(getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED){
+            val getInfoPageState =
+                sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
+            if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
                 startActivity(Intent(applicationContext, WebViewPage::class.java))
                 finish()
-            }else{
+            } else {
                 startActivity(Intent(applicationContext, InformationActivity::class.java))
                 finish()
             }
 
-        },Constants.MOVE_BK_WEBVIEW_TIME)
+        }, Constants.MOVE_BK_WEBVIEW_TIME)
 
 
         binding.apply {
@@ -171,9 +177,13 @@ class SettingsActivityKT : AppCompatActivity() {
             } catch (e: Exception) {
             }
 
-            val get_imgToggleImageBackground = sharedBiometric.getString(Constants.imgToggleImageBackground, "")
+            val get_imgToggleImageBackground =
+                sharedBiometric.getString(Constants.imgToggleImageBackground, "")
             val get_imageUseBranding = sharedBiometric.getString(Constants.imageUseBranding, "")
-            if (get_imgToggleImageBackground.equals(Constants.imgToggleImageBackground) && get_imageUseBranding.equals(Constants.imageUseBranding) ){
+            if (get_imgToggleImageBackground.equals(Constants.imgToggleImageBackground) && get_imageUseBranding.equals(
+                    Constants.imageUseBranding
+                )
+            ) {
                 loadBackGroundImage()
             }
 
@@ -182,12 +192,14 @@ class SettingsActivityKT : AppCompatActivity() {
 
             closeBs.setOnClickListener {
 
-                val getInfoPageState = sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
-                if(getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED){
+                val getInfoPageState =
+                    sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "")
+                        .toString()
+                if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
                     val intent = Intent(applicationContext, WebViewPage::class.java)
                     startActivity(intent)
                     finish()
-                }else{
+                } else {
                     startActivity(Intent(applicationContext, InformationActivity::class.java))
                     finish()
                 }
@@ -226,8 +238,6 @@ class SettingsActivityKT : AppCompatActivity() {
         }
 
 
-
-
         /// Manage Control Label for Tv or App mode JSON
 
         controlToggleUIVisibilityForJson()
@@ -240,8 +250,30 @@ class SettingsActivityKT : AppCompatActivity() {
         }
 
 
-    }
+        // 🔹 Load last saved URL into EditText
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val lastUrl = prefs.getString(LAST_URL_KEY, "")
+        if (!lastUrl.isNullOrEmpty()) {
+            binding.editTextUserID.setText(lastUrl)
+        }
 
+
+        binding.textLaunch.setOnClickListener {
+            val url = binding.editTextUserID.text.toString().trim()
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                // 🔹 Save the URL for next time
+                prefs.edit().putString(LAST_URL_KEY, url).apply()
+
+                val intent = Intent(applicationContext, WebViewPage::class.java)
+                intent.putExtra("url_launch", url)
+                startActivity(intent)
+                finish()
+            } else {
+                Toast.makeText(applicationContext, "Enter a valid URL (http/https)", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    }
 
 
     private fun clearCache() {
@@ -249,13 +281,15 @@ class SettingsActivityKT : AppCompatActivity() {
         builder.setMessage("Are you sure want to clear cache?")
         builder.setPositiveButton("Yes") { dialog, which ->
 
-           // FileUtils.deleteQuietly(cacheDir)
-           // FileUtils.deleteQuietly(externalCacheDir)
+            // FileUtils.deleteQuietly(cacheDir)
+            // FileUtils.deleteQuietly(externalCacheDir)
 
             binding.textEnableCacheMode.text = "Free up" + " 0 Bytes " + "of space"
-            Snackbar.make(findViewById(android.R.id.content),
+            Snackbar.make(
+                findViewById(android.R.id.content),
                 "cache has been cleared",
-                Snackbar.LENGTH_SHORT).show()
+                Snackbar.LENGTH_SHORT
+            ).show()
         }
         builder.setNegativeButton("Cancel", null)
         builder.show()
@@ -263,7 +297,8 @@ class SettingsActivityKT : AppCompatActivity() {
 
     private fun initializeCache() {
         val totalSize = 0 + getDirSize(cacheDir) + getDirSize(externalCacheDir!!)
-        binding.textEnableCacheMode.text = "Free up" + " " + readableFileSize(totalSize) + " " + "of space"
+        binding.textEnableCacheMode.text =
+            "Free up" + " " + readableFileSize(totalSize) + " " + "of space"
     }
 
     fun getDirSize(dir: File): Long {
@@ -279,28 +314,29 @@ class SettingsActivityKT : AppCompatActivity() {
         if (size <= 0) return "0 Bytes"
         val units = arrayOf("Bytes", "KB", "MB", "GB", "TB")
         val digitGroups = (Math.log10(size.toDouble()) / Math.log10(1024.0)).toInt()
-        val formattedSize = DecimalFormat("#,##0.#").format(size / Math.pow(1024.0, digitGroups.toDouble()))
+        val formattedSize =
+            DecimalFormat("#,##0.#").format(size / Math.pow(1024.0, digitGroups.toDouble()))
         return "$formattedSize ${units[digitGroups]}"
     }
 
 
-
-
-
     private fun setUpFullScreenWindows() {
-        val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+        val get_INSTALL_TV_JSON_USER_CLICKED =
+            sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                .toString()
         if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
             val img_imgImmesriveModeToggle = preferences.getBoolean(Constants.immersive_mode, false)
-            if (img_imgImmesriveModeToggle){
+            if (img_imgImmesriveModeToggle) {
                 Utility.hideSystemBars(window)
-            }else {
+            } else {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
             }
 
 
-        }else{
+        } else {
 
-            val immersive_Mode_APP = sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
+            val immersive_Mode_APP =
+                sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
             if (immersive_Mode_APP) {
                 Utility.hideSystemBars(window)
             } else {
@@ -311,16 +347,25 @@ class SettingsActivityKT : AppCompatActivity() {
     }
 
 
-
     private fun controlToggleUIVisibilityForJson() {
         binding.apply {
-            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
-            val hide_TV_Mode_Label = sharedTVAPPModePreferences.getBoolean(Constants.hide_TV_Mode_Label, false)
-            val hideFull_ScreenLabel = sharedTVAPPModePreferences.getBoolean(Constants.hide_Full_ScreenLabel, false)
-            val hide_Immersive_ModeLabel = sharedTVAPPModePreferences.getBoolean(Constants.hide_Immersive_ModeLabel, false)
-            val hide_Bottom_Bar_Label_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Bottom_Bar_Label_APP, false)
-            val hide_Floating_ButtonLabel_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Floating_Button_APP, false)
-            val hide_Bottom_MenuIconLabel_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Bottom_MenuIconLabel_APP, false)
+            val get_INSTALL_TV_JSON_USER_CLICKED =
+                sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                    .toString()
+            val hide_TV_Mode_Label =
+                sharedTVAPPModePreferences.getBoolean(Constants.hide_TV_Mode_Label, false)
+            val hideFull_ScreenLabel =
+                sharedTVAPPModePreferences.getBoolean(Constants.hide_Full_ScreenLabel, false)
+            val hide_Immersive_ModeLabel =
+                sharedTVAPPModePreferences.getBoolean(Constants.hide_Immersive_ModeLabel, false)
+            val hide_Bottom_Bar_Label_APP =
+                sharedTVAPPModePreferences.getBoolean(Constants.hide_Bottom_Bar_Label_APP, false)
+            val hide_Floating_ButtonLabel_APP =
+                sharedTVAPPModePreferences.getBoolean(Constants.hide_Floating_Button_APP, false)
+            val hide_Bottom_MenuIconLabel_APP = sharedTVAPPModePreferences.getBoolean(
+                Constants.hide_Bottom_MenuIconLabel_APP,
+                false
+            )
 
 
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
@@ -384,12 +429,16 @@ class SettingsActivityKT : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (handlerMoveToWebviewPage != null){
+        if (handlerMoveToWebviewPage != null) {
             handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
         }
     }
 
-    private fun get_Current_Time_State_for_Password(editText: EditText, imgToggle:ImageView,imgToggleNzotVisible:ImageView ) {
+    private fun get_Current_Time_State_for_Password(
+        editText: EditText,
+        imgToggle: ImageView,
+        imgToggleNzotVisible: ImageView
+    ) {
         val getPrefilledPassword =
             simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
 
@@ -461,8 +510,11 @@ class SettingsActivityKT : AppCompatActivity() {
         val editorTVJSON = sharedTVAPPModePreferences.edit()
         val editor = preferences.edit()
         binding.apply {
-            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
-            val get_installTVMode = sharedTVAPPModePreferences.getBoolean(Constants.installTVMode, false)
+            val get_INSTALL_TV_JSON_USER_CLICKED =
+                sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                    .toString()
+            val get_installTVMode =
+                sharedTVAPPModePreferences.getBoolean(Constants.installTVMode, false)
 
 
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
@@ -483,8 +535,9 @@ class SettingsActivityKT : AppCompatActivity() {
                     editorShared.apply()
 
                 }
-            }else{
-                val get_AppMode = sharedBiometric.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
+            } else {
+                val get_AppMode =
+                    sharedBiometric.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
                 if (get_AppMode == Constants.TV_Mode) {
 
                     imgTvOrAppModeMode.isChecked = true
@@ -512,10 +565,16 @@ class SettingsActivityKT : AppCompatActivity() {
                 if (compoundButton.isChecked) {
 
                     textTvOrAppMode.text = "Install TV Mode"
-                    editorShared.putString(Constants.imgStartAppRestartOnTvMode, Constants.imgStartAppRestartOnTvMode)
+                    editorShared.putString(
+                        Constants.imgStartAppRestartOnTvMode,
+                        Constants.imgStartAppRestartOnTvMode
+                    )
                     editorShared.putString(Constants.MY_TV_OR_APP_MODE, Constants.TV_Mode)
 
-                    editorShared.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Offline)
+                    editorShared.putString(
+                        Constants.get_Launching_State_Of_WebView,
+                        Constants.launch_WebView_Offline
+                    )
                     editorShared.putString(Constants.PROTECT_PASSWORD, Constants.PROTECT_PASSWORD)
                     editorShared.apply()
 
@@ -543,14 +602,15 @@ class SettingsActivityKT : AppCompatActivity() {
                     editorTVJSON.apply()
 
 
-
-
                 } else {
 
                     textTvOrAppMode.text = "Install Mobile Mode"
                     editorShared.putString(Constants.MY_TV_OR_APP_MODE, Constants.App_Mode)
                     editorShared.remove(Constants.imgStartAppRestartOnTvMode)
-                    editorShared.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
+                    editorShared.putString(
+                        Constants.get_Launching_State_Of_WebView,
+                        Constants.launch_Default_WebView_url
+                    )
                     editorShared.remove(Constants.PROTECT_PASSWORD)
                     editorShared.apply()
 
@@ -581,7 +641,6 @@ class SettingsActivityKT : AppCompatActivity() {
                     editorTVJSON.apply()
 
 
-
                 }
             }
 
@@ -592,7 +651,10 @@ class SettingsActivityKT : AppCompatActivity() {
             imgUseOfflineFolderOrNot.setOnCheckedChangeListener { compoundButton, isValued -> // we are putting the values into SHARED PREFERENCE
                 if (compoundButton.isChecked) {
                     textUseOfflineFolderOrNot.text = "Use local Files if Offline (ON)"
-                    editorShared.putString(Constants.USE_OFFLINE_FOLDER, Constants.USE_OFFLINE_FOLDER)
+                    editorShared.putString(
+                        Constants.USE_OFFLINE_FOLDER,
+                        Constants.USE_OFFLINE_FOLDER
+                    )
                     editorShared.apply()
 
                 } else {
@@ -604,7 +666,8 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
 
-            val get_useOfflineFolderOrNot = sharedBiometric.getString(Constants.USE_OFFLINE_FOLDER, "").toString()
+            val get_useOfflineFolderOrNot =
+                sharedBiometric.getString(Constants.USE_OFFLINE_FOLDER, "").toString()
             if (get_useOfflineFolderOrNot == Constants.USE_OFFLINE_FOLDER) {
                 imgUseOfflineFolderOrNot.isChecked = true
                 textUseOfflineFolderOrNot.text = "Use local Files if Offline"
@@ -618,7 +681,9 @@ class SettingsActivityKT : AppCompatActivity() {
         // init toggle Full Screen
         binding.apply {
 
-            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+            val get_INSTALL_TV_JSON_USER_CLICKED =
+                sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                    .toString()
 
             imgFullScreenToggle.setOnCheckedChangeListener { compoundButton, isValued ->
                 if (compoundButton.isChecked) {
@@ -664,16 +729,16 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
 
-            val fullScreen_APP = sharedTVAPPModePreferences.getBoolean(Constants.fullScreen_APP, false)
+            val fullScreen_APP =
+                sharedTVAPPModePreferences.getBoolean(Constants.fullScreen_APP, false)
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
 
                 imgFullScreenToggle.isChecked = fullScreen_APP == true
 
-            }else{
+            } else {
                 val imgFullScreen = preferences.getBoolean(Constants.fullscreen, false)
                 imgFullScreenToggle.isChecked = imgFullScreen == true
             }
-
 
 
         }
@@ -683,7 +748,9 @@ class SettingsActivityKT : AppCompatActivity() {
         binding.apply {
 
 
-            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+            val get_INSTALL_TV_JSON_USER_CLICKED =
+                sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                    .toString()
 
             imgImmesriveModeToggle.setOnCheckedChangeListener { compoundButton, isValued ->
                 if (compoundButton.isChecked) {
@@ -732,17 +799,16 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
 
-
-            val immersive_Mode_APP = sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
+            val immersive_Mode_APP =
+                sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
 
                 imgImmesriveModeToggle.isChecked = immersive_Mode_APP == true
-            }else{
-                val img_imgImmesriveModeToggle = preferences.getBoolean(Constants.immersive_mode, false)
+            } else {
+                val img_imgImmesriveModeToggle =
+                    preferences.getBoolean(Constants.immersive_mode, false)
                 imgImmesriveModeToggle.isChecked = img_imgImmesriveModeToggle == true
             }
-
-
 
 
         }
@@ -855,7 +921,9 @@ class SettingsActivityKT : AppCompatActivity() {
 
         // hidebottombar Mode
         binding.apply {
-            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+            val get_INSTALL_TV_JSON_USER_CLICKED =
+                sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                    .toString()
             imgHidebottombar.setOnCheckedChangeListener { compoundButton, isValued ->
                 if (compoundButton.isChecked) {
                     textHidebottombar.text = "Hide Bottom Bar"
@@ -904,7 +972,8 @@ class SettingsActivityKT : AppCompatActivity() {
                 }
             }
 
-            val show_BottomBar_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_BottomBar_APP, false)
+            val show_BottomBar_APP =
+                sharedTVAPPModePreferences.getBoolean(Constants.hide_BottomBar_APP, false)
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
 
                 imgHidebottombar.isChecked = show_BottomBar_APP == true
@@ -915,7 +984,7 @@ class SettingsActivityKT : AppCompatActivity() {
                     textHidebottombar.text = "Show Bottom Bar"
                 }
 
-            }else{
+            } else {
                 val img_imgHidebottombar = preferences.getBoolean(Constants.hidebottombar, false)
                 imgHidebottombar.isChecked = img_imgHidebottombar == true
 
@@ -927,14 +996,15 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
 
-
         }
 
 
         // hide_drawer_icon Mode
         binding.apply {
 
-            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+            val get_INSTALL_TV_JSON_USER_CLICKED =
+                sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                    .toString()
             imgHideDrawerIcon.setOnCheckedChangeListener { compoundButton, isValued ->
                 if (compoundButton.isChecked) {
                     textHideDrawerIcon.text = "Show Bottom Menu Icon"
@@ -959,8 +1029,8 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
 
-
-            val hideBottom_MenuIcon_APP = sharedTVAPPModePreferences.getBoolean(Constants.hideBottom_MenuIcon_APP, false)
+            val hideBottom_MenuIcon_APP =
+                sharedTVAPPModePreferences.getBoolean(Constants.hideBottom_MenuIcon_APP, false)
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
 
                 imgHideDrawerIcon.isChecked = hideBottom_MenuIcon_APP == true
@@ -973,8 +1043,9 @@ class SettingsActivityKT : AppCompatActivity() {
                     textHideDrawerIcon.text = "Hide Bottom Menu Icon"
                 }
 
-            }else{
-                val img_imgHideDrawerIcon = preferences.getBoolean(Constants.hide_drawer_icon, false)
+            } else {
+                val img_imgHideDrawerIcon =
+                    preferences.getBoolean(Constants.hide_drawer_icon, false)
                 imgHideDrawerIcon.isChecked = img_imgHideDrawerIcon == true
 
                 if (img_imgHideDrawerIcon) {
@@ -992,7 +1063,9 @@ class SettingsActivityKT : AppCompatActivity() {
         // Floating Action Button  Mode
         binding.apply {
 
-            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
+            val get_INSTALL_TV_JSON_USER_CLICKED =
+                sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                    .toString()
             imgShwoFloatingButton.setOnCheckedChangeListener { compoundButton, isValued ->
                 if (compoundButton.isChecked) {
                     textShwoFloatingButton.text = "Hide Floating Button"
@@ -1006,16 +1079,17 @@ class SettingsActivityKT : AppCompatActivity() {
 
                     textShwoFloatingButton.setTextColor(resources.getColor(R.color.dark_light_gray))
 
-                    val drawable_imageViewHidebottombar = ContextCompat.getDrawable(applicationContext, R.drawable.ic_floating_button_24)
-                    drawable_imageViewHidebottombar?.setColorFilter(ContextCompat.getColor(
+                    val drawable_imageViewHidebottombar = ContextCompat.getDrawable(
                         applicationContext,
-                        R.color.pref_icons_color
-                    ), PorterDuff.Mode.SRC_IN
+                        R.drawable.ic_floating_button_24
+                    )
+                    drawable_imageViewHidebottombar?.setColorFilter(
+                        ContextCompat.getColor(
+                            applicationContext,
+                            R.color.pref_icons_color
+                        ), PorterDuff.Mode.SRC_IN
                     )
                     imageViewShwoFloatingButton.setImageDrawable(drawable_imageViewHidebottombar)
-
-
-
 
 
                 } else {
@@ -1031,11 +1105,15 @@ class SettingsActivityKT : AppCompatActivity() {
 
                     textShwoFloatingButton.setTextColor(resources.getColor(R.color.logo_green))
 
-                    val drawable_imageViewHidebottombar = ContextCompat.getDrawable(applicationContext, R.drawable.ic_floating_button_24)
-                    drawable_imageViewHidebottombar?.setColorFilter(ContextCompat.getColor(
+                    val drawable_imageViewHidebottombar = ContextCompat.getDrawable(
                         applicationContext,
-                        R.color.logo_green
-                    ), PorterDuff.Mode.SRC_IN
+                        R.drawable.ic_floating_button_24
+                    )
+                    drawable_imageViewHidebottombar?.setColorFilter(
+                        ContextCompat.getColor(
+                            applicationContext,
+                            R.color.logo_green
+                        ), PorterDuff.Mode.SRC_IN
                     )
                     imageViewShwoFloatingButton.setImageDrawable(drawable_imageViewHidebottombar)
 
@@ -1044,9 +1122,8 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
 
-
-
-            val showFloating_Button_APP = sharedTVAPPModePreferences.getBoolean(Constants.hide_Floating_Button_APP, false)
+            val showFloating_Button_APP =
+                sharedTVAPPModePreferences.getBoolean(Constants.hide_Floating_Button_APP, false)
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
 
                 imgShwoFloatingButton.isChecked = showFloating_Button_APP == true
@@ -1058,8 +1135,9 @@ class SettingsActivityKT : AppCompatActivity() {
                     textShwoFloatingButton.text = "Show Floating Button"
                 }
 
-            }else{
-                val img_imgShwoFloatingButton = preferences.getBoolean(Constants.shwoFloatingButton, false)
+            } else {
+                val img_imgShwoFloatingButton =
+                    preferences.getBoolean(Constants.shwoFloatingButton, false)
                 imgShwoFloatingButton.isChecked = img_imgShwoFloatingButton == true
 
                 if (img_imgShwoFloatingButton) {
@@ -1110,7 +1188,6 @@ class SettingsActivityKT : AppCompatActivity() {
         // Enable Cache   Mode
         // Enable Cache   Mode
         // Enable Cache   Mode
-
 
 
         // 1 permissions_switch Mode
@@ -1246,7 +1323,8 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
 
-            val get_ProtectPassowrd = sharedBiometric.getString(Constants.PROTECT_PASSWORD, "").toString()
+            val get_ProtectPassowrd =
+                sharedBiometric.getString(Constants.PROTECT_PASSWORD, "").toString()
             imgProtrectPassoword.isChecked = get_ProtectPassowrd == Constants.PROTECT_PASSWORD
 
             if (get_ProtectPassowrd == Constants.PROTECT_PASSWORD) {
@@ -1261,12 +1339,6 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
     }
-
-
-
-
-
-
 
 
     @SuppressLint("MissingInflatedId")
@@ -1433,6 +1505,7 @@ class SettingsActivityKT : AppCompatActivity() {
         }
 
     }
+
     private fun setDrawableColor(imageView: ImageView, drawableId: Int, colorId: Int) {
         val drawable = ContextCompat.getDrawable(applicationContext, drawableId)
         if (drawable != null) {
@@ -1448,12 +1521,15 @@ class SettingsActivityKT : AppCompatActivity() {
     private fun showCustomProgressDialog(message: String) {
         try {
             customProgressDialog = Dialog(this)
-            val binding: ProgressDialogLayoutBinding = ProgressDialogLayoutBinding.inflate(LayoutInflater.from(this))
+            val binding: ProgressDialogLayoutBinding =
+                ProgressDialogLayoutBinding.inflate(LayoutInflater.from(this))
             customProgressDialog!!.setContentView(binding.getRoot())
             customProgressDialog!!.setCancelable(false)
             customProgressDialog!!.setCanceledOnTouchOutside(false)
-            customProgressDialog!!.getWindow()!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            customProgressDialog!!.window!!.attributes.windowAnimations = R.style.PauseDialogAnimation
+            customProgressDialog!!.getWindow()!!
+                .setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            customProgressDialog!!.window!!.attributes.windowAnimations =
+                R.style.PauseDialogAnimation
 
             binding.textLoading.setText(message)
             binding.imgCloseDialog.setVisibility(View.GONE)
@@ -1467,7 +1543,8 @@ class SettingsActivityKT : AppCompatActivity() {
     @SuppressLint("InflateParams", "SuspiciousIndentation")
     private fun showExitConfirmationDialog() {
         try {
-            val binding: CustomConfirmExitDialogBinding = CustomConfirmExitDialogBinding.inflate(layoutInflater)
+            val binding: CustomConfirmExitDialogBinding =
+                CustomConfirmExitDialogBinding.inflate(layoutInflater)
             val builder = AlertDialog.Builder(this)
             builder.setView(binding.getRoot())
             val alertDialog = builder.create()
@@ -1507,14 +1584,18 @@ class SettingsActivityKT : AppCompatActivity() {
             val imgToggleNzotVisible: ImageView = binding.imgToggleNzotVisible
 
 
-            val preferences = android.preference.PreferenceManager.getDefaultSharedPreferences(applicationContext)
+            val preferences =
+                android.preference.PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
 
             // Hide Some Buttons for Mobile Mode
-            val get_INSTALL_TV_JSON_USER_CLICKED = sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "").toString()
-            val installTVMode = sharedTVAPPModePreferences.getBoolean(Constants.installTVMode, false)
+            val get_INSTALL_TV_JSON_USER_CLICKED =
+                sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                    .toString()
+            val installTVMode =
+                sharedTVAPPModePreferences.getBoolean(Constants.installTVMode, false)
             if (get_INSTALL_TV_JSON_USER_CLICKED == Constants.INSTALL_TV_JSON_USER_CLICKED) {
-                if (installTVMode){
+                if (installTVMode) {
 
                     btnMobilAppSettings.visibility = View.GONE
                     btnMobilAppAdmin.visibility = View.GONE
@@ -1524,7 +1605,7 @@ class SettingsActivityKT : AppCompatActivity() {
                     textLaunchOffline.visibility = View.VISIBLE
                     textAppSettings.visibility = View.VISIBLE
                     textAppAdmin.visibility = View.VISIBLE
-                }else{
+                } else {
                     btnMobilAppSettings.visibility = View.VISIBLE
                     btnMobilAppAdmin.visibility = View.VISIBLE
 
@@ -1538,15 +1619,14 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
 
-
-
-
             /// use previous json
             /// use previous json
             // Hide Some Buttons for Mobile Mode
             if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
-                val sharedBiometricPref = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-                val get_AppMode = sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
+                val sharedBiometricPref =
+                    getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+                val get_AppMode =
+                    sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
                 if (get_AppMode == Constants.TV_Mode) {
 
                     btnMobilAppSettings.visibility = View.GONE
@@ -1598,18 +1678,20 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textCanCellDialog.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
 
                 alertDialog.dismiss()
 
                 handler.postDelayed(Runnable {
-                    val getInfoPageState = sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
-                    if(getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED){
+                    val getInfoPageState =
+                        sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "")
+                            .toString()
+                    if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
                         startActivity(Intent(applicationContext, WebViewPage::class.java))
                         finish()
-                    }else{
+                    } else {
                         startActivity(Intent(applicationContext, InformationActivity::class.java))
                         finish()
                     }
@@ -1619,11 +1701,12 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             ///  Logic To remove Password
-            get_Current_Time_State_for_Password(editTextText2, imgToggle,imgToggleNzotVisible )
+            get_Current_Time_State_for_Password(editTextText2, imgToggle, imgToggleNzotVisible)
 
 
             // remove password with Time
-            val getPrefilledPassword = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+            val getPrefilledPassword =
+                simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
             val getPassTimeInt = simpleSavedPassword.getInt(Constants.REFRESH_PASSWORD, 1).toInt()
             if (getPrefilledPassword == Constants.passowrdPrefeilled) {
 
@@ -1633,15 +1716,22 @@ class SettingsActivityKT : AppCompatActivity() {
                 val timeStamp = getPassTimeInt * 70 * 1000L
 
                 handler.postDelayed(Runnable {
-                    get_Current_Time_State_for_Password(editTextText2, imgToggle,imgToggleNzotVisible )
+                    get_Current_Time_State_for_Password(
+                        editTextText2,
+                        imgToggle,
+                        imgToggleNzotVisible
+                    )
                 }, timeStamp)
 
             }
 
 
-            val getDidUserInputPassowrd222 = simpleSavedPassword.getString(Constants.Did_User_Input_PassWord, "").toString()
-            val getPasswordPrefilled222 = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-            val getSimpleAdminPassword222 = simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+            val getDidUserInputPassowrd222 =
+                simpleSavedPassword.getString(Constants.Did_User_Input_PassWord, "").toString()
+            val getPasswordPrefilled222 =
+                simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+            val getSimpleAdminPassword222 =
+                simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
 
             val smPassowrd = getSimpleAdminPassword222
 
@@ -1662,11 +1752,12 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textReSync.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
 
-                val getPasswordPrefilled = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
                 val getSimpleAdminPassword =
                     simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
                 val editor = simpleSavedPassword.edit()
@@ -1706,7 +1797,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             imagePassowrdSettings.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
 
@@ -1721,7 +1812,10 @@ class SettingsActivityKT : AppCompatActivity() {
 
                     val editor = simpleSavedPassword.edit()
                     if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                        editor.putString(Constants.Did_User_Input_PassWord, Constants.Did_User_Input_PassWord)
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
                         editor.apply()
                     }
 
@@ -1750,7 +1844,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             imgWifi.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
                 val getPasswordPrefilled =
@@ -1787,7 +1881,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             imgClearCatch.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
                 val getPasswordPrefilled =
@@ -1828,7 +1922,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textSettings.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
 
@@ -1865,11 +1959,13 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
             btnMobilAppSettings.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
-                val getPasswordPrefilled = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-                val getSimpleAdminPassword = simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
                 val editor = simpleSavedPassword.edit()
 
                 val editTextText = editTextText2.text.toString().trim { it <= ' ' }
@@ -1877,7 +1973,10 @@ class SettingsActivityKT : AppCompatActivity() {
                     hideKeyBoard(editTextText2)
 
                     if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
-                        editor.putString(Constants.Did_User_Input_PassWord, Constants.Did_User_Input_PassWord)
+                        editor.putString(
+                            Constants.Did_User_Input_PassWord,
+                            Constants.Did_User_Input_PassWord
+                        )
                         editor.apply()
                     }
 
@@ -1898,7 +1997,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textAppAdmin.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
                 val getPasswordPrefilled =
@@ -1924,7 +2023,8 @@ class SettingsActivityKT : AppCompatActivity() {
                     editor333.apply()
 
 
-                    val myactivity = Intent(this@SettingsActivityKT, AdditionalSettingsActivity::class.java)
+                    val myactivity =
+                        Intent(this@SettingsActivityKT, AdditionalSettingsActivity::class.java)
                     startActivity(myactivity)
                     finish()
 
@@ -1943,7 +2043,7 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
             btnMobilAppAdmin.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
                 val getPasswordPrefilled =
@@ -1969,7 +2069,8 @@ class SettingsActivityKT : AppCompatActivity() {
                     editor333.apply()
 
 
-                    val myactivity = Intent(this@SettingsActivityKT, AdditionalSettingsActivity::class.java)
+                    val myactivity =
+                        Intent(this@SettingsActivityKT, AdditionalSettingsActivity::class.java)
                     startActivity(myactivity)
                     finish()
 
@@ -1992,7 +2093,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             imgMaintainace.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
                 val getPasswordPrefilled =
@@ -2016,7 +2117,8 @@ class SettingsActivityKT : AppCompatActivity() {
                     editor333.putString(Constants.SAVE_NAVIGATION, Constants.SettingsPage)
                     editor333.apply()
 
-                    val myactivity = Intent(this@SettingsActivityKT, MaintenanceActivity::class.java)
+                    val myactivity =
+                        Intent(this@SettingsActivityKT, MaintenanceActivity::class.java)
                     startActivity(myactivity)
                     finish()
 
@@ -2037,26 +2139,29 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textExit.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
 
                 hideKeyBoard(editTextText2)
 
-                val getPasswordPrefilled = simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
-                val getSimpleAdminPassword = simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
+                val getPasswordPrefilled =
+                    simpleSavedPassword.getString(Constants.passowrdPrefeilled, "").toString()
+                val getSimpleAdminPassword =
+                    simpleSavedPassword.getString(Constants.mySimpleSavedPassword, "").toString()
 
                 val editTextText = editTextText2.text.toString().trim { it <= ' ' }
 
                 if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
 
-                    val lockDown = sharedBiometric.getString(Constants.imgEnableLockScreen, "").toString()
+                    val lockDown =
+                        sharedBiometric.getString(Constants.imgEnableLockScreen, "").toString()
 
-                    if (lockDown == Constants.imgEnableLockScreen){
+                    if (lockDown == Constants.imgEnableLockScreen) {
 
                         showToastMessage("Kindly Remove App from Lock down mode")
 
-                    }else{
+                    } else {
 
                         val editor = myDownloadMangerClass.edit()
                         editor.remove(Constants.SynC_Status)
@@ -2075,8 +2180,8 @@ class SettingsActivityKT : AppCompatActivity() {
                             finishAndRemoveTask()
                             Process.killProcess(Process.myPid())
 
-                          //  finishAffinity()
-                          // System.exit(0)
+                            //  finishAffinity()
+                            // System.exit(0)
 
                         }, 700)
 
@@ -2101,10 +2206,11 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textForgetPassword.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
-                val isSavedEmail = simpleSavedPassword.getString(Constants.isSavedEmail, "").toString()
+                val isSavedEmail =
+                    simpleSavedPassword.getString(Constants.isSavedEmail, "").toString()
                 hideKeyBoard(editTextText2)
                 if (isSavedEmail.isNotEmpty() && isValidEmail(isSavedEmail)) {
 
@@ -2122,7 +2228,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textLogoutButton.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
                 val getPasswordPrefilled =
@@ -2134,7 +2240,8 @@ class SettingsActivityKT : AppCompatActivity() {
 
                 if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
 
-                    val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+                    val sharedBiometric =
+                        getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
                     val editor_sharedBiometric = sharedBiometric.edit()
                     editor_sharedBiometric.remove(Constants.MY_TV_OR_APP_MODE)
                     editor_sharedBiometric.remove(Constants.FIRST_TIME_APP_START)
@@ -2148,7 +2255,8 @@ class SettingsActivityKT : AppCompatActivity() {
 
                     val handler1 = Handler(Looper.getMainLooper())
                     handler1.postDelayed({
-                        val myactivity = Intent(this@SettingsActivityKT, TvActivityOrAppMode::class.java)
+                        val myactivity =
+                            Intent(this@SettingsActivityKT, TvActivityOrAppMode::class.java)
                         startActivity(myactivity)
                         finish()
                     }, 200)
@@ -2174,7 +2282,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textLaunchOnline.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
                 hideKeyBoard(editTextText2)
@@ -2186,7 +2294,8 @@ class SettingsActivityKT : AppCompatActivity() {
 
                 val editTextText = editTextText2.text.toString().trim { it <= ' ' }
 
-                val getTvMode = sharedBiometric.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
+                val getTvMode =
+                    sharedBiometric.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
                 if (getPasswordPrefilled == Constants.passowrdPrefeilled || editTextText == getSimpleAdminPassword) {
                     if (getTvMode == Constants.TV_Mode) {
                         if (getPasswordPrefilled == Constants.passowrdPrefeilled) {
@@ -2195,7 +2304,10 @@ class SettingsActivityKT : AppCompatActivity() {
                                 Constants.Did_User_Input_PassWord
                             )
                         }
-                        editor.putString(Constants.imgAllowLunchFromOnline, "imgAllowLunchFromOnline")
+                        editor.putString(
+                            Constants.imgAllowLunchFromOnline,
+                            "imgAllowLunchFromOnline"
+                        )
                         editor.apply()
 
                         val imagSwtichEnableManualOrNot =
@@ -2210,7 +2322,10 @@ class SettingsActivityKT : AppCompatActivity() {
                             editText88.apply()
                         } else {
                             val editText88 = sharedBiometric.edit()
-                            editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_WebView_Online)
+                            editText88.putString(
+                                Constants.get_Launching_State_Of_WebView,
+                                Constants.launch_WebView_Online
+                            )
                             editText88.apply()
                         }
 
@@ -2235,7 +2350,10 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
                         val editText88 = sharedBiometric.edit()
-                        editText88.putString(Constants.get_Launching_State_Of_WebView, Constants.launch_Default_WebView_url)
+                        editText88.putString(
+                            Constants.get_Launching_State_Of_WebView,
+                            Constants.launch_Default_WebView_url
+                        )
                         editText88.apply()
 
 
@@ -2262,7 +2380,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textLaunchOffline.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
                 hideKeyBoard(editTextText2)
@@ -2287,7 +2405,8 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
                     val imagSwtichEnableManualOrNot =
-                        sharedBiometric.getString(Constants.imagSwtichEnableManualOrNot, "").toString()
+                        sharedBiometric.getString(Constants.imagSwtichEnableManualOrNot, "")
+                            .toString()
                     if (imagSwtichEnableManualOrNot.equals(Constants.imagSwtichEnableManualOrNot)) {
                         val editText88 = sharedBiometric.edit()
                         editText88.putString(
@@ -2328,7 +2447,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textHome.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
                 val getPasswordPrefilled =
@@ -2360,7 +2479,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
 
             textContinueLogin.setOnClickListener {
-                if (handlerMoveToWebviewPage != null){
+                if (handlerMoveToWebviewPage != null) {
                     handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                 }
                 val getPasswordPrefilled =
@@ -2397,7 +2516,7 @@ class SettingsActivityKT : AppCompatActivity() {
             }
 
             alertDialog.show()
-        }catch (e:Exception){
+        } catch (e: Exception) {
             Log.d(TAG, "showExitConfirmationDialog: Erro ${e.message}")
         }
     }
@@ -2421,7 +2540,7 @@ class SettingsActivityKT : AppCompatActivity() {
 
                         val passowrd = editTextText2.text.toString().trim()
 
-                        if (smPassowrd ==passowrd) {
+                        if (smPassowrd == passowrd) {
                             editTextText2.setBackgroundColor(resources.getColor(R.color.zxing_transparent))
                             editTextText2.setTextColor(resources.getColor(R.color.deep_green))
                             divider2.setBackgroundColor(resources.getColor(R.color.deep_green))
@@ -2439,8 +2558,8 @@ class SettingsActivityKT : AppCompatActivity() {
             })
 
 
-
-        }catch (e:Exception){}
+        } catch (e: Exception) {
+        }
     }
 
 
@@ -2822,12 +2941,13 @@ class SettingsActivityKT : AppCompatActivity() {
     @SuppressLint("MissingSuperCall")
     @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     override fun onBackPressed() {
-        val getInfoPageState = sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
-        if(getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED){
+        val getInfoPageState =
+            sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
+        if (getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED) {
             val intent = Intent(applicationContext, WebViewPage::class.java)
             startActivity(intent)
             finish()
-        }else{
+        } else {
             startActivity(Intent(applicationContext, InformationActivity::class.java))
             finish()
         }
@@ -3001,16 +3121,17 @@ class SettingsActivityKT : AppCompatActivity() {
 
     @SuppressLint("SourceLockedOrientationActivity")
     private fun applyOritenation() {
-        val getState = sharedBiometric.getString(Constants.IMG_TOGGLE_FOR_ORIENTATION, "").toString()
+        val getState =
+            sharedBiometric.getString(Constants.IMG_TOGGLE_FOR_ORIENTATION, "").toString()
 
-        if (getState == Constants.USE_POTRAIT){
+        if (getState == Constants.USE_POTRAIT) {
             requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
-        }else if (getState == Constants.USE_LANDSCAPE){
+        } else if (getState == Constants.USE_LANDSCAPE) {
 
             requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
-        }else if (getState == Constants.USE_UNSEPECIFIED){
+        } else if (getState == Constants.USE_UNSEPECIFIED) {
             requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 
         }
