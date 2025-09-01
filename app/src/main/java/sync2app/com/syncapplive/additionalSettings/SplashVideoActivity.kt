@@ -22,6 +22,7 @@ import sync2app.com.syncapplive.additionalSettings.autostartAppOncrash.Methods
 import sync2app.com.syncapplive.additionalSettings.utils.Constants
 import sync2app.com.syncapplive.additionalSettings.utils.Utility
 import sync2app.com.syncapplive.databinding.ActivitySplashVideoBinding
+import sync2app.com.syncapplive.myService.ServerService
 import java.io.File
 
 
@@ -51,7 +52,9 @@ class SplashVideoActivity : AppCompatActivity() {
     private var exoPlayer: ExoPlayer? = null
 
 
-    @SuppressLint("SourceLockedOrientationActivity", "SourceLockedOrientationActivity")
+    @SuppressLint("SourceLockedOrientationActivity", "SourceLockedOrientationActivity",
+        "ImplicitSamInstance"
+    )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashVideoBinding.inflate(layoutInflater)
@@ -64,7 +67,9 @@ class SplashVideoActivity : AppCompatActivity() {
         //add exception
         Methods.addExceptionHandler(this)
 
-
+        if (Utility.foregroundForSeverServiceClass(applicationContext)) {
+            applicationContext.stopService(Intent(applicationContext, ServerService::class.java))
+        }
 
         // to make app full screen
         Utility.hideSystemBars(window)

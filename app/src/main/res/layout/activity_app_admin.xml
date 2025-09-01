@@ -106,6 +106,22 @@
                 android:text="Device Lock Down Disabled"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textEnableHomeScreen"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/textEnableHomeScreen"
+                style="@style/textColorStyle"
+                android:layout_width="0dp"
+                android:layout_height="55dp"
+                android:elegantTextHeight="true"
+                android:fontFamily="serif-monospace"
+                android:gravity="start|center"
+                android:maxLines="1"
+                android:paddingStart="65dp"
+                android:text="Set App as Home Screen"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="HardcodedText" />
 
@@ -120,6 +136,17 @@
                 app:layout_constraintTop_toTopOf="@+id/textEbnableLockScreen"
                 android:src="@drawable/ic__lock_icon_24" />
 
+
+            <ImageView
+                android:id="@+id/imageView64"
+                style="@style/imageStyleColorTint"
+                android:layout_width="27dp"
+                android:layout_height="27dp"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/ic_app_or_tv_tv_24"
+                app:layout_constraintBottom_toBottomOf="@+id/textEnableHomeScreen"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/textEnableHomeScreen" />
 
             <ImageView
                 android:id="@+id/imageView8"
@@ -542,7 +569,6 @@
                 style="@style/textColorStyle"
                 android:layout_width="0dp"
                 android:layout_height="60dp"
-                android:layout_marginBottom="50dp"
                 android:clickable="true"
                 android:elegantTextHeight="true"
                 android:focusable="true"
@@ -555,11 +581,9 @@
                 android:paddingBottom="8dp"
                 android:text="Maintenance"
                 android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textVolume"
-                app:layout_constraintVertical_bias="0.0"
                 tools:ignore="HardcodedText" />
 
             <TextView
@@ -743,6 +767,19 @@
                 tools:visibility="visible" />
 
             <ImageView
+                android:id="@+id/imageViewDeviceSettings6"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginEnd="38dp"
+                android:src="@drawable/ic_arrow_move_front"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="@+id/textEnableHomeScreen"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/textEnableHomeScreen"
+                app:tint="#494646"
+                tools:visibility="visible" />
+
+            <ImageView
                 android:id="@+id/imageViewDeviceSettings"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
@@ -755,6 +792,15 @@
 
             <View
                 android:id="@+id/divider8"
+                style="@style/dividerBackColor"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textEbnableLockScreen" />
+
+            <View
+                android:id="@+id/divider99"
                 style="@style/dividerBackColor"
                 android:layout_width="0dp"
                 android:layout_height="1dp"
@@ -913,9 +959,12 @@
                 style="@style/dividerBackColor"
                 android:layout_width="0dp"
                 android:layout_height="1dp"
+                android:layout_marginBottom="32dp"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textMaintencePage" />
+                app:layout_constraintTop_toBottomOf="@+id/textMaintencePage"
+                app:layout_constraintVertical_bias="0.0" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

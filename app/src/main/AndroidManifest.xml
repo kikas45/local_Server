@@ -74,8 +74,15 @@
             android:name=".myService.ParsingSyncService"
             android:enabled="true"
             android:exported="true" />
+
         <service
             android:name=".myService.RetryParsingSyncService"
+            android:enabled="true"
+            android:exported="true" />
+
+
+      <service
+            android:name=".myService.ServerService"
             android:enabled="true"
             android:exported="true" />
 
@@ -255,8 +262,15 @@
             android:exported="true"
             android:launchMode="singleTask"/>
 
+    <activity
+        android:name=".additionalSettings.DE_MO_202100_2222"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:exported="true"
+            android:launchMode="singleTask"/>
+
 
         <activity
+
             android:name=".additionalSettings.SplashVideoActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="true"

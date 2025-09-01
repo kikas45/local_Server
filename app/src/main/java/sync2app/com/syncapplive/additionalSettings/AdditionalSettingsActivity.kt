@@ -14,9 +14,7 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
-import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
 import android.media.AudioManager
 import android.media.MediaScannerConnection
@@ -28,7 +26,6 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
-import android.os.Process
 import android.os.UserManager
 import android.provider.MediaStore
 import android.provider.Settings
@@ -39,7 +36,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RadioButton
-
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -127,19 +123,21 @@ class AdditionalSettingsActivity : AppCompatActivity() {
         binding = ActivityAppAdminBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
-        binding.textTitle.setOnClickListener {
-            finishAffinity()
+        binding.textEnableHomeScreen.setOnClickListener {
             val intent = Intent(Intent.ACTION_MAIN).apply {
                 addCategory(Intent.CATEGORY_HOME)
-                addCategory(Intent.CATEGORY_DEFAULT)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
-            startActivity(intent)
+            val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
 
-
-          //  restartApp()
-
+            // If current default launcher is NOT your app, ask user to choose
+            if (resolveInfo?.activityInfo?.packageName != packageName) {
+                val chooserIntent = Intent(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_HOME)
+                }
+                startActivity(chooserIntent) // shows system "Complete action using..." dialog
+            } else {
+                Toast.makeText(this, "Already set as default launcher", Toast.LENGTH_SHORT).show()
+            }
         }
 
 
@@ -189,6 +187,8 @@ class AdditionalSettingsActivity : AppCompatActivity() {
         }
 
     }
+
+
 
     private fun setUpFullScreenWindows() {
         val get_INSTALL_TV_JSON_USER_CLICKED =

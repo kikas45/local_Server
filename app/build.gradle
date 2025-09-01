@@ -180,6 +180,15 @@ dependencies {
     implementation 'androidx.browser:browser:1.4.0'
     implementation 'androidx.webkit:webkit:1.4.0'
 
+
+
+
+    /// ==  sever socket  == ///
+    implementation ("io.ktor:ktor-server-core:2.3.12")
+    implementation ("io.ktor:ktor-server-cio:2.3.12")
+    implementation ("io.ktor:ktor-server-cors:2.3.12")
+    implementation ("io.ktor:ktor-server-partial-content:2.3.12")
+
     
 }
 

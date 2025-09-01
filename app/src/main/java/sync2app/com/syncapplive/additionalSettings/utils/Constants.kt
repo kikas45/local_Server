@@ -66,6 +66,7 @@ class Constants {
         const val WebViewPage = "WebViewPage"
         const val AdditionNalPage = "AdditionNalPage"
         const val file_explorer_prefs = "file_explorer_prefs"
+        const val SAVE_PORT_VALUES = "SAVE_PORT_VALUES"
 
 
 
@@ -76,6 +77,7 @@ class Constants {
         const val launch_WebView_Online_Manual_Index = "launch_WebView_Online_Manual_Index"
         const val launch_WebView_Offline_Manual_Index = "launch_WebView_Offline_Manual_Index"
         const val launch_Default_WebView_url = "launch_Default_WebView_url"
+        const val launch_From_IP_Address = "launch_From_IP_Address"
         const val ALlow_App_to_DOwnload_Config_JSON = "ALlow_App_to_DOwnload_Config_JSON"
 
         const val JSON_MAIN_URL = "JSON_MAIN_URL"
@@ -402,6 +404,18 @@ class Constants {
 
         // Temporay Load to web View page
         const val USE_TEMP_OFFLINE_WEB_VIEW_PAGE = "USE_TEMP_OFFLINE_WEB_VIEW_PAGE"
+
+        // for service
+        const val SERVER_PROGRESS_RECIEVER = "SERVER_PROGRESS_RECIEVER"
+        const val SERVER_STATE = "SERVER_STATE"
+        const val localUrl = "localUrl"
+        const val SERVER_RUNNING_STATE = "SERVER_RUNNING_STATE"
+        const val SERVER_STARTED = "SERVER_STARTED"
+        const val SERVER_STOPPED = "SERVER_STOPPED"
+        const val PR_SEVER_STATE = "PR_SEVER_STATE"
+        const val PR_STROAGE = "PR_STROAGE"
+        const val SL_Running = "SL_Running"
+        const val SL_Off = "SL_Off"
 
     }
 }

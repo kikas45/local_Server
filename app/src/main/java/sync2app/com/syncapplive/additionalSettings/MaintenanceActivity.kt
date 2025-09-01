@@ -116,6 +116,14 @@ class MaintenanceActivity : AppCompatActivity() {
         applyOritenation()
 
 
+        binding.textNavigateToSeverEngine.setOnClickListener {
+            val intent = Intent(applicationContext, DE_MO_202100::class.java)
+            startActivity(intent)
+            finish()
+        }
+
+
+
 
         binding.apply {
 

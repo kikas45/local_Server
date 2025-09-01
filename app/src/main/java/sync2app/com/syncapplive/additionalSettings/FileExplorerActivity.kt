@@ -111,6 +111,10 @@ class FileExplorerActivity : AppCompatActivity() {
             finish()
 
         }
+
+
+
+
     }
 
     private fun setUpFullScreenWindows() {
@@ -138,10 +142,15 @@ class FileExplorerActivity : AppCompatActivity() {
 
 
 
+
+
+
+
     override fun onResume() {
         super.onResume()
         setEnviroment()
     }
+
 
     private fun setEnviroment() {
         hasPermission = checkStoragePermission(this)
@@ -182,11 +191,15 @@ class FileExplorerActivity : AppCompatActivity() {
             openCounts++
         }
 
+
+
+
         binding.filesTreeView.setOnItemLongClickListener { _, _, position, _ ->
             val selectedItem = filesList[position]
-            showDeleteDialog(selectedItem)
+            showFileOptionsDialog(selectedItem)
             true
         }
+
     }
 
 
@@ -222,29 +235,55 @@ class FileExplorerActivity : AppCompatActivity() {
     }
 
 
-    private fun showDeleteDialog(file: File) {
-        val alertDialog = AlertDialog.Builder(this)
-        alertDialog.setTitle("Delete")
-        alertDialog.setMessage("Are you sure you want to delete ${file.name}?")
-        alertDialog.setPositiveButton("Yes") { _, _ ->
-            val parentDirectory = file.parentFile
-            val wasFolderEmpty = parentDirectory?.listFiles()?.isEmpty() ?: true
-            if (delete(file)) {
-                // Call notifyDataSetChanged after successful deletion
-                adapter.notifyDataSetChanged()
-                // Navigate back to the parent folder if it was not empty
-                if (!wasFolderEmpty) {
-                    open(parentDirectory!!)
+    /// ===== ////
+
+    private fun showFileOptionsDialog(file: File) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(file.name)
+
+        val options = arrayOf("Open", "Copy Path", "Delete")
+        builder.setItems(options) { dialog, which ->
+            when (which) {
+                0 -> { // Open
+                    if (file.isFile) {
+                        openFile(this, file)
+                    } else {
+                        open(file)
+                    }
                 }
-                // Show toast or perform other actions if needed
-                Toast.makeText(this, "${file.name} deleted", Toast.LENGTH_SHORT).show()
-            } else {
-                showAlert("Failed to delete ${file.name}")
+                1 -> { // Copy Path
+                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val clip = android.content.ClipData.newPlainText("File Path", file.absolutePath)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(this, "Path copied to clipboard", Toast.LENGTH_SHORT).show()
+                }
+                2 -> { // Delete
+                    // Show inline confirmation inside the same dialog
+                    AlertDialog.Builder(this)
+                        .setTitle("Delete ${file.name}?")
+                        .setMessage("Are you sure you want to delete this file/folder?")
+                        .setPositiveButton("Yes") { _, _ ->
+                            val parentDirectory = file.parentFile
+                            val wasFolderEmpty = parentDirectory?.listFiles()?.isEmpty() ?: true
+                            if (delete(file)) {
+                                adapter.notifyDataSetChanged()
+                                if (!wasFolderEmpty) {
+                                    open(parentDirectory!!)
+                                }
+                                Toast.makeText(this, "${file.name} deleted", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(this, "Failed to delete ${file.name}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        .setNegativeButton("No", null)
+                        .show()
+                }
             }
         }
-        alertDialog.setNegativeButton("No", null)
-        alertDialog.show()
+        builder.show()
     }
+
+    /// ===== ////
 
 
     private fun showAlert(message: String) {

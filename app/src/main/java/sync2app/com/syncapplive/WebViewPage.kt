@@ -82,6 +82,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -167,6 +168,7 @@ import sync2app.com.syncapplive.glidetovectoryou.GlideToVectorYou
 import sync2app.com.syncapplive.glidetovectoryou.GlideToVectorYouListener
 import sync2app.com.syncapplive.myService.ParsingSyncService
 import sync2app.com.syncapplive.myService.RetryParsingSyncService
+import sync2app.com.syncapplive.myService.ServerService
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -613,6 +615,12 @@ class WebViewPage : AppCompatActivity() {
             Context.MODE_PRIVATE
         )
     }
+    private val sharedPrefSever: SharedPreferences by lazy {
+        applicationContext.getSharedPreferences(
+            Constants.SAVE_PORT_VALUES,
+            Context.MODE_PRIVATE
+        )
+    }
 
 
     private var receiver: BroadcastReceiver? = null
@@ -647,6 +655,29 @@ class WebViewPage : AppCompatActivity() {
         //  setContentView(R.layout.activity_web_view_page)
         binding = ActivityWebViewPageBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
+        binding.bottomServerLayout.setOnHoverListener { v, event ->
+            when (event.action) {
+             MotionEvent.ACTION_HOVER_ENTER -> {
+                    // Animate down
+                    v.animate()
+                        .translationY(20f) // move down 20px
+                        .setDuration(200)
+                        .start()
+                }
+
+                MotionEvent.ACTION_HOVER_EXIT -> {
+                    // Animate back to original
+                    v.animate()
+                        .translationY(0f)
+                        .setDuration(200)
+                        .start()
+                }
+            }
+            true
+        }
+
 
 
         applyOritenation()
@@ -863,6 +894,7 @@ class WebViewPage : AppCompatActivity() {
         }
 
 
+
         bottomtoolbar_btn_7!!.setOnClickListener {
             ShowHideViews(drawer_menu!!)
         }
@@ -952,8 +984,29 @@ class WebViewPage : AppCompatActivity() {
         }
 
 
+        // init sever
+        setupAutoStartSwitch()
+
     }
 
+    private fun setupAutoStartSwitch() {
+        val autoStartEnabled = sharedPrefSever.getBoolean("autoStartServer", false)
+        if (autoStartEnabled) {
+            lifecycleScope.launch {
+                delay(5000)
+                callServiceStart()
+            }
+        }
+    }
+
+    private fun callServiceStart() {
+        if (!Utility.foregroundForSeverServiceClass(applicationContext)) {
+                applicationContext.stopService(Intent(applicationContext, ServerService::class.java))
+                applicationContext.startService(Intent(applicationContext, ServerService::class.java))
+            } else {
+                Toast.makeText(this, "Server already Running", Toast.LENGTH_SHORT).show()
+            }
+    }
 
     private fun InitWebviewIndexFileState() {
         Log.d("PETER", "InitWebvIewloadStates:: InitWebviewIndexFileState FOR A STATE")
@@ -1477,7 +1530,10 @@ class WebViewPage : AppCompatActivity() {
                         if (filePath != null) {
                             if (isSystemRunning) {
                                 webView?.apply {
-                                    Log.d("PETER", "Yes The  FILES ARE BEEN CHECK after The user click from pop up for a states")
+                                    Log.d(
+                                        "PETER",
+                                        "Yes The  FILES ARE BEEN CHECK after The user click from pop up for a states"
+                                    )
                                     clearHistory()
                                     loadUrl(filePath.toString())
                                     setupWebViewClients()
@@ -1696,8 +1752,10 @@ class WebViewPage : AppCompatActivity() {
 
                     isTimeTakeToLoadTooLong = true
 
-                    val sharedBiometricPref = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-                    val get_AppMode = sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
+                    val sharedBiometricPref =
+                        getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
+                    val get_AppMode =
+                        sharedBiometricPref.getString(Constants.MY_TV_OR_APP_MODE, "").toString()
                     if (get_AppMode == Constants.App_Mode) {
                         handler.postDelayed(kotlinx.coroutines.Runnable {
                             if (isTimeTakeToLoadTooLong) {
@@ -1916,8 +1974,6 @@ class WebViewPage : AppCompatActivity() {
     }
 
 
-
-
     private fun HideErrorPage(failingUrl: String, description: String) {
 
         Log.e("MACC", "Error :: $failingUrl")
@@ -1992,172 +2048,6 @@ class WebViewPage : AppCompatActivity() {
             Log.e(TAG, "HideErrorPage failed: ${e.message}")
         }
     }
-
-
-
-
-    /*
-
-    // performas well AS WELL
-        private fun HideErrorPage(failingUrl: String, description: String) {
-            try {
-                val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-                val launchingState = sharedBiometric.getString(Constants.get_Launching_State_Of_WebView, "") ?: ""
-
-
-                Log.e("MACC", "load from :;  $launchingState")
-
-                if (launchingState == Constants.launch_WebView_Offline || launchingState == Constants.launch_WebView_Offline_Manual_Index) {
-
-                    try {
-                        val intent = Intent(applicationContext, SplashKT::class.java)
-                        startActivity(intent)
-                        finishAffinity()
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error launching SplashKT: ${e.message}")
-                    }
-
-                } else {
-                    if (!isSystemRunning) return
-
-                    errorlayout?.visibility = View.VISIBLE
-                    errorCode?.text = description
-
-                    errorReloadButton?.setOnClickListener {
-                        if (isSystemRunning) {
-                            if (Utility.isNetworkAvailable(applicationContext)) {
-                                webView?.let {
-                                    it.loadUrl(failingUrl)
-                                    isErrorLayoutShown = true
-                                }
-                            } else {
-                                showToastMessage("Connect to an internet")
-                            }
-                        }
-                    }
-
-                    // Launch coroutine instead of handler
-                    lifecycleScope.launch {
-                        delay(4000)
-
-                        if (!isSystemRunning) return@launch
-
-                        errorautoConnect?.let {
-                            it.visibility = View.VISIBLE
-                            it.text = "Auto Reconnect: Standby"
-
-                            if (AdvancedControls.checkInternetConnection(applicationContext)) {
-                                it.text = "Auto Reconnect: Trying to connect.."
-                            } else if (Utility.isNetworkAvailable(applicationContext)) {
-                                webView?.let { webView ->
-                                    webView.loadUrl(failingUrl)
-                                    errorlayout?.visibility = View.GONE
-                                    webView.clearHistory()
-                                    isErrorLayoutShown = true
-                                }
-                            } else {
-                                showToastMessage("Connect to an internet")
-                            }
-                        }
-
-                        // Optionally loop again with delay
-                        if (isSystemRunning) {
-                            this.launch {
-                                delay(4000)
-                                // Repeat logic or call same block again
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("HideErrorPage", "HideErrorPage failed: ${e.message}")
-            }
-        }
-
-    */
-
-
-
-    /*
-        private fun HideErrorPage(failingUrl: String, description: String) {
-
-
-            val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-            val launchingState = sharedBiometric.getString(Constants.get_Launching_State_Of_WebView, "") ?: ""
-
-            if (launchingState == Constants.launch_WebView_Offline ||
-                launchingState == Constants.launch_WebView_Offline_Manual_Index) {
-                try {
-                    val intent = Intent(applicationContext, SplashKT::class.java)
-                    startActivity(intent)
-                    finishAffinity()
-                }catch (e: java.lang.Exception) {
-                    Log.d(TAG, "HideErrorPage: " + e.message.toString())
-                }
-
-            }else{
-
-                try {
-
-                    if (isSystemRunning) {
-                        errorlayout?.visibility = View.VISIBLE
-                        errorCode?.text = description
-
-                        errorReloadButton!!.setOnClickListener {
-                            if (isSystemRunning) {
-                                if (Utility.isNetworkAvailable(applicationContext)) {
-                                    if (isSystemRunning) {
-                                        webView!!.loadUrl(failingUrl)
-                                        isErrorLayoutShown = true
-                                    }
-                                } else {
-                                    showToastMessage("Connect to an internet")
-                                }
-                            }
-                        }
-
-                        handler.postDelayed(Runnable {
-                            if (isSystemRunning) {
-                                handler.postDelayed(runnable!!, 4000)
-                                if (isSystemRunning) {
-                                    if (errorautoConnect?.visibility == View.GONE) {
-                                        errorautoConnect?.visibility = View.VISIBLE
-                                    }
-                                }
-                                errorautoConnect?.text = "Auto Reconnect: Standby"
-                                if (AdvancedControls.checkInternetConnection(applicationContext)) {
-                                    if (isSystemRunning) {
-                                        errorautoConnect!!.text = "Auto Reconnect: Trying to connect.."
-                                    }
-                                } else {
-                                    if (isSystemRunning) {
-                                        if (Utility.isNetworkAvailable(applicationContext)) {
-                                            webView!!.loadUrl(failingUrl)
-                                            errorlayout!!.visibility = View.GONE
-                                            webView!!.clearHistory()
-                                            handler.removeCallbacks(runnable!!)
-
-                                            isErrorLayoutShown = true
-
-                                        } else {
-                                            showToastMessage("Connect to an internet")
-                                        }
-
-                                    }
-                                }
-                            }
-                        }.also { if (isSystemRunning) { runnable = it } }, 4000) }
-
-                } catch (e: java.lang.Exception) {
-                    Log.d(TAG, "HideErrorPage: " + e.message.toString())
-                }
-            }
-
-
-
-        }
-
-    */
 
 
     @RequiresApi(Build.VERSION_CODES.Q)

@@ -7,11 +7,16 @@ import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.DownloadManager
 import android.content.Context
+import android.content.Context.WIFI_SERVICE
 import android.content.SharedPreferences
 import android.net.ConnectivityManager
+import android.net.LinkAddress
+import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Process
+import android.text.format.Formatter
 import android.util.Log
 import android.util.Patterns
 import android.view.View
@@ -32,8 +37,14 @@ import com.google.firebase.database.ValueEventListener
 import org.jsoup.Jsoup
 import sync2app.com.syncapplive.myService.ParsingSyncService
 import sync2app.com.syncapplive.myService.RetryParsingSyncService
+import sync2app.com.syncapplive.myService.ServerService
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.Inet4Address
 import java.net.URI
 import java.net.URISyntaxException
+import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -197,8 +208,6 @@ object Utility {
 
 
 
-
-
     fun foregroundRetryParsingServiceClass(context: Context): Boolean {
         val activityManager =
             context.applicationContext.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
@@ -208,6 +217,46 @@ object Utility {
             }
         }
         return false
+    }
+
+
+    fun foregroundForSeverServiceClass(context: Context): Boolean {
+        val activityManager =
+            context.applicationContext.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
+        for (service in activityManager.getRunningServices(Int.MAX_VALUE)) {
+            if (ServerService::class.java.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
+
+/*
+     fun getLocalIpAddress(context: Context): String {
+        val wm = context.applicationContext.getSystemService(WIFI_SERVICE) as WifiManager
+        return Formatter.formatIpAddress(wm.connectionInfo.ipAddress)
+    }
+*/
+
+
+
+    fun getLocalIpAddress(context: Context): String {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        for (network: Network in cm.allNetworks) {
+            val caps = cm.getNetworkCapabilities(network) ?: continue
+            val linkProperties = cm.getLinkProperties(network) ?: continue
+
+            for (linkAddress: LinkAddress in linkProperties.linkAddresses) {
+                val host = linkAddress.address
+                // Only return valid IPv4 addresses, skip loopback + IPv6
+                if (host is Inet4Address && !host.isLoopbackAddress) {
+                    return host.hostAddress ?: "0.0.0.0"
+                }
+            }
+        }
+
+        return "0.0.0.0"
     }
 
 
@@ -291,82 +340,21 @@ object Utility {
         myRef.updateChildren(hashMap)
     }
 
+     fun getPublicIP(): String {
+        return try {
+            val url = URL("https://api.ipify.org")
+            val connection = url.openConnection() as HttpURLConnection
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
 
-    fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
-        val connectivityManager =
-            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-        val network = connectivityManager.activeNetwork
-        val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-
-        if (network != null && networkCapabilities != null &&
-            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-        ) {
-            // This means the internet is reachable
-            callback(true)
-        } else {
-            callback(false)
+            val reader = BufferedReader(InputStreamReader(connection.inputStream))
+            val ip = reader.readLine()
+            reader.close()
+            connection.disconnect()
+            ip
+        } catch (e: Exception) {
+            "Error: ${e.message}"
         }
     }
-
-
-    /*
-        fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val result = try {
-                    Socket().use { socket ->
-                        socket.connect(InetSocketAddress("8.8.8.8", 53), 1500)
-                        true
-                    }
-                } catch (e: SocketTimeoutException) {
-                    false
-                } catch (e: Exception) {
-                    false
-                }
-
-                withContext(Dispatchers.Main) {
-                    callback(result)
-                }
-            }
-
-        }
-    */
-
-
-    // adding both andriod ad dns
-
-    /*   fun isInternetAvailable(context: Context, callback: (Boolean) -> Unit) {
-           val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-           val network = connectivityManager.activeNetwork
-           val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-
-           val isConnected = networkCapabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true &&
-                   networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-
-           if (!isConnected) {
-               callback(false)
-               return
-           }
-
-           // Double-check with actual ping
-           CoroutineScope(Dispatchers.IO).launch {
-               val result = try {
-                   Socket().use { socket ->
-                       socket.connect(InetSocketAddress("8.8.8.8", 53), 1500)
-                       true
-                   }
-               } catch (e: Exception) {
-                   false
-               }
-
-               withContext(Dispatchers.Main) {
-                   callback(result)
-               }
-           }
-       }
-
-   */
-
 
 }

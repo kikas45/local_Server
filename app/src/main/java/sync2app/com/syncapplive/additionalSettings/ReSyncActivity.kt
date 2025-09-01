@@ -385,11 +385,9 @@ class ReSyncActivity : AppCompatActivity(), SavedHistoryListAdapter.OnItemClickL
                         handlerMoveToWebviewPage.removeCallbacksAndMessages(null)
                     }
 
-                    val getStateNaviagtion =
-                        sharedBiometric.getString(Constants.CALL_RE_SYNC_MANGER, "").toString()
+                    val getStateNaviagtion = sharedBiometric.getString(Constants.CALL_RE_SYNC_MANGER, "").toString()
 
-                    val get_navigationS2222 =
-                        sharedBiometric.getString(Constants.SAVE_NAVIGATION, "").toString()
+                    val get_navigationS2222 = sharedBiometric.getString(Constants.SAVE_NAVIGATION, "").toString()
 
 
                     val editor = sharedBiometric.edit()

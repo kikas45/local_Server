@@ -1,287 +1,785 @@
 package sync2app.com.syncapplive.additionalSettings
 
+import android.R
 import android.annotation.SuppressLint
-import android.app.DownloadManager
+import android.app.Dialog
 import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.google.gson.Gson
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import sync2app.com.syncapplive.AppNetworkModule.RemoteConfig
-import sync2app.com.syncapplive.additionalSettings.urlchecks.checkUrlExistence
 import sync2app.com.syncapplive.additionalSettings.utils.Constants
 import sync2app.com.syncapplive.databinding.ActivityDeMo202100Binding
+import android.content.Context
+import android.content.IntentFilter
+import android.content.SharedPreferences
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.net.Uri
+import android.net.wifi.WifiManager
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.Process
+import android.view.LayoutInflater
+import android.view.View
+import android.view.WindowManager
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import sync2app.com.syncapplive.additionalSettings.utils.Utility
+import sync2app.com.syncapplive.myService.ServerService
+import kotlin.toString
+import androidx.core.content.edit
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.lifecycle.Observer
+import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import sync2app.com.syncapplive.additionalSettings.SavedPathIndexList.IndexList
+import sync2app.com.syncapplive.additionalSettings.SavedPathIndexList.IndexViewModel
+import sync2app.com.syncapplive.additionalSettings.SavedPathIndexList.SavedPathIndexListAdapter
+import sync2app.com.syncapplive.additionalSettings.autostartAppOncrash.Methods
+import sync2app.com.syncapplive.databinding.CustomPortLayoutBinding
+import sync2app.com.syncapplive.databinding.CustomSavedPathListBinding
 import java.io.File
-import java.util.Objects
 
-class DE_MO_202100 : AppCompatActivity() {
+
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.wifi.WifiInfo
+import android.provider.Settings
+import android.text.format.Formatter
+import androidx.core.app.ActivityCompat
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.Inet4Address
+import java.net.URL
+
+
+
+
+
+
+class DE_MO_202100 : AppCompatActivity(), SavedPathIndexListAdapter.OnItemClickListener {
 
     private lateinit var binding: ActivityDeMo202100Binding
+    private val mUserViewModel by viewModels<IndexViewModel>()
 
-    private var downloadId: Long = -199
-    private val fileNameOne = "appConfig.json"
-    private val fileNameTwo = "InstallAppSettings.json"
+    private val sharedPreferences: SharedPreferences by lazy {
+        applicationContext.getSharedPreferences(
+            Constants.SAVE_PORT_VALUES,
+            Context.MODE_PRIVATE
+        )
+    }
 
+    private val sharedBiometric: SharedPreferences by lazy {
+        applicationContext.getSharedPreferences(
+            Constants.SHARED_BIOMETRIC, Context.MODE_PRIVATE
+        )
+    }
+    private val sharedTVAPPModePreferences: SharedPreferences by lazy {
+        applicationContext.getSharedPreferences(
+            Constants.SHARED_TV_APP_MODE, Context.MODE_PRIVATE
+        )
+    }
 
-    private var file1 = false
-    private var file2 = false
+    private val preferences: SharedPreferences by lazy {
+        PreferenceManager.getDefaultSharedPreferences(applicationContext)
+    }
 
+    private lateinit var customSavedDownloadDialog: Dialog
 
     private val handler: Handler by lazy {
         Handler(Looper.getMainLooper())
     }
 
+    private val adapter by lazy {
+        SavedPathIndexListAdapter(this)
+    }
+
+    companion object {
+        private const val REQUEST_LOCATION_PERMISSION: Int = 100
+    }
 
 
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
+    @SuppressLint("UseKtx", "UnspecifiedRegisterReceiverFlag")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDeMo202100Binding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val filter = IntentFilter().apply {
-            addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            // Android 14 and above requires specifying a flag
-            registerReceiver(downloadReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        // Check location permission (needed for SSID)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION_PERMISSION
+            )
         } else {
-            registerReceiver(downloadReceiver, filter)
+            showNetworkInfo()
         }
 
 
-        binding.textDisplay.setOnClickListener {
-            deleteAllConfigJsonFiles()
+        val filterPr = IntentFilter().apply { addAction(Constants.SERVER_PROGRESS_RECIEVER) }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            registerReceiver(progressSeverService, filterPr, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(progressSeverService, filterPr)
+        }
+
+        //add exception
+        Methods.addExceptionHandler(this)
+
+        setUpFullScreenWindows()
+
+        setupAutoStartSwitch()
+
+        val get_imgToggleImageBackground =
+            sharedBiometric.getString(Constants.imgToggleImageBackground, "")
+        val get_imageUseBranding = sharedBiometric.getString(Constants.imageUseBranding, "")
+        if (get_imgToggleImageBackground.equals(Constants.imgToggleImageBackground) && get_imageUseBranding.equals(
+                Constants.imageUseBranding
+            )
+        ) {
+            loadBackGroundImage()
         }
 
 
-        binding.button.setOnClickListener {
-            if (!file1) {
-                file1 = true
-                initConfigDownload()
-            }
+        // Restore saved port value
+        val savedPort = sharedPreferences.getInt("lastPort", 8080)
+        binding.portInput.setText(savedPort.toString())
 
+        binding.startServerBtn.setOnClickListener {
+            Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+            callServiceStart()
         }
 
-    }
-
-
-
-    private fun deleteAllConfigJsonFiles() {
-        var isCalled = false
-        lifecycleScope.launch(Dispatchers.IO) {
-            val syn2AppLive = Constants.Syn2AppLive
-            val relativePath = "$syn2AppLive/CLO/DE_MO_2021000/${Constants.App_Config_End_Point}"
-            val targetFolder = File(getExternalFilesDir(null), relativePath)
-            delete(targetFolder)
-            withContext(Dispatchers.Main) {
-                if (!isCalled) {
-                    isCalled = true
-                    handler.postDelayed({
-                        showToastMessage("Deleted successfully")
-                        }, 1000)
-
-                }
-            }
+        binding.stopServerBtn.setOnClickListener {
+            Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+            callServiceStop()
         }
-    }
 
-
-
-
-    private fun initConfigDownload() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val syn2AppLive = Constants.Syn2AppLive
-            val relativePath = "$syn2AppLive/CLO/DE_MO_2021000/${Constants.App_Config_End_Point}/$fileNameOne"
-            val targetFolder = File(getExternalFilesDir(null), relativePath)
-            delete(targetFolder)
-            withContext(Dispatchers.Main) {
-                val serverUrl = "https://cp.cloudappserver.co.uk/app_base/public/CLO/DE_MO_2021000/App/Config/appConfig.json"
-                startDownload("CLO", "DE_MO_2021000", serverUrl, fileNameOne)
-                showToastMessage("downloading config")
-
-            }
+        binding.imgCloseDialog.setOnClickListener {
+            Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+            closeApplication()
         }
-    }
+
+        binding.textClickSetPort.setOnClickListener {
+            Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+            showPopSetPort()
+        }
+
+        binding.closeBs.setOnClickListener {
+            Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+            navigateBack()
+        }
+
+        binding.textBrowsePath.setOnClickListener {
+            Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+            startActivity(Intent(applicationContext, FileExplorerActivity::class.java))
+        }
+
+
+        binding.txtNetworkInfo.setOnClickListener {
+            val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+            startActivity(intent)
+        }
 
 
 
-    private fun loadLocalConfigFromInternalStorage() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val getFolderClo = "CLO"
-                val getFolderSubpath = "DE_MO_2021000"
+        binding.textSaveLocation.setOnClickListener {
+            Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+            val getEditText = binding.editTextPath.text.toString().trim()
 
-                val baseDir = getExternalFilesDir(null)
-                val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App_Config_End_Point}"
-                val folder = File(baseDir, relativePath)
+            // Only proceed if input contains "App/"
+            if (getEditText.contains("App/")) {
+                val index = getEditText.indexOf("App/")
 
-                val fileName = "appConfig.json"
-                val file = File(folder, fileName)
+                // Extract everything after "App/"
+                val trimmedPath = getEditText.substring(index + "App/".length)
 
-                if (file.exists()) {
-                    val json = file.bufferedReader().use { it.readText() }
-                    val remoteConfigJson = JSONObject(json).getJSONObject("remoteConfig")
-                    val gson = Gson()
-                    val config = gson.fromJson(remoteConfigJson.toString(), RemoteConfig::class.java)
+                val savedPorto = sharedPreferences.getInt("lastPort", 8080)
+                val path = "$savedPorto/$trimmedPath"
 
-                    withContext(Dispatchers.Main) {
-                        getRemoteValues(config)
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        showToastMessage("Config file not found.")
-                        getRemoteValues(null)
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    showToastMessage("Failed to read config.")
-                    getRemoteValues(null)
-                }
+                val indexList = IndexList(VALUES = path)
+                mUserViewModel.addUser(indexList)
+
+                binding.editTextPath.setText(path)
+                Toast.makeText(this, "Saved successfully!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Path must contain \"App/\"", Toast.LENGTH_SHORT).show()
             }
         }
 
 
+
+        binding.textViewAllSavedList.setOnClickListener {
+            Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+            showSavedPathList()
+        }
+
+
+        setupCopyAddressButton()
+
+        setupServerActionButtons()
+
+
+
+        lifecycleScope.launch {
+            delay(300)
+            iniUiActions()
+        }
+
     }
 
+    private fun setupAutoStartSwitch() {
+        // Restore saved switch state
+        val autoStartEnabled = sharedPreferences.getBoolean("autoStartServer", false)
+        binding.imagShowOnlineStatus.isChecked = autoStartEnabled
 
-    private fun getRemoteValues(config: RemoteConfig?) {
-        if (config == null) {
-            binding.textDisplay.text = "unable to read  config"
-        }else{
-            binding.textDisplay.text = "${config?.homeUrl}\n${config?.splashUrl}\n${config?.Screen1Title}\n${config?.Screen3Title}"
+        // Save switch state on toggle
+        binding.imagShowOnlineStatus.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit()
+                .putBoolean("autoStartServer", isChecked)
+                .apply()
+        }
 
+        // If enabled → auto start server with coroutine delay
+        if (autoStartEnabled) {
+            lifecycleScope.launch {
+                delay(5000)
+                callServiceStart()
+            }
+        }
+    }
+
+    private fun iniUiActions() {
+        val getServerState = sharedPreferences.getString(Constants.PR_SEVER_STATE, "").toString()
+        if (getServerState == Constants.SL_Running) {
+            if (Utility.foregroundForSeverServiceClass(applicationContext)) {
+                manageUIOnServerStart()
+            }
+        } else {
+            if (!Utility.foregroundForSeverServiceClass(applicationContext)) {
+                manageUIOnServerStops()
+            }
+        }
+    }
+
+    private fun setupCopyAddressButton() {
+        Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+        binding.textCopyIpAdress.setOnClickListener {
+            val address = binding.addressText.text.toString()
+            if (address.startsWith("Address: http")) {
+                val url = address.substringAfter("Address: ")
+                val clipboard =
+                    getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Server URL", url))
+                Toast.makeText(this, "Server URL copied", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "No server running or URL not available", Toast.LENGTH_SHORT)
+                    .show()
+            }
         }
     }
 
 
+    private fun callServiceStart() {
+        if (!Utility.foregroundForSeverServiceClass(applicationContext)) {
+            Utility.hideKeyBoard(applicationContext, binding.portInput)
+            val port = binding.portInput.text.toString().toIntOrNull() ?: 8080
 
-    private val downloadReceiver = object : BroadcastReceiver() {
+            if (port < 1000 || port > 9999) {
+                Toast.makeText(this, "Port must be 4 digits (1000-9999)", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            sharedPreferences.edit { putInt("lastPort", port) }
+            applicationContext.stopService(Intent(applicationContext, ServerService::class.java))
+            applicationContext.startService(Intent(applicationContext, ServerService::class.java))
+
+        } else {
+            Toast.makeText(this, "Server already running", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    private fun callServiceStop() {
+        Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+        if (Utility.foregroundForSeverServiceClass(applicationContext)) {
+            applicationContext.stopService(Intent(applicationContext, ServerService::class.java))
+        } else {
+            Toast.makeText(this, "Server is currently no Running", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    private var isCalled = true
+    private val progressSeverService = object : BroadcastReceiver() {
+        @SuppressLint("SetTextI18n")
         override fun onReceive(context: Context?, intent: Intent?) {
-
-            try {
-                val receivedId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-                if (receivedId == downloadId) {
-
-                    val get_UserID = "CLO"
-                    val get_LicenseKey = "DE_MO_2021000"
-
-                    if (file1 && !file2) {
-                        file1 = true
-                        file2 = true
-
-                        handler.postDelayed(Runnable {
-
-                            lifecycleScope.launch(Dispatchers.IO) {
-                                val syn2AppLive = Constants.Syn2AppLive
-                                val relativePath = "$syn2AppLive/CLO/DE_MO_2021000/${Constants.App_Config_End_Point}/$fileNameTwo"
-                                val targetFolder = File(getExternalFilesDir(null), relativePath)
-                                delete(targetFolder)
-                                withContext(Dispatchers.Main) {
-                                    val ServerUrl =  "https://cp.cloudappserver.co.uk/app_base/public//CLO/DE_MO_2021000/AppConfig/InstallAppSettings.json"
-                                    startDownload(get_UserID, get_LicenseKey, ServerUrl, fileNameTwo)
-                                    showToastMessage("downloading config")
-
-                                }
-                            }
-
-
-                        }, 500)
-
+            if (intent?.action == Constants.SERVER_PROGRESS_RECIEVER) {
+                val status = intent.getStringExtra(Constants.SERVER_RUNNING_STATE)
+                if (status == Constants.SERVER_STARTED) {
+                    if (isCalled) {
+                        isCalled = false
+                        lifecycleScope.launch {
+                            delay(1000)
+                            isCalled = true
+                            manageUIOnServerStart()
+                        }
                     }
-
-                     if (file1 && file2) {
-
-                        handler.postDelayed(Runnable {
-                            showToastMessage("Dowmload completed")
-                            loadLocalConfigFromInternalStorage()
-                        }, 500)
-
+                } else if (status == Constants.SERVER_STOPPED) {
+                    if (isCalled) {
+                        isCalled = false
+                        lifecycleScope.launch {
+                            delay(1000)
+                            isCalled = true
+                            manageUIOnServerStops()
+                        }
                     }
-
-
-                }
-
-            } catch (e: java.lang.Exception) {
-                Log.d("POWELL", "onReceive: ${e.message}")
-            }
-        }
-    }
-
-
-
-    private fun startDownload(
-        getFolderClo: String, getFolderSubpath: String, serverUrl: String, fileName: String
-    ) {
-        val syn2AppLive = Constants.Syn2AppLive
-        val innerFolder = "App/Config"
-        val relativePath = "$syn2AppLive/$getFolderClo/$getFolderSubpath/$innerFolder"
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            val result = checkUrlExistence(serverUrl)
-            withContext(Dispatchers.Main) {
-                if (result) {
-                    val targetDir = File(getExternalFilesDir(null), relativePath)
-                    if (!targetDir.exists()) {
-                        targetDir.mkdirs()
-                    }
-
-                    val file = File(targetDir, fileName)
-                    val request = DownloadManager.Request(Uri.parse(serverUrl)).apply {
-                        setTitle(fileName)
-                        setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                        setDestinationUri(Uri.fromFile(file)) // ✅ Scoped & app-safe
-                    }
-
-                    val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                    downloadId = downloadManager.enqueue(request)
-                } else {
-                    showToastMessage("Invalid User!")
                 }
             }
         }
     }
 
-    private fun showToastMessage(message: String) {
-        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+
+    @SuppressLint("SetTextI18n")
+    private fun manageUIOnServerStart() {
+        val statusText = sharedPreferences.getString(Constants.SERVER_STATE, "").toString()
+        val localUrl = sharedPreferences.getString(Constants.localUrl, "").toString()
+        val PR_STROAGE = sharedPreferences.getString(Constants.PR_STROAGE, "").toString()
+        // binding.statusText.text = statusText
+        binding.addressText.text = "Address: $localUrl"
+        binding.textSeverState.text = "Running"
+        binding.textDisplayStoragePath.text = PR_STROAGE
+        binding.textDisplayStoragePath.visibility = View.VISIBLE
+        binding.textCopyIpAdress.visibility = View.VISIBLE
+        binding.viewWithCustomChrome.visibility = View.VISIBLE
+        binding.viewWithInstalledChrome.visibility = View.VISIBLE
+        binding.textViewAllSavedList.visibility = View.VISIBLE
+        binding.stopServerBtn.visibility = View.VISIBLE
+        binding.txtNetworkInfo.visibility = View.VISIBLE
+        binding.startServerBtn.visibility = View.GONE
+        binding.textSeverState.setTextColor(
+            ContextCompat.getColor(
+                this@DE_MO_202100,
+                R.color.holo_green_dark
+            )
+        )
     }
 
-    private fun delete(file: File): Boolean {
-        if (file.isFile) {
-            return file.delete()
-        } else if (file.isDirectory) {
-            for (subFile in Objects.requireNonNull(file.listFiles())) {
-                if (!delete(subFile)) return false
-            }
-            return file.delete()
-        }
-        return false
-    }
 
+    @SuppressLint("SetTextI18n")
+    private fun manageUIOnServerStops() {
+        binding.addressText.text = "Address: --"
+        binding.textSeverState.text = "Stopped"
+        binding.textDisplayStoragePath.visibility = View.INVISIBLE
+        binding.textCopyIpAdress.visibility = View.INVISIBLE
+        binding.viewWithCustomChrome.visibility = View.INVISIBLE
+        binding.viewWithInstalledChrome.visibility = View.INVISIBLE
+        binding.textViewAllSavedList.visibility = View.GONE
+        binding.stopServerBtn.visibility = View.GONE
+        binding.txtNetworkInfo.visibility = View.GONE
+        binding.startServerBtn.visibility = View.VISIBLE
+        binding.textSeverState.setTextColor(
+            ContextCompat.getColor(
+                this@DE_MO_202100,
+                R.color.holo_red_dark
+            )
+        )
+
+    }
 
     override fun onDestroy() {
         super.onDestroy()
-
-        if (downloadReceiver != null) {
-                unregisterReceiver(downloadReceiver)
+        if (progressSeverService != null) {
+            unregisterReceiver(progressSeverService)
         }
     }
 
+    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
+    @SuppressLint("MissingSuperCall")
+    override fun onBackPressed() {
+        navigateBack()
+    }
+
+    private fun navigateBack() {
+        val intent = Intent(applicationContext, MaintenanceActivity::class.java)
+        startActivity(intent)
+        finish()
+
+    }
+
+    private fun closeApplication() {
+        val getServerState = sharedPreferences.getString(Constants.PR_SEVER_STATE, "").toString()
+        if (getServerState == Constants.SL_Off) {
+            if (!Utility.foregroundForSeverServiceClass(applicationContext)) {
+                finishAndRemoveTask()
+                Process.killProcess(Process.myPid())
+            } else {
+                showAlertDialog("Please kindly Stop the Sever , Then Exit Application")
+            }
+        } else {
+            showAlertDialog("Please kindly Stop the Sever , Then Exit Application")
+        }
+
+
+    }
+
+    private fun showAlertDialog(message: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Server Status")
+            .setMessage(message)
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun setupServerActionButtons() {
+        // Open in Chrome (already implemented earlier)
+        binding.viewWithInstalledChrome.setOnClickListener {
+            val getServerState =
+                sharedPreferences.getString(Constants.PR_SEVER_STATE, "").toString()
+            if (getServerState == Constants.SL_Running) {
+                if (Utility.foregroundForSeverServiceClass(applicationContext)) {
+                    val localUrl = sharedPreferences.getString(Constants.localUrl, "").toString()
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$localUrl/index.html"))
+
+                    try {
+                        intent.setPackage("com.android.chrome")
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        intent.setPackage(null)
+                        startActivity(intent)
+                    }
+                }
+            } else {
+                showAlertDialog("Sever needs to be Running before launching Chrome Browser")
+            }
+
+        }
+
+        // Open inside WebView page
+        binding.viewWithCustomChrome.setOnClickListener {
+            val getServerState =
+                sharedPreferences.getString(Constants.PR_SEVER_STATE, "").toString()
+            if (getServerState == Constants.SL_Running) {
+                val localUrl = sharedPreferences.getString(Constants.localUrl, "").toString()
+
+                try {
+                    val customTabsIntent = CustomTabsIntent.Builder()
+                        .setShowTitle(true) // Show page title
+                        .setUrlBarHidingEnabled(true) // Hide URL bar when scrolling
+                        .setShareState(CustomTabsIntent.SHARE_STATE_ON) // Add share option
+                        .build()
+
+                    customTabsIntent.launchUrl(this, Uri.parse(localUrl))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(this, "No browser found to open link", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                showAlertDialog("Sever needs to be Running before launching Chrome Browser")
+            }
+        }
+
+
+    }
+
+    private fun loadBackGroundImage() {
+        val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
+        val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
+        val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
+
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
+        val fileTypes = "app_background.png"
+        val file = File(folder, fileTypes)
+
+        if (file.exists()) {
+            Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
+        }
+
+    }
+
+    private fun setUpFullScreenWindows() {
+        val get_INSTALL_TV_JSON_USER_CLICKED =
+            sharedTVAPPModePreferences.getString(Constants.INSTALL_TV_JSON_USER_CLICKED, "")
+                .toString()
+        if (get_INSTALL_TV_JSON_USER_CLICKED != Constants.INSTALL_TV_JSON_USER_CLICKED) {
+            val img_imgImmesriveModeToggle = preferences.getBoolean(Constants.immersive_mode, false)
+            if (img_imgImmesriveModeToggle) {
+                Utility.hideSystemBars(window)
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            }
+
+
+        } else {
+
+            val immersive_Mode_APP =
+                sharedTVAPPModePreferences.getBoolean(Constants.immersive_Mode_APP, false)
+            if (immersive_Mode_APP) {
+                Utility.hideSystemBars(window)
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            }
+
+        }
+    }
+
+    @SuppressLint("MissingInflatedId")
+    private fun showPopSetPort() {
+        val bindingCM: CustomPortLayoutBinding = CustomPortLayoutBinding.inflate(
+            layoutInflater
+        )
+        val builder = AlertDialog.Builder(this)
+        builder.setView(bindingCM.getRoot())
+        val alertDialog = builder.create()
+        alertDialog.setCanceledOnTouchOutside(false)
+        alertDialog.setCancelable(false)
+        if (alertDialog.window != null) {
+            alertDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            alertDialog.window!!.attributes.windowAnimations =
+                sync2app.com.syncapplive.R.style.PauseDialogAnimation
+        }
+
+
+
+        bindingCM.textContinuPasswordDai.setOnClickListener {
+            val port = bindingCM.eitTextEnterNewPassword.text.toString().toIntOrNull() ?: 8080
+            if (port < 1000 || port > 9999) {
+                Toast.makeText(this, "Port must be 4 digits (1000-9999)", Toast.LENGTH_SHORT).show()
+                alertDialog.dismiss()
+                return@setOnClickListener
+            }
+            binding.portInput.setText(port.toString())
+            Utility.hideKeyBoard(applicationContext, bindingCM.eitTextEnterNewPassword)
+            alertDialog.dismiss()
+
+        }
+
+        bindingCM.imgCloseDialog.setOnClickListener {
+            Utility.hideKeyBoard(applicationContext, bindingCM.eitTextEnterNewPassword)
+            alertDialog.dismiss()
+        }
+        alertDialog.show()
+    }
+
+
+    private fun showSavedPathList() {
+
+        customSavedDownloadDialog = Dialog(this)
+        val bindingCm = CustomSavedPathListBinding.inflate(LayoutInflater.from(this))
+        customSavedDownloadDialog.setContentView(bindingCm.root)
+        customSavedDownloadDialog.setCancelable(true)
+        customSavedDownloadDialog.setCanceledOnTouchOutside(true)
+        customSavedDownloadDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+
+        val textErrorText = bindingCm.textErrorText
+        val textClearAllData = bindingCm.textClearAllData
+
+
+
+
+        bindingCm.apply {
+
+
+            closeBs.setOnClickListener {
+                Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+                customSavedDownloadDialog.dismiss()
+            }
+
+
+            imageCrossClose.setOnClickListener {
+                Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+                customSavedDownloadDialog.dismiss()
+            }
+
+            textClearAllData.setOnClickListener {
+                mUserViewModel.deleteAllUsers()
+                Utility.hideKeyBoard(applicationContext, binding.editTextPath)
+                customSavedDownloadDialog.dismiss()
+            }
+
+
+            handler.postDelayed(Runnable {
+                recyclerSavedDownload.adapter = adapter
+                recyclerSavedDownload.layoutManager = LinearLayoutManager(applicationContext)
+
+                mUserViewModel.readAllData.observe(this@DE_MO_202100, Observer { user ->
+                    adapter.setData(user)
+                    if (user.isNotEmpty()) {
+                        textErrorText.visibility = View.GONE
+                        textClearAllData.visibility = View.VISIBLE
+                    } else {
+                        textClearAllData.visibility = View.GONE
+                        textErrorText.visibility = View.VISIBLE
+                    }
+                })
+
+
+            }, 200)
+        }
+
+
+
+        customSavedDownloadDialog.show()
+
+    }
+
+    override fun onItemClicked(item: IndexList) {
+
+    }
+
+    override fun onItemLongClicked(item: IndexList, position: Int) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Path")
+            .setMessage("Do you want to delete \"${item.VALUES}\"?")
+            .setPositiveButton("Yes") { _, _ ->
+                // Remove from DB
+                mUserViewModel.deleteUser(item)
+
+                Toast.makeText(this, "Deleted: ${item.VALUES}", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+
+//// the network info ///
+//// the network info ///
+//// the network info ///
+
+    /*
+private fun showNetworkInfo() {
+    val info = StringBuilder()
+
+    // Get WiFi SSID and Local IP
+    val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as WifiManager?
+    wifiManager?.connectionInfo?.let { wifiInfo: WifiInfo ->
+        val ssid = wifiInfo.ssid
+        val ipInt = wifiInfo.ipAddress
+        val localIp = Formatter.formatIpAddress(ipInt)
+
+        info.append("NETWORK DETAILS").append("").append("\n")
+        info.append("Connected to : ").append(ssid).append("\n")
+        info.append("Local IP: ").append(localIp).append("\n")
+        info.append("").append("").append("\n")
+        info.append("==Click here to view Wifi settings==").append("").append("\n")
+
+    }
+
+    // Fetch Public IP in background using Coroutine
+    CoroutineScope(Dispatchers.IO).launch {
+        val publicIp = getPublicIP()
+        withContext(Dispatchers.Main) {
+            info.append("Public IP: ").append(publicIp).append("\n")
+            binding.txtNetworkInfo.text = info.toString()
+        }
+    }
 }
 
+// Function to get public IP (runs in IO thread)
+private fun getPublicIP(): String {
+    return try {
+        val url = URL("https://api.ipify.org")
+        val connection = url.openConnection() as HttpURLConnection
+        connection.connectTimeout = 5000
+        connection.readTimeout = 5000
+
+        val reader = BufferedReader(InputStreamReader(connection.inputStream))
+        val ip = reader.readLine()
+        reader.close()
+        connection.disconnect()
+        ip
+    } catch (e: Exception) {
+        "Error: ${e.message}"
+    }
+}
+
+// Handle permission result
+override fun onRequestPermissionsResult(
+    requestCode: Int,
+    permissions: Array<String>,
+    grantResults: IntArray
+) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+    if (requestCode == REQUEST_LOCATION_PERMISSION) {
+        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            showNetworkInfo()
+        } else {
+            Toast.makeText(this, "Permission required to get WiFi SSID", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+}*/
+
+
+    @SuppressLint("SetTextI18n")
+    private fun showNetworkInfo() {
+        val info = StringBuilder()
+        info.append("NETWORK DETAILS\n\n")
+
+        val cm =
+            applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        for (network in cm.allNetworks) {
+            val caps = cm.getNetworkCapabilities(network) ?: continue
+            val linkProperties = cm.getLinkProperties(network) ?: continue
+
+            var connectionType = "Unknown"
+            var networkName = "Unknown"
+
+            when {
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                    connectionType = "Wi-Fi"
+                    val wifiManager =
+                        applicationContext.getSystemService(WIFI_SERVICE) as WifiManager?
+                    networkName =
+                        wifiManager?.connectionInfo?.ssid?.replace("\"", "") ?: "Unknown SSID"
+                }
+
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
+                    connectionType = "Ethernet"
+                    networkName = linkProperties.interfaceName ?: "Ethernet"
+                }
+            }
+
+            for (linkAddress in linkProperties.linkAddresses) {
+                val host = linkAddress.address
+                if (host is Inet4Address && !host.isLoopbackAddress) {
+                    info.append("Connected via: $connectionType\n")
+                    info.append("Network Name: $networkName\n")
+                    info.append("Local IP: ${host.hostAddress}\n\n")
+                }
+            }
+        }
+
+        // Fetch Public IP in background
+        CoroutineScope(Dispatchers.IO).launch {
+            val publicIp = Utility.getPublicIP()
+            withContext(Dispatchers.Main) {
+                info.append("Public IP: $publicIp\n")
+                binding.txtNetworkInfo.text = info.toString()
+            }
+        }
+    }
+}

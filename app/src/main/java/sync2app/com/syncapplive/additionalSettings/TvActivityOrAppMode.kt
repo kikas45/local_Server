@@ -21,7 +21,6 @@ import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
@@ -30,7 +29,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -44,7 +42,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.google.android.material.snackbar.Snackbar
 import io.paperdb.Paper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -724,7 +721,7 @@ private fun showInfoAlertDialog() {
 private fun autoSetPrefilledPaths() {
     // set path
     binding.editTextUserID.setText("CLO")
-    binding.editTextLicenseKey.setText("DE_MO_2021000")
+    binding.editTextLicenseKey.setText("NG_LA_2025031753")
 
     binding.texturlsSavedDownload.text = CP_server
     getUrlBasedOnSpinnerText = CP_server

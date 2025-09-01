@@ -315,6 +315,25 @@
                 tools:ignore="HardcodedText,RtlSymmetry" />
 
             <TextView
+                android:id="@+id/textNavigateToSeverEngine"
+                style="@style/textColorStyle"
+                android:layout_width="0dp"
+                android:layout_height="60dp"
+                android:elegantTextHeight="true"
+                android:gravity="start|center"
+                android:maxLines="1"
+                android:paddingStart="65dp"
+                android:paddingLeft="24dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:text="Sever Engine"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/divider90"
+                tools:ignore="HardcodedText,RtlSymmetry" />
+
+            <TextView
                 android:id="@+id/textOpenChromeBrowser"
                 style="@style/textColorStyle"
                 android:layout_width="0dp"
@@ -488,6 +507,17 @@
                 app:tint="#494646" />
 
             <ImageView
+                android:id="@+id/imageView63"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginEnd="16dp"
+                android:src="@drawable/ic_arrow_move_front"
+                app:layout_constraintBottom_toBottomOf="@+id/textNavigateToSeverEngine"
+                app:layout_constraintEnd_toEndOf="@+id/textSetOrientationMode"
+                app:layout_constraintTop_toTopOf="@+id/textNavigateToSeverEngine"
+                app:tint="#494646" />
+
+            <ImageView
                 android:id="@+id/imageView59"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
@@ -530,6 +560,17 @@
                 app:layout_constraintBottom_toBottomOf="@+id/textSetUserAgents"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/textSetUserAgents" />
+
+            <ImageView
+                android:id="@+id/imageView62"
+                style="@style/imageStyleColorTint"
+                android:layout_width="27dp"
+                android:layout_height="27dp"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/ic_system_memory_24"
+                app:layout_constraintBottom_toBottomOf="@+id/textNavigateToSeverEngine"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/textNavigateToSeverEngine" />
 
             <ImageView
                 android:id="@+id/imgShowOpenChrome"
@@ -726,12 +767,22 @@
                 style="@style/dividerBackColor"
                 android:layout_width="0dp"
                 android:layout_height="1dp"
+                android:background="?android:attr/listDivider"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textSetUserAgents" />
+
+            <View
+                android:id="@+id/divider92"
+                style="@style/dividerBackColor"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
                 android:layout_marginBottom="32dp"
                 android:background="?android:attr/listDivider"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textSetUserAgents"
+                app:layout_constraintTop_toBottomOf="@+id/textNavigateToSeverEngine"
                 app:layout_constraintVertical_bias="0.0" />
 
             <View

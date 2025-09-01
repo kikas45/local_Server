@@ -7,6 +7,7 @@ import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
@@ -131,6 +132,8 @@ class SettingsActivityKT : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+
         applyOritenation()
 
         setUpFullScreenWindows()
@@ -164,17 +167,15 @@ class SettingsActivityKT : AppCompatActivity() {
 
                 //add exception
                 Methods.addExceptionHandler(this@SettingsActivityKT)
-                val sharedBiometric = getSharedPreferences(Constants.SHARED_BIOMETRIC, MODE_PRIVATE)
-                val get_imgToggleImageBackground = sharedBiometric.getString(Constants.imgToggleImageBackground, "").toString()
-                val get_imageUseBranding = sharedBiometric.getString(Constants.imageUseBranding, "").toString()
-                if (get_imgToggleImageBackground == Constants.imgToggleImageBackground && get_imageUseBranding == Constants.imageUseBranding) {
-                    loadBackGroundImage()
-                }
-
 
             } catch (e: Exception) {
             }
 
+            val get_imgToggleImageBackground = sharedBiometric.getString(Constants.imgToggleImageBackground, "")
+            val get_imageUseBranding = sharedBiometric.getString(Constants.imageUseBranding, "")
+            if (get_imgToggleImageBackground.equals(Constants.imgToggleImageBackground) && get_imageUseBranding.equals(Constants.imageUseBranding) ){
+                loadBackGroundImage()
+            }
 
 
 
@@ -1420,17 +1421,18 @@ class SettingsActivityKT : AppCompatActivity() {
         val sharedP = getSharedPreferences(Constants.MY_DOWNLOADER_CLASS, MODE_PRIVATE)
         val getFolderClo = sharedP.getString(Constants.getFolderClo, "").toString()
         val getFolderSubpath = sharedP.getString(Constants.getFolderSubpath, "").toString()
-        val pathFolder =
-            "/" + getFolderClo + "/" + getFolderSubpath + "/" + Constants.App + "/" + "Config"
-        val folder =
-            Environment.getExternalStorageDirectory().absolutePath + "/Download/" + Constants.Syn2AppLive + "/" + pathFolder
+
+        val baseDir = getExternalFilesDir(null) // App-private external storage
+        val relativePath = "Syn2AppLive/$getFolderClo/$getFolderSubpath/${Constants.App}/Config"
+        val folder = File(baseDir, relativePath)
         val fileTypes = "app_background.png"
         val file = File(folder, fileTypes)
+
         if (file.exists()) {
             Glide.with(this).load(file).centerCrop().into(binding.backgroundImage)
         }
-    }
 
+    }
     private fun setDrawableColor(imageView: ImageView, drawableId: Int, colorId: Int) {
         val drawable = ContextCompat.getDrawable(applicationContext, drawableId)
         if (drawable != null) {
@@ -2817,6 +2819,8 @@ class SettingsActivityKT : AppCompatActivity() {
     }
 
 
+    @SuppressLint("MissingSuperCall")
+    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     override fun onBackPressed() {
         val getInfoPageState = sharedBiometric.getString(Constants.FIRST_INFORMATION_PAGE_COMPLETED, "").toString()
         if(getInfoPageState == Constants.FIRST_INFORMATION_PAGE_COMPLETED){

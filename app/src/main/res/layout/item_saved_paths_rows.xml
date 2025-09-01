@@ -1,0 +1,49 @@
+<!-- res/layout/item_download.xml -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textClo_Demo_Folder"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:clickable="true"
+        android:elegantTextHeight="true"
+        android:ellipsize="end"
+        android:focusable="true"
+        android:foreground="?selectableItemBackground"
+        android:gravity="center|start"
+        android:maxLines="1"
+        android:padding="4dp"
+        android:fontFamily="sans-serif-condensed-medium"
+        android:text="Saved Downloads"
+        android:textColor="@color/deep_blue"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/textCopy"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textCopy"
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:elegantTextHeight="true"
+        android:ellipsize="end"
+        android:focusable="true"
+        android:gravity="center"
+        android:foreground="?actionBarItemBackground"
+        android:text="COPY"
+        android:textColor="@color/deep_green"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

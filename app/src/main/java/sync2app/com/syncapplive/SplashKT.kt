@@ -50,6 +50,7 @@ import sync2app.com.syncapplive.additionalSettings.utils.Utility
 import sync2app.com.syncapplive.additionalSettings.utils.isInternetAvailableOnBing
 import sync2app.com.syncapplive.databinding.ActivitySplashBinding
 import sync2app.com.syncapplive.databinding.CustomHelperLayoutBinding
+import sync2app.com.syncapplive.myService.ServerService
 import java.io.File
 import java.net.URI
 import java.net.URISyntaxException
@@ -132,6 +133,7 @@ class SplashKT : AppCompatActivity() {
         try {
             //add exception
             Methods.addExceptionHandler(this)
+
         } catch (e: Exception) {
         }
 
@@ -160,12 +162,15 @@ class SplashKT : AppCompatActivity() {
         splash = binding.splash
 
 
-        val get_imgToggleImageBackground =
-            sharedBiometric.getString(Constants.imgToggleImageBackground, "").toString()
-        val get_imageUseBranding =
-            sharedBiometric.getString(Constants.imageUseBranding, "").toString()
+        val get_imgToggleImageBackground = sharedBiometric.getString(Constants.imgToggleImageBackground, "").toString()
+        val get_imageUseBranding = sharedBiometric.getString(Constants.imageUseBranding, "").toString()
         if (get_imgToggleImageBackground == Constants.imgToggleImageBackground && get_imageUseBranding == Constants.imageUseBranding) {
             loadBackGroundImage()
+        }else{
+            if (Utility.foregroundForSeverServiceClass(applicationContext)) {
+                applicationContext.stopService(Intent(applicationContext, ServerService::class.java))
+            }
+
         }
 
         if (get_imageUseBranding == Constants.imageUseBranding) {
