@@ -6,6 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/_15dp"
+    android:visibility="invisible"
+    tools:visibility="visible"
     tools:context=".additionalSettings.DE_MO_202100">
 
     <ImageView
@@ -20,6 +22,68 @@
         app:layout_constraintBottom_toBottomOf="parent"/>
 
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/top_server_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center"
+        android:background="@color/red_dim"
+        android:clickable="false"
+        android:fitsSystemWindows="true"
+        android:focusable="false"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/textDescribeSituation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            android:elegantTextHeight="true"
+            android:ellipsize="none"
+            android:gravity="start"
+            android:lineSpacingExtra="6dp"
+            android:padding="5dp"
+            android:scrollHorizontally="false"
+            android:text="@string/textLocalNetworkRequired"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/textFixServer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+
+        <TextView
+            android:id="@+id/textFixServer"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginBottom="8dp"
+            android:background="@color/deep_blue"
+            android:elegantTextHeight="true"
+            android:gravity="center"
+            android:maxLines="1"
+            android:paddingStart="15dp"
+            android:paddingEnd="15dp"
+            android:text="Fix Now"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -28,7 +92,7 @@
         android:layout_height="50dp"
         android:layout_marginTop="2dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/top_server_layout">
 
         <ImageView
             android:id="@+id/close_bs"
@@ -150,6 +214,7 @@
                 android:focusable="false"
                 android:gravity="start|center"
                 android:maxLines="1"
+                android:ellipsize="end"
                 android:paddingStart="65dp"
                 android:text="Address: --"
                 android:textSize="16sp"
@@ -170,6 +235,7 @@
                 android:gravity="center"
                 android:padding="10dp"
                 android:text="Copy"
+                android:background="#EAEEF2"
                 android:textColor="@color/deep_blue"
                 android:textSize="15sp"
                 android:visibility="invisible"
@@ -181,8 +247,10 @@
             <TextView
                 android:id="@+id/textBrowsePath"
                 style="@style/textColorStyle"
-                android:layout_width="100dp"
+                android:layout_width="90dp"
                 android:layout_height="0dp"
+                android:layout_marginEnd="8dp"
+                android:background="#EAEEF2"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?selectableItemBackground"
@@ -208,6 +276,7 @@
                 android:gravity="center"
                 android:padding="10dp"
                 android:text="Save"
+                android:background="#EAEEF2"
                 android:textColor="@color/deep_blue"
                 android:textSize="15sp"
                 android:visibility="visible"
@@ -278,18 +347,17 @@
                 android:id="@+id/textClickSetPort"
                 android:layout_width="100dp"
                 android:layout_height="0dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
+                android:background="#EAEEF2"
                 android:clickable="true"
                 android:elegantTextHeight="true"
                 android:focusable="true"
                 android:foreground="?selectableItemBackground"
                 android:gravity="center"
                 android:maxLines="1"
-                android:visibility="visible"
                 android:text="Set Port"
                 android:textColor="@color/deep_blue"
                 android:textSize="15sp"
+                android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="@+id/portInput"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/portInput" />
@@ -361,6 +429,16 @@
                 app:layout_constraintTop_toBottomOf="@+id/portInput" />
 
             <View
+                android:id="@+id/divider104"
+                style="@style/dividerBackColor"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:visibility="visible"
+                app:layout_constraintBottom_toTopOf="@+id/textBrowsePath"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <View
                 android:id="@+id/divider100"
                 style="@style/dividerBackColor"
                 android:layout_width="0dp"
@@ -385,15 +463,15 @@
                 android:layout_width="0dp"
                 android:layout_height="60dp"
                 android:layout_marginStart="18dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginTop="24dp"
                 android:autofillHints=""
                 android:background="@drawable/flag_transparent"
-                android:hint="Enter locations and save"
+                android:hint="Enter or Paste the file path you want to save:"
                 android:importantForAutofill="no"
                 android:inputType="textNoSuggestions|textVisiblePassword"
                 android:padding="10dp"
                 android:textColor="@color/deep_blue"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 android:visibility="visible"
                 app:layout_constraintEnd_toStartOf="@+id/textBrowsePath"
                 app:layout_constraintStart_toStartOf="parent"
@@ -431,14 +509,17 @@
                     tools:visibility="visible" />
 
 
+
+
                 <TextView
                     android:id="@+id/startServerBtn"
-                    style="@style/cardDesignBuyGift"
+                    android:background="@drawable/card_green_design"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:clickable="true"
                     android:focusable="true"
+                    android:textColor="@color/white"
                     android:fontFamily="sans-serif-medium"
                     android:foreground="?selectableItemBackground"
                     android:gravity="center"
@@ -446,21 +527,68 @@
                     android:text="Start Server"
                     android:visibility="visible" />
 
+
+
                 <TextView
                     android:id="@+id/stopServerBtn"
-                    style="@style/cardDesignBuyGift"
+                    android:background="@drawable/card_red_design_card"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:clickable="true"
                     android:focusable="true"
+                    android:textColor="@color/white"
                     android:fontFamily="sans-serif-medium"
                     android:foreground="?selectableItemBackground"
                     android:gravity="center"
                     android:padding="12dp"
                     android:text="Stop Server"
-                    android:visibility="invisible"
+                    android:visibility="gone"
                     tools:visibility="visible" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <TextView
+                        android:id="@+id/textDownloadZip"
+                        style="@style/cardDesignBuyGift"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginTop="10dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:layout_marginEnd="10dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:foreground="?selectableItemBackground"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:text="Download Zip"
+                        android:visibility="visible"
+                        tools:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/textUseZipFolder"
+                        style="@style/cardDesignBuyGift"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginTop="10dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:layout_marginStart="10dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:foreground="?selectableItemBackground"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:text="Use Zip Extract"
+                        android:visibility="visible"
+                        tools:visibility="visible" />
+
+                </LinearLayout>
 
 
 
@@ -576,7 +704,6 @@
 
             <TextView
                 android:id="@+id/txtNetworkInfo"
-                style="@style/textColorStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
@@ -585,6 +712,7 @@
                 android:visibility="gone"
                 tools:visibility="visible"
                 tools:text="Network Infos"
+                android:textColor="@color/deep_green"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/divider97" />

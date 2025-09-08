@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="app_name">Sync2app</string>
+    <string name="app_name">SmartExcel</string>
 
     <string name="internet_error">Something went wrong way</string>
     <string name="hello_navigation_drawer">Hello drawer</string>
@@ -56,6 +56,9 @@
     <string name="open_settings_button_label">Open settings</string>
     <string name="request_permission_button_label">Request permission</string>
     <string name="todo">todo</string>
+    <string name="textDescription">Start your personal server with one tap.Share, sync, or test your app content over Wi-Fi or Ethernet,directly from this device — no internet required.</string>
+    <string name="textServerNetworkMessage">You are probably disconnected OR connected to a new Network, different from the one used by the Server.</string>
+    <string name="textLocalNetworkRequired">Attention! You are not connected. The server requires a local network connection before continuing.</string>
 
 
 </resources>

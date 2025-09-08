@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace ="sync2app.com.syncapplive"
+    namespace ="smarty.com.excel"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "sync2app.com.syncapplive"
+        applicationId = "smarty.com.excel"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

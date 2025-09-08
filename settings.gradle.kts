@@ -21,6 +21,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "RemoteWebView"
+rootProject.name = "SmartExcel"
 include(":app")
  

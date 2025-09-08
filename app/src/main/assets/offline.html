@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Page Unreachable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ responsive -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            margin-bottom: 30px; /* ✅ same as 30dp in Android */
+        }
+        h1 {
+            color: #cc0000;
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #333;
+            font-size: 1.1em; /* ✅ larger text */
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+        strong {
+            font-weight: bold;
+            color: #000;
+        }
+        code {
+            background: #eee;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Page Unreachable</h1>
+    <p>We tried to load:</p>
+    <p><code>{{URL}}</code></p>
+    <p>
+        The server may be disconnected,<br>
+        it may have moved to another location,<br>
+        or there could be network-related issues.
+    </p>
+    <p>
+        Please <strong>check your Wi-Fi, Ethernet, or LAN connection</strong><br>
+        and try again.
+    </p>
+</div>
+</body>
+</html>

@@ -6,6 +6,7 @@
     <color name="zxing_transparent">#00000000</color>
     <color name="black">#FF000000</color>
     <color name="red">#FF0000</color>
+    <color name="red_dim">#E60202</color>
     <color name="new_rbg_color">#97182234</color>
     <color name="pref_icons_color">#5C8395</color>
     <color name="white">#FFFFFF</color>
