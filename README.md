@@ -132,4 +132,3 @@ The app is built modularly with **Activities for permissions, server control, do
 
 ---
 
-Would you like me to also make a **short WhatsApp version (emoji-style + APK link + 2 screenshots)** for quick sharing with friends, separate from this full README?
