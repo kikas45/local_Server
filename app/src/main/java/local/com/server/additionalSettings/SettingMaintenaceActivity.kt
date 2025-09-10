@@ -9,6 +9,10 @@ import androidx.appcompat.app.AppCompatActivity
 import local.com.server.additionalSettings.utils.Constants
 import local.com.server.databinding.ActivityMaintenaceBinding
 import android.content.Context
+import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import local.com.server.myService.ServerService
 
 class SettingMaintenaceActivity : AppCompatActivity() {
@@ -76,8 +80,12 @@ class SettingMaintenaceActivity : AppCompatActivity() {
 
         binding.textExitApplication.setOnClickListener {
             applicationContext.stopService(Intent(applicationContext, ServerService::class.java))
-            finishAndRemoveTask()
-            android.os.Process.killProcess(android.os.Process.myTid())
+            Toast.makeText(applicationContext, "Please wait", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch { 
+                delay(3000)
+                finishAndRemoveTask()
+                android.os.Process.killProcess(android.os.Process.myTid())
+            }
         }
 
         binding.textFinishApp.setOnClickListener {
