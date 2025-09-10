@@ -1,7 +1,3 @@
-Perfect 🚀 I’ve merged your structured README draft with the missing parts (APK link + screenshots). Here’s a **ready-to-copy** version for your repo:
-
----
-
 # 🌐 Local Web Server & App Launcher (Android, Kotlin)
 
 ## 📖 Overview
