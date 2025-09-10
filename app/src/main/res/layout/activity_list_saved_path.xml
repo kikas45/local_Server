@@ -36,8 +36,8 @@
             android:id="@+id/close_bs"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:background="?selectableItemBackground"
+            android:background="@drawable/flag_transparent"
+            android:foreground="?selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
             android:padding="8dp"
@@ -52,37 +52,16 @@
             android:id="@+id/textTitle"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="24dp"
+            android:layout_marginStart="8dp"
             android:gravity="center|start"
             android:maxLines="1"
             android:text="Saved Path Url Page"
             android:textColor="@color/black"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="@+id/close_bs"
-            app:layout_constraintEnd_toStartOf="@+id/textClearAllData"
-            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/close_bs"
             app:layout_constraintTop_toTopOf="@+id/close_bs" />
-
-        <TextView
-            android:id="@+id/textClearAllData"
-            android:layout_width="100dp"
-            android:layout_height="30dp"
-            android:layout_marginEnd="8dp"
-            android:clickable="true"
-            android:elegantTextHeight="true"
-            android:focusable="true"
-            android:foreground="?selectableItemBackground"
-            android:gravity="center"
-            android:text="Clear All"
-            android:textColor="@color/red"
-            android:textSize="16sp"
-            android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -117,9 +96,10 @@
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerSavedDownload"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginBottom="16dp"
+                app:layout_constraintBottom_toTopOf="@+id/textClearAllData"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -140,6 +120,35 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/recyclerSavedDownload"
                 tools:visibility="visible" />
+
+
+            <TextView
+                android:textColor="@color/deep_blue"
+                android:id="@+id/textClearAllData"
+                style="@style/cardOutlineBlue"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="32dp"
+                android:layout_marginEnd="32dp"
+                android:layout_marginBottom="24dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="sans-serif-medium"
+                android:foreground="?selectableItemBackground"
+                android:gravity="center"
+                android:paddingLeft="18dp"
+                android:paddingTop="8dp"
+                android:paddingRight="18dp"
+                android:textSize="16sp"
+                android:paddingBottom="8dp"
+                android:text="Clear All"
+                android:visibility="invisible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:visibility="visible" />
+
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

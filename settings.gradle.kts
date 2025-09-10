@@ -21,6 +21,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SmartExcel"
+rootProject.name = "LocalServer"
 include(":app")
  

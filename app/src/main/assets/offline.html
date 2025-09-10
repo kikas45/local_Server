@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Page Unreachable</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ responsive -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,7 +18,7 @@
             margin: 0;
         }
         .container {
-            margin-bottom: 30px; /* ✅ same as 30dp in Android */
+            max-width: 600px;
         }
         h1 {
             color: #cc0000;
@@ -28,20 +28,32 @@
         }
         p {
             color: #333;
-            font-size: 1.1em; /* ✅ larger text */
+            font-size: 1.1em;
             line-height: 1.6;
             margin: 10px 0;
+        }
+        .failed-url {
+            display: block;
+            margin: 15px 0;
+            font-size: 1.4em;   /* 🔹 slightly larger */
+            font-weight: bold;  /* 🔹 bold */
+            color: #000;
+            background: #eee;
+            padding: 8px 12px;
+            border-radius: 6px;
+            word-break: break-word;
+        }
+        ol {
+            text-align: justify;  /* 🔹 justified list */
+            margin: 15px 0;
+            padding-left: 18px;   /* 🔹 tighter start */
+            list-style-position: inside; /* 🔹 numbers align neatly */
+            color: #444;
+            font-size: 1.05em;
         }
         strong {
             font-weight: bold;
             color: #000;
-        }
-        code {
-            background: #eee;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 1em;
         }
     </style>
 </head>
@@ -49,14 +61,17 @@
 <div class="container">
     <h1>Page Unreachable</h1>
     <p>We tried to load:</p>
-    <p><code>{{URL}}</code></p>
+    <span class="failed-url">{{URL}}</span>
+
+    <p>Possible reasons include:</p>
+    <ol>
+        <li>The server may be disconnected.</li>
+        <li>The page may have moved to another location.</li>
+        <li>There could be network-related issues.</li>
+    </ol>
+
     <p>
-        The server may be disconnected,<br>
-        it may have moved to another location,<br>
-        or there could be network-related issues.
-    </p>
-    <p>
-        Please <strong>check your Wi-Fi, Ethernet, or LAN connection</strong><br>
+        Please <strong>check your Wi-Fi, Ethernet or LAN connection</strong><br>
         and try again.
     </p>
 </div>

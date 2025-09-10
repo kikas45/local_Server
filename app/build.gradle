@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace ="smarty.com.excel"
+    namespace ="local.com.server"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "smarty.com.excel"
+        applicationId = "local.com.server"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

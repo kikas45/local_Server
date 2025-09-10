@@ -36,7 +36,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="8dp"
-            android:background="?selectableItemBackground"
+            android:background="@drawable/flag_transparent"
+            android:foreground="?selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
             android:padding="8dp"
@@ -208,6 +209,8 @@
         android:orientation="horizontal"
         android:paddingTop="10dp"
         android:weightSum="3"
+        android:visibility="gone"
+        tools:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">

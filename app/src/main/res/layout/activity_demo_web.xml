@@ -94,7 +94,8 @@
         android:focusable="false"
         android:gravity="center"
         android:orientation="horizontal"
-        android:visibility="visible"
+        android:visibility="gone"
+        tools:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -149,7 +150,7 @@
         android:background="@drawable/progress_bg"
         android:indeterminate="true"
         android:indeterminateDrawable="@drawable/progress_drawable"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
