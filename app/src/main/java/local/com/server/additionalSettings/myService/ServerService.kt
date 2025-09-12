@@ -76,7 +76,7 @@ class ServerService : Service() {
         val poto = sharedPreferences.getInt("lastPort", 8080)
         port = if (poto in 1000..9999) poto else 8080
 
-        val localIp = Utility.getLocalIpAddress(this)
+        val localIp = Utility.getServerIpAddress(this)
         if (localIp.isNullOrBlank()) {
             Toast.makeText(this, "⚠️ No valid local IP found. Connect to a LAN and restart server.", Toast.LENGTH_LONG).show()
             stopSelf() // stop service immediately

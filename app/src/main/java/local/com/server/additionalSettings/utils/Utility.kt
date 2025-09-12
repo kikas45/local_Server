@@ -73,88 +73,6 @@ object Utility {
     }
 
 
-    // Fetch and clean URLs from HTML
-    fun fetchUrlsFromHtml(url: String): List<String> {
-        return try {
-            val document = Jsoup.connect(url).get()
-            val fileTypes = getSupportedFileTypes()
-            val urls = mutableSetOf<String>()
-
-            // Extract URLs from relevant HTML tags
-            listOf(
-                document.select("a[href]").map { it.attr("abs:href") },
-                document.select("img[src]").map { it.attr("abs:src") },
-                document.select("link[href]").map { it.attr("abs:href") },
-                document.select("script[src]").map { it.attr("abs:src") }
-            ).flatten().forEach { dirtyUrl ->
-                cleanUrl(dirtyUrl)?.let { clean ->
-                    if (isValidUrl(clean) && hasSupportedFileType(clean, fileTypes)) {
-                        urls.add(clean)
-                    }
-                }
-            }
-
-            urls.toList()
-        } catch (e: Exception) {
-            Log.e("Utility", "Failed to fetch URLs: ${e.message}")
-            emptyList()
-        }
-    }
-
-
-    // Clean URL by stripping fragments and queries
-    private fun cleanUrl(dirtyUrl: String): String? {
-        return try {
-            val uri = URI(dirtyUrl)
-            URI(
-                uri.scheme,
-                uri.authority,
-                uri.path,
-                null,  // Remove query
-                null   // Remove fragment
-            ).toString()
-        } catch (e: URISyntaxException) {
-            Log.e("Utility", "Invalid URL: $dirtyUrl")
-            null
-        }
-    }
-
-
-    // Validate URL format
-    private fun isValidUrl(url: String): Boolean {
-        return url.isNotBlank() &&
-                Patterns.WEB_URL.matcher(url).matches() &&
-                url.startsWith("http", ignoreCase = true)
-    }
-
-
-    // Check if URL ends with a supported file type
-    private fun hasSupportedFileType(url: String, fileTypes: List<String>): Boolean {
-        return fileTypes.any { url.endsWith(it, ignoreCase = true) }
-    }
-
-
-    // Define supported file extensions
-    private fun getSupportedFileTypes(): List<String> {
-        return listOf(
-            // Fonts
-            ".ttf", ".otf", ".woff", ".woff2",
-            // Images
-            ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".ico", ".svg", ".webp",
-            // Videos
-            ".mp4", ".avi", ".mov", ".wmv", ".mkv", ".webm",
-            // Audio
-            ".mp3", ".wav", ".aac", ".ogg", ".flac", ".m4a", ".wma",
-            // Documents
-            ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".epub", ".xlsx", ".xls", ".csv", ".txt",
-            // Web
-            ".html", ".htm", ".asp", ".aspx", ".php", ".css", ".js", ".json", ".webmanifest",
-            // Archives
-            ".zip", ".rar", ".tar", ".gz",
-            // Data
-            ".sqlite", ".xml", ".yml", ".yaml", ".scss"
-        )
-    }
 
 
     fun startPulseAnimationForText(view: View) {
@@ -199,40 +117,17 @@ object Utility {
 
 
 
-
-/*    fun getLocalIpAddress(context: Context): String {
+    fun getServerIpAddress(context: Context): String {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-        for (network: Network in cm.allNetworks) {
+        // 1. Check Ethernet / Wi-Fi via ConnectivityManager
+        for (network in cm.allNetworks) {
             val caps = cm.getNetworkCapabilities(network) ?: continue
             val linkProperties = cm.getLinkProperties(network) ?: continue
 
-            for (linkAddress: LinkAddress in linkProperties.linkAddresses) {
-                val host = linkAddress.address
-                // Only return valid IPv4 addresses, skip loopback + IPv6
-                if (host is Inet4Address && !host.isLoopbackAddress) {
-                    return host.hostAddress ?: "0.0.0.0"
-                }
-            }
-        }
-
-        return "0.0.0.0"
-    }
-
-    */
-
-
-    fun getLocalIpAddress(context: Context): String? {
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-        for (network: Network in cm.allNetworks) {
-            val caps = cm.getNetworkCapabilities(network) ?: continue
-            val linkProperties = cm.getLinkProperties(network) ?: continue
-
-            for (linkAddress: LinkAddress in linkProperties.linkAddresses) {
+            for (linkAddress in linkProperties.linkAddresses) {
                 val host = linkAddress.address
                 if (host is Inet4Address && !host.isLoopbackAddress) {
-                    // Only accept private LAN ranges
                     val ip = host.hostAddress ?: continue
                     if (ip.startsWith("192.168.") ||
                         ip.startsWith("10.") ||
@@ -244,54 +139,57 @@ object Utility {
             }
         }
 
-        return null // ⛔ no valid IP
-    }
-
-
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    @SuppressLint("SetTextI18n", "Range")
-    fun getDownloadStatus(
-        context: Context,
-        progressBarPref: ProgressBar,
-        textprogressPercentage: TextView,
-        get_UserID: String,
-        get_LicenseKey: String,
-        url: String,
-        fileName: String,
-        myDownloadClass: SharedPreferences,
-        downloadKey: String,
-        onDownloadComplete: () -> Unit
-    ) {
+        // 2. Try hotspot IP via network interfaces (ap0, wlan0 in AP mode)
         try {
-            val downloadRef = myDownloadClass.getLong(downloadKey, -15)
-            val query = DownloadManager.Query().apply { setFilterById(downloadRef) }
-            val downloadManager =
-                context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-            val cursor = downloadManager.query(query)
-
-            if (cursor != null && cursor.moveToFirst()) {
-                val bytesDownloaded =
-                    cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
-                        .toLong()
-                val bytesTotal =
-                    cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
-                        .toLong()
-                val progressPercentage =
-                    (bytesDownloaded.toDouble() / bytesTotal.toDouble() * 100f).toInt()
-
-                progressBarPref.progress = progressPercentage
-                textprogressPercentage.text = "$progressPercentage% Zip Downloaded"
-
-                val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
-                if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                    onDownloadComplete()
+            val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
+            for (intf in interfaces) {
+                for (addr in intf.inetAddresses) {
+                    if (!addr.isLoopbackAddress && addr is Inet4Address) {
+                        if (intf.name.contains("ap", ignoreCase = true) ||
+                            intf.name.contains("wlan", ignoreCase = true)
+                        ) {
+                            return addr.hostAddress ?: "192.168.43.1"
+                        }
+                    }
                 }
             }
-            cursor?.close()
-        } catch (ignored: Exception) {
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
+
+        // 3. Fallback: AOSP default hotspot IP
+        return "192.168.43.1"
     }
+
+
+
+
+    /*
+        fun getLocalIpAddress(context: Context): String? {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+            for (network: Network in cm.allNetworks) {
+                val caps = cm.getNetworkCapabilities(network) ?: continue
+                val linkProperties = cm.getLinkProperties(network) ?: continue
+
+                for (linkAddress: LinkAddress in linkProperties.linkAddresses) {
+                    val host = linkAddress.address
+                    if (host is Inet4Address && !host.isLoopbackAddress) {
+                        // Only accept private LAN ranges
+                        val ip = host.hostAddress ?: continue
+                        if (ip.startsWith("192.168.") ||
+                            ip.startsWith("10.") ||
+                            ip.matches(Regex("^172\\.(1[6-9]|2[0-9]|3[0-1])\\..*"))
+                        ) {
+                            return ip
+                        }
+                    }
+                }
+            }
+
+            return null // ⛔ no valid IP
+        }
+    */
 
 
     fun hideSystemBars(window: Window) {
@@ -309,40 +207,6 @@ object Utility {
                             View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
                             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     )
-        }
-    }
-
-
-    fun saveStateHeathChecker(CLO: String, DEMO: String) {
-        val database = FirebaseDatabase.getInstance()
-        val myRef = database.reference.child("local").child(CLO).child(DEMO)
-
-        // Get current date and time as a string
-        val currentTime =
-            SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
-
-        // Use a HashMap<String, Any> for Firebase updateChildren
-        val hashMap = HashMap<String, Any>()
-        hashMap["LastUpdatedTime"] = currentTime
-        hashMap["App"] = "Running"
-
-        myRef.updateChildren(hashMap)
-    }
-
-     fun getPublicIP(): String {
-        return try {
-            val url = URL("https://api.ipify.org")
-            val connection = url.openConnection() as HttpURLConnection
-            connection.connectTimeout = 5000
-            connection.readTimeout = 5000
-
-            val reader = BufferedReader(InputStreamReader(connection.inputStream))
-            val ip = reader.readLine()
-            reader.close()
-            connection.disconnect()
-            ip
-        } catch (e: Exception) {
-            "Error: ${e.message}"
         }
     }
 
