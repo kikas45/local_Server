@@ -26,6 +26,11 @@ class SettingMaintenaceActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMaintenaceBinding
 
+    private val PREFS_NAME = "app_prefs"
+    private val LAST_URL_KEY = "last_url"
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMaintenaceBinding.inflate(layoutInflater)
@@ -88,11 +93,47 @@ class SettingMaintenaceActivity : AppCompatActivity() {
             }
         }
 
+
+
         binding.textFinishApp.setOnClickListener {
            finish()
         }
 
+
+
+        setUpUrlLaunch()
+
     }
+
+
+    private fun setUpUrlLaunch() {
+        binding.apply {
+            // 🔹 Load last saved URL into EditText
+            val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+            val lastUrl = prefs.getString(LAST_URL_KEY, "")
+            if (!lastUrl.isNullOrEmpty()) {
+                binding.editTextUserID.setText(lastUrl)
+            }
+
+
+            binding.textLaunch.setOnClickListener {
+                val url = binding.editTextUserID.text.toString().trim()
+                if (url.startsWith("http://") || url.startsWith("https://")) {
+                    // 🔹 Save the URL for next time
+                    prefs.edit().putString(LAST_URL_KEY, url).apply()
+
+                    val intent = Intent(applicationContext, DemoWebActivity::class.java)
+                    intent.putExtra(Constants.url_launch, url)
+                    startActivity(intent)
+                    finish()
+                } else {
+                    Toast.makeText(applicationContext, "Enter a valid URL (http/https)", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+        }
+    }
+
 
     private fun updateHideBarText(hide: Boolean) {
         binding.textHideSattusBar.text = if (hide) {

@@ -58,11 +58,11 @@
 
     <application
         android:hardwareAccelerated="true"
-        android:icon="@drawable/logo_60fps_select_24"
+        android:icon="@drawable/cloud_app_image"
         android:installLocation="internalOnly"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@drawable/logo_60fps_select_24"
+        android:roundIcon="@drawable/cloud_app_image"
         android:supportsRtl="true"
         android:theme="@style/Theme.RemoteWebViewLight"
         android:usesCleartextTraffic="true"

@@ -27,7 +27,7 @@
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_marginStart="4dp"
-        android:src="@drawable/logo_60fps_select_24"
+        android:src="@drawable/cloud_app_image"
         app:layout_constraintBottom_toTopOf="@+id/textSmarty"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

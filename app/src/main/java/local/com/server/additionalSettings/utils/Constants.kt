@@ -62,6 +62,7 @@ class Constants {
         const val SettingMaintenaceActivity = "SettingMaintenaceActivity"
         const val LightActivity = "LightActivity"
         const val DemoWebActivity = "DemoWebActivity"
+        const val url_launch = "url_launch"
 
     }
 }

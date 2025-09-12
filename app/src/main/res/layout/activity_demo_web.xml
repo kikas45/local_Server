@@ -72,15 +72,22 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-    <WebView
-        android:id="@+id/myWebview"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/bottom_server_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/top_server_layout" />
+        app:layout_constraintTop_toBottomOf="@+id/top_server_layout">
+
+        <WebView
+            android:id="@+id/myWebview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
 
     <androidx.constraintlayout.widget.ConstraintLayout

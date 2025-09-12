@@ -1,5 +1,4 @@
 package local.com.server.additionalSettings
-
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -100,6 +99,12 @@ class DemoWebActivity : AppCompatActivity() {
         }
 
 
+        // ✅ Setup pull-to-refresh
+        binding.swipeRefresh.setOnRefreshListener {
+            binding.myWebview.reload()
+        }
+
+
     }
 
 
@@ -143,7 +148,7 @@ class DemoWebActivity : AppCompatActivity() {
         // Debugging
         WebView.setWebContentsDebuggingEnabled(true)
 
-        val url_launch = intent.getStringExtra("url_launch")
+        val url_launch = intent.getStringExtra(Constants.url_launch)
 
         // Init web view load state
         if (Utility.foregroundForSeverServiceClass(applicationContext)) {
@@ -400,6 +405,7 @@ class DemoWebActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 if (isOfflinePage) {
                     binding.SimpleProgressBar.visibility = View.GONE
+                    binding.swipeRefresh.isRefreshing = false // ✅ hide spinner always
                 } else {
                    // binding.SimpleProgressBar.visibility = View.VISIBLE
                 }
@@ -408,6 +414,7 @@ class DemoWebActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 // Always hide for offline page
+                binding.swipeRefresh.isRefreshing = false // ✅ hide spinner always
                 if (isOfflinePage) {
                     binding.SimpleProgressBar.visibility = View.GONE
                     isOfflinePage = false  // reset for next navigation
